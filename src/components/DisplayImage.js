@@ -17,10 +17,10 @@ class DisplayImage extends React.Component {
       <Tooltip title={`Chapter: ${idxChapter} - Scan: ${idxImg}`}>
         <img
           style={{
-            display: "flex",
-            marginLeft: "auto",
-            marginRight: "auto",
+            position: "fixed",
             height: "100vh",
+            left: "50vw",
+            transform: "translate(-50%)",
           }}
           alt="manga"
           src={srcURL}

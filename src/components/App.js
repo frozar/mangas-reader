@@ -1,17 +1,10 @@
 import React from "react";
-// import axios from "axios";
-// import PinchZoomPan from "react-responsive-pinch-zoom-pan";
-// import Container from "@material-ui/core/Container";
-// import Tooltip from "@material-ui/core/Tooltip";
-// import CircularProgress from "@material-ui/core/CircularProgress";
 import { ThemeProvider } from "@material-ui/styles";
 import { createMuiTheme } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 
-// import MaximizableView from "./MaximizableView";
-import "./App.css";
-import ScanViewer from "./components/ScanViewer";
-import { Container } from "@material-ui/core";
+import "../App.css";
+import ScanViewer from "./ScanViewer";
 
 // Documentation link:
 // https://www.colorhexa.com/aaaec1
@@ -23,42 +16,7 @@ const theme = createMuiTheme({
   },
 });
 
-// const ACTION_INC = 1;
-// const ACTION_DEC = -1;
-const START_IDX = 0;
-const MAX_IDX = 30;
-const MANGA_TITLE = "one-piece";
-// one-punch-man
-
 class App extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { idxChapter: 991, idxImg: 3, action: null };
-  }
-
-  // componentDidMount() {
-  //   document.addEventListener("keydown", this.handleKeyPress);
-  // }
-
-  // // componentDidUpdate() {
-  // //   console.log("idxChapter", this.state.idxChapter);
-  // //   console.log("idxImg", this.state.idxImg);
-  // // }
-
-  // componentWillUnmount() {
-  //   document.removeEventListener("keydown", this.handleKeyPress);
-  // }
-
-  // handleKeyPress = (evt) => {
-  //   const { idxImg } = this.state;
-  //   if (evt.key === "ArrowLeft") {
-  //     this.setState({ idxImg: idxImg - 1, action: ACTION_DEC });
-  //   }
-  //   if (evt.key === "ArrowRight") {
-  //     this.setState({ idxImg: idxImg + 1, action: ACTION_INC });
-  //   }
-  // };
-
   // handleOnError = (evt) => {
   //   // console.log(evt);
   //   // console.log(evt.target);
@@ -98,19 +56,9 @@ class App extends React.Component {
   //   }
   // };
 
-  // handleOnLoad = () => {
-  //   console.log("Loading");
-  // };
-
   render() {
-    // const { idxChapter, idxImg } = this.state;
-    // const strIdxImg = idxImg.toLocaleString(undefined, {
-    //   minimumIntegerDigits: 2,
-    // });
     return (
       <ThemeProvider theme={theme}>
-        {/* <Container className={classes.root}> */}
-
         <CssBaseline />
         <ScanViewer />
       </ThemeProvider>
