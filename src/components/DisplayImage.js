@@ -2,10 +2,6 @@ import React from "react";
 import Tooltip from "@material-ui/core/Tooltip";
 
 class DisplayImage extends React.Component {
-  handleLoaded = () => {
-    this.props.imageLoaded();
-  };
-
   getURL(mangaTitle, idxChapter, idxImg) {
     const strIdxImg = idxImg.toLocaleString(undefined, {
       minimumIntegerDigits: 2,
@@ -24,12 +20,12 @@ class DisplayImage extends React.Component {
             display: "flex",
             marginLeft: "auto",
             marginRight: "auto",
-            height: "99vh",
+            height: "100vh",
           }}
           alt="manga"
           src={srcURL}
-          onError={this.handleOnError}
-          onLoad={this.handleLoaded}
+          // onError={this.handleOnError}
+          onLoad={this.props.imageLoaded}
         />
       </Tooltip>
     );

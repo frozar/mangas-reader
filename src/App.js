@@ -4,10 +4,24 @@ import React from "react";
 // import Container from "@material-ui/core/Container";
 // import Tooltip from "@material-ui/core/Tooltip";
 // import CircularProgress from "@material-ui/core/CircularProgress";
+import { ThemeProvider } from "@material-ui/styles";
+import { createMuiTheme } from "@material-ui/core/styles";
+import CssBaseline from "@material-ui/core/CssBaseline";
 
 // import MaximizableView from "./MaximizableView";
 import "./App.css";
 import ScanViewer from "./components/ScanViewer";
+import { Container } from "@material-ui/core";
+
+// Documentation link:
+// https://www.colorhexa.com/aaaec1
+const theme = createMuiTheme({
+  palette: {
+    background: {
+      default: "#aaaec1",
+    },
+  },
+});
 
 // const ACTION_INC = 1;
 // const ACTION_DEC = -1;
@@ -94,52 +108,12 @@ class App extends React.Component {
     //   minimumIntegerDigits: 2,
     // });
     return (
-      // <div>
-      //   {/* <MaximizableView backgroundColor="#efefef"> */}
-      //   {/* <h3 style={{ textAlign: "center" }}>
-      //     {`Chapter: ${idxChapter} - Scan: ${idxImg}`}
-      //   </h3> */}
+      <ThemeProvider theme={theme}>
+        {/* <Container className={classes.root}> */}
 
-      //   {/* <div style={{ backgroundColor: "#555" }}>
-      //     <div
-      //       style={{
-      //         width: "50%",
-      //         // height: "94vh",
-      //         marginLeft: "auto",
-      //         marginRight: "auto",
-      //       }}
-      //     > */}
-
-      //   <Container style={{ backgroundColor: "#555" }}>
-      //     <Tooltip title={`Chapter: ${idxChapter} - Scan: ${idxImg}`}>
-      //       <img
-      //         style={{
-      //           display: "flex",
-      //           marginLeft: "auto",
-      //           marginRight: "auto",
-      //           height: "99vh",
-      //         }}
-      //         alt="manga"
-      //         src={`https://lelscan.net/mangas/${MANGA_TITLE}/${idxChapter}/${strIdxImg}.jpg`}
-      //         onError={this.handleOnError}
-      //         onLoad={this.handleOnLoad}
-      //       />
-      //     </Tooltip>
-      //     {/* <div
-      //       style={{
-      //         display: "flex",
-      //         marginLeft: "auto",
-      //         marginRight: "auto",
-      //         // height: "99vh",
-      //       }}
-      //     >
-      //       <CircularProgress />
-      //     </div> */}
-      //   </Container>
-      //   {/* </div>
-      //   </div> */}
-      // </div>
-      <ScanViewer />
+        <CssBaseline />
+        <ScanViewer />
+      </ThemeProvider>
     );
   }
 }
