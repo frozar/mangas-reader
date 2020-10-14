@@ -2,19 +2,19 @@ import React from "react";
 import Tooltip from "@material-ui/core/Tooltip";
 
 class DisplayImage extends React.Component {
-  getURL(mangaTitle, idxChapter, idxImg) {
-    const strIdxImg = idxImg.toLocaleString(undefined, {
+  getURL(mangaURL, idxChapter, idxImage) {
+    const strIdxImg = idxImage.toLocaleString(undefined, {
       minimumIntegerDigits: 2,
     });
     const baseURL = "https://lelscan.net/mangas";
-    return `${baseURL}/${mangaTitle}/${idxChapter}/${strIdxImg}.jpg`;
+    return `${baseURL}/${mangaURL}/${idxChapter}/${strIdxImg}.jpg`;
   }
 
   render() {
-    const { mangaTitle, idxChapter, idxImg } = this.props;
-    const srcURL = this.getURL(mangaTitle, idxChapter, idxImg);
+    const { mangaURL, idxChapter, idxImage } = this.props;
+    const srcURL = this.getURL(mangaURL, idxChapter, idxImage);
     return (
-      <Tooltip title={`Chapter: ${idxChapter} - Scan: ${idxImg}`}>
+      <Tooltip title={`Chapter: ${idxChapter} - Scan: ${idxImage}`}>
         <img
           style={{
             position: "fixed",

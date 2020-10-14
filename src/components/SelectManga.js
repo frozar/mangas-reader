@@ -5,16 +5,7 @@ import MenuItem from "@material-ui/core/MenuItem";
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 
-const listManga = [
-  {
-    title: "One Piece",
-    path: "one-piece",
-  },
-  {
-    title: "One Punch Man",
-    path: "one-punch-man",
-  },
-];
+import LIST_MANGA from "../listManga";
 
 const useStyles = makeStyles((theme) => ({
   formControl: {
@@ -31,7 +22,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function SelectManga(props) {
   const classes = useStyles();
-  const [manga, setManga] = React.useState(listManga[0].path);
+  const [manga, setManga] = React.useState(LIST_MANGA[0].URL);
 
   // console.log(props);
   const handleChange = (event) => {
@@ -40,9 +31,9 @@ export default function SelectManga(props) {
     props.selectManga(event.target.value);
   };
 
-  const renderedManga = listManga.map((objManga) => {
+  const renderedManga = LIST_MANGA.map((objManga) => {
     return (
-      <MenuItem key={objManga.path} value={objManga.path}>
+      <MenuItem key={objManga.URL} value={objManga.URL}>
         {objManga.title}
       </MenuItem>
     );

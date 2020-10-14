@@ -6,6 +6,7 @@ import { withStyles } from "@material-ui/core/styles";
 
 import DisplayImage from "./DisplayImage";
 import SelectManga from "./SelectManga";
+import { pingMangaDict } from "../Probe";
 
 const styles = {
   backdrop: {
@@ -14,17 +15,17 @@ const styles = {
   },
 };
 
-const MANGA_TITLE = "one-piece";
+// const MANGA_TITLE = "one-piece";
 const ACTION_INC = 1;
 const ACTION_DEC = -1;
 
 class ScanViewer extends React.Component {
   state = {
     idxChapter: 991,
-    idxImg: 3,
+    idxImage: 3,
     action: null,
     imageDisplayed: false,
-    mangaPath: "one-piece",
+    mangaURL: "one-piece",
   };
 
   componentDidMount() {
@@ -36,29 +37,41 @@ class ScanViewer extends React.Component {
   }
 
   handleKeyPress = (evt) => {
-    const { idxImg } = this.state;
+    // TODO: check mangaDict to:
+    // 1/ Trigger the update of mangaDict if information not found
+    // 2/ Compute the next move, maybe compute by the probe
+    const { idxImage } = this.state;
     if (evt.key === "ArrowLeft") {
-      this.setState({ imageDisplayed: false });
-      this.setState({ idxImg: idxImg - 1, action: ACTION_DEC });
+      this.setState({
+        imageDisplayed: false,
+        idxImage: idxImage - 1,
+        action: ACTION_DEC,
+      });
     }
     if (evt.key === "ArrowRight") {
-      this.setState({ imageDisplayed: false });
-      this.setState({ idxImg: idxImg + 1, action: ACTION_INC });
+      this.setState({
+        imageDisplayed: false,
+        idxImage: idxImage + 1,
+        action: ACTION_INC,
+      });
     }
   };
 
   imageLoaded = () => {
-    this.setState({ imageDisplayed: true });
+    this.setState({ imageDisplayed: true, action: null });
   };
 
-  selectManga = (mangaPath) => {
-    this.setState({ mangaPath: mangaPath });
-    console.log(mangaPath);
+  // TODO: retrieve manga object: title + URLpath
+  selectManga = (mangaURL) => {
+    this.setState({ mangaURL });
+    console.log("selectManga");
   };
 
   render() {
-    const { idxChapter, idxImg, imageDisplayed } = this.state;
+    const { mangaURL, idxChapter, idxImage, imageDisplayed } = this.state;
     const { classes } = this.props;
+
+    pingMangaDict(mangaURL, idxChapter, idxImage);
     return (
       <Container>
         <Backdrop className={classes.backdrop} open={!imageDisplayed}>
@@ -66,11 +79,17 @@ class ScanViewer extends React.Component {
         </Backdrop>
         <SelectManga selectManga={this.selectManga} />
         <DisplayImage
-          mangaTitle={MANGA_TITLE}
+          mangaURL={mangaURL}
           idxChapter={idxChapter}
-          idxImg={idxImg}
+          idxImage={idxImage}
           imageLoaded={this.imageLoaded}
         />
+        {/* <DiscoverManga
+          mangaTitle={MANGA_TITLE}
+
+          idxChapter={probeIdxChapter}
+          idxImage={probeIdxImage}
+        /> */}
       </Container>
     );
   }
