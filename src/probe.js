@@ -12,15 +12,22 @@ const SEARCH_BEGIN = 0;
 const SEARCH_MIDDLE = 1;
 const SEARCH_END = 2;
 const KEY_ACTION = "action";
-const KEY_FOUND = "maxIdxFound";
-const KEY_NOT_FOUND = "minIdxNotFound";
+const KEY_MAX_IDX_FOUND = "maxIdxFound";
+const KEY_MIN_IDX_NOT_FOUND = "minIdxNotFound";
 const KEY_FIRST_CHAPTER = "firstChapter";
 const KEY_LAST_CHAPTER = "lastChapter";
+
+let callback = null;
 
 export let mangaDict = {};
 
 export function pingMangaDict(mangaPath, idxChapter, idxImage) {
-  // console.log("PING");
+  console.log("PING");
+  console.log(mangaDict);
+}
+
+export function discoverChapter(mangaURL, idxChapter) {
+  return true;
 }
 
 function isMangaKnown(mangaURLValue) {
@@ -36,7 +43,8 @@ function isMangaKnown(mangaURLValue) {
   }
 }
 
-export function discoverManga(mangaURL) {
+export function discoverManga(mangaURL, updateIdxLastChapter) {
+  callback = updateIdxLastChapter;
   // console.log("discoverManga", mangaURL);
   if (isMangaKnown(mangaDict[mangaURL])) {
     return;
@@ -51,10 +59,6 @@ export function discoverManga(mangaURL) {
   _.merge(mangaDict, { [mangaURL]: { [KEY_ACTION]: SEARCH_BEGIN } });
   // console.log(mangaDict);
   discoverMangaAux(mangaURL, firstIdxChapter);
-}
-
-export function discoverChapter(mangaURL, idxChapter) {
-  return true;
 }
 
 function discoverMangaAux(mangaURL, idxChapter) {
@@ -90,6 +94,9 @@ function imageExist({ mangaURL, idxChapter, idxImage }) {
     } else {
       mangaDict[mangaURL][KEY_LAST_CHAPTER] = idxChapter;
       mangaDict[mangaURL][KEY_ACTION] = null;
+      if (callback !== null) {
+        callback(mangaURL, idxChapter);
+      }
     }
   }
 }
@@ -124,6 +131,9 @@ function imageNotExist({ mangaURL, idxChapter, idxImage }) {
     } else {
       mangaDict[mangaURL][KEY_LAST_CHAPTER] = idxChapter;
       mangaDict[mangaURL][KEY_ACTION] = null;
+      if (callback !== null) {
+        callback(mangaURL, idxChapter);
+      }
     }
   }
 }

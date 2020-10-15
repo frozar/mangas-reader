@@ -1,35 +1,34 @@
 import React from "react";
-import Container from "@material-ui/core/Container";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import Backdrop from "@material-ui/core/Backdrop";
-import { withStyles } from "@material-ui/core/styles";
 
 import DisplayImage from "./DisplayImage";
-import SelectManga from "./SelectManga";
-import { pingMangaDict } from "../Probe";
+import WaitingScreen from "./WaitingScreen";
+import { pingMangaDict } from "../probe";
 
-const styles = {
-  backdrop: {
-    zIndex: 10, // arbitrary value
-    color: "#111",
-  },
-};
-
-// const MANGA_TITLE = "one-piece";
 const ACTION_INC = 1;
 const ACTION_DEC = -1;
 
 class ScanViewer extends React.Component {
   state = {
-    idxChapter: 991,
-    idxImage: 3,
+    mangaURL: "",
+    idxChapter: null,
+    idxImage: null,
     action: null,
     imageDisplayed: false,
-    mangaURL: "one-piece",
   };
 
   componentDidMount() {
     document.addEventListener("keydown", this.handleKeyPress);
+  }
+
+  componentDidUpdate() {
+    const { mangaURL, idxChapter } = this.props;
+    if (
+      !(
+        mangaURL === this.state.mangaURL && idxChapter === this.state.idxChapter
+      )
+    ) {
+      this.setState({ mangaURL, idxChapter, idxImage: 0 });
+    }
   }
 
   componentWillUnmount() {
@@ -47,6 +46,7 @@ class ScanViewer extends React.Component {
         idxImage: idxImage - 1,
         action: ACTION_DEC,
       });
+      window.scrollTo(0, 0);
     }
     if (evt.key === "ArrowRight") {
       this.setState({
@@ -54,6 +54,7 @@ class ScanViewer extends React.Component {
         idxImage: idxImage + 1,
         action: ACTION_INC,
       });
+      window.scrollTo(0, 0);
     }
   };
 
@@ -61,38 +62,26 @@ class ScanViewer extends React.Component {
     this.setState({ imageDisplayed: true, action: null });
   };
 
-  // TODO: retrieve manga object: title + URLpath
-  selectManga = (mangaURL) => {
-    this.setState({ mangaURL });
-    console.log("selectManga");
-  };
-
   render() {
     const { mangaURL, idxChapter, idxImage, imageDisplayed } = this.state;
-    const { classes } = this.props;
 
-    pingMangaDict(mangaURL, idxChapter, idxImage);
-    return (
-      <Container>
-        <Backdrop className={classes.backdrop} open={!imageDisplayed}>
-          <CircularProgress color="inherit" />
-        </Backdrop>
-        <SelectManga selectManga={this.selectManga} />
-        <DisplayImage
-          mangaURL={mangaURL}
-          idxChapter={idxChapter}
-          idxImage={idxImage}
-          imageLoaded={this.imageLoaded}
-        />
-        {/* <DiscoverManga
-          mangaTitle={MANGA_TITLE}
-
-          idxChapter={probeIdxChapter}
-          idxImage={probeIdxImage}
-        /> */}
-      </Container>
-    );
+    if (!(mangaURL !== "" && idxChapter !== null && idxImage !== null)) {
+      return <WaitingScreen open={!imageDisplayed} />;
+    } else {
+      pingMangaDict(mangaURL, idxChapter, idxImage);
+      return (
+        <React.Fragment>
+          <WaitingScreen open={!imageDisplayed} />
+          <DisplayImage
+            mangaURL={mangaURL}
+            idxChapter={idxChapter}
+            idxImage={idxImage}
+            imageLoaded={this.imageLoaded}
+          />
+        </React.Fragment>
+      );
+    }
   }
 }
 
-export default withStyles(styles, { withTheme: true })(ScanViewer);
+export default ScanViewer;

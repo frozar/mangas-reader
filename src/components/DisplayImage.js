@@ -17,8 +17,7 @@ class DisplayImage extends React.Component {
       <Tooltip title={`Chapter: ${idxChapter} - Scan: ${idxImage}`}>
         <img
           style={{
-            position: "fixed",
-            height: "100vh",
+            position: "absolute",
             left: "50vw",
             transform: "translate(-50%)",
           }}
