@@ -1,8 +1,6 @@
-import React from "react";
-import ReactDOM from "react-dom";
 import _ from "lodash";
 
-import ProbeImage from "./components/ProbeImage";
+import probeImage from "./components/ProbeImage";
 import LIST_MANGA from "./listManga";
 
 const NOT_EXIST = 0;
@@ -84,13 +82,6 @@ export function pingMangaDict(mangaURL, idxChapter, idxImage) {
 }
 
 function discoverChapter(mangaURL, idxChapter, idxImage, callback) {
-  // console.log("DISCOVER_CHAPTER", mangaURL, idxChapter, idxImage);
-  // console.log(
-  //   "isChapterKnown(mangaURL, idxChapter)",
-  //   isChapterKnown(mangaURL, idxChapter)
-  // );
-  // console.log("mangaDict", mangaDict);
-
   if (isChapterKnown(mangaURL, idxChapter)) {
     if (callback) {
       callback();
@@ -124,10 +115,6 @@ function discoverChapter(mangaURL, idxChapter, idxImage, callback) {
   discoverChapterAux(mangaURL, idxChapter, nextIdxImage);
 
   function discoverChapterAux(mangaURL, idxChapter, idxImage) {
-    // console.log("discoverChapterAux");
-    // console.log(mangaDict);
-    // console.log(discoverChapterImageExist);
-    // console.log(discoverChapterImageNotExist);
     probeImage(
       { mangaURL, idxChapter, idxImage },
       discoverChapterImageExist,
@@ -336,16 +323,4 @@ export function discoverManga(mangaURL, dicoverMangaCallback) {
       }
     }
   }
-}
-
-function probeImage(mangaInfo, imageExistCallback, imageNotExistCallback) {
-  // console.log("probeImage", mangaInfo);
-  ReactDOM.render(
-    <ProbeImage
-      mangaInfo={mangaInfo}
-      imageExist={imageExistCallback}
-      imageNotExist={imageNotExistCallback}
-    />,
-    document.querySelector("#probe")
-  );
 }
