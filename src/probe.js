@@ -12,22 +12,195 @@ const SEARCH_BEGIN = 0;
 const SEARCH_MIDDLE = 1;
 const SEARCH_END = 2;
 const KEY_ACTION = "action";
-const KEY_MAX_IDX_FOUND = "maxIdxFound";
-const KEY_MIN_IDX_NOT_FOUND = "minIdxNotFound";
 const KEY_FIRST_CHAPTER = "firstChapter";
 const KEY_LAST_CHAPTER = "lastChapter";
+const KEY_MAX_IDX_FOUND = "maxIdxFound";
+const KEY_MIN_IDX_NOT_FOUND = "minIdxNotFound";
 
-let callback = null;
+// export let mangaDict = {};
 
-export let mangaDict = {};
+// DEV INITIALISATION
+export let mangaDict = {
+  "one-piece": {
+    679: 0,
+    680: 1,
+    850: 1,
+    935: 1,
+    977: 1,
+    987: 1,
+    992: 1, //{ maxIdxFound: 15, minIdxNotFound: 16 },
+    993: 0,
+    995: 0,
+    998: 0,
+    1020: 0,
+    1360: 0,
+    action: null,
+    firstChapter: 680,
+    lastChapter: 992,
+  },
+};
 
-export function pingMangaDict(mangaPath, idxChapter, idxImage) {
-  console.log("PING");
-  console.log(mangaDict);
+function isChapterKnown(mangaURL, idxChapter) {
+  if (
+    mangaDict[mangaURL][idxChapter] === undefined ||
+    mangaDict[mangaURL][idxChapter] === EXIST
+  ) {
+    return false;
+  } else if (mangaDict[mangaURL][idxChapter] === NOT_EXIST) {
+    return true;
+  } else if (
+    mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND] === undefined ||
+    mangaDict[mangaURL][idxChapter][KEY_MIN_IDX_NOT_FOUND] === undefined
+  ) {
+    return false;
+  } else {
+    const maxIdxFound = mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND];
+    const minIdxNotFound =
+      mangaDict[mangaURL][idxChapter][KEY_MIN_IDX_NOT_FOUND];
+    if (minIdxNotFound - maxIdxFound !== 1) {
+      return false;
+    } else {
+      return true;
+    }
+  }
 }
 
-export function discoverChapter(mangaURL, idxChapter) {
-  return true;
+export function pingMangaDict(mangaURL, idxChapter, idxImage) {
+  console.log("PING");
+  console.log(mangaDict);
+  if (mangaDict[mangaURL] === undefined) {
+    discoverManga(mangaURL, null);
+  }
+
+  if (!isChapterKnown(mangaURL, idxChapter)) {
+    discoverChapter(mangaURL, idxChapter, idxImage, () => {
+      discoverChapter(mangaURL, idxChapter + 1, idxImage, () => {
+        if (1 < idxChapter) {
+          discoverChapter(mangaURL, idxChapter - 1, idxImage);
+        }
+      });
+    });
+  }
+}
+
+function discoverChapter(mangaURL, idxChapter, idxImage, callback) {
+  // console.log("DISCOVER_CHAPTER", mangaURL, idxChapter, idxImage);
+  // console.log(
+  //   "isChapterKnown(mangaURL, idxChapter)",
+  //   isChapterKnown(mangaURL, idxChapter)
+  // );
+  // console.log("mangaDict", mangaDict);
+
+  if (isChapterKnown(mangaURL, idxChapter)) {
+    if (callback) {
+      callback();
+    }
+    return;
+  }
+
+  // Init the chapter for the search
+  if (
+    mangaDict[mangaURL][idxChapter] === undefined ||
+    mangaDict[mangaURL][idxChapter] === EXIST
+  ) {
+    mangaDict[mangaURL][idxChapter] = {
+      [KEY_MAX_IDX_FOUND]: undefined,
+      [KEY_MIN_IDX_NOT_FOUND]: undefined,
+    };
+  }
+
+  // Update the current known boundary of the chapter
+  if (
+    mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND] === undefined ||
+    mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND] < idxImage
+  ) {
+    mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND] = idxImage;
+  }
+
+  let nextIdxImage = idxImage;
+  if (nextIdxImage === 0) {
+    nextIdxImage = 1;
+  }
+  discoverChapterAux(mangaURL, idxChapter, nextIdxImage);
+
+  function discoverChapterAux(mangaURL, idxChapter, idxImage) {
+    // console.log("discoverChapterAux");
+    // console.log(mangaDict);
+    // console.log(discoverChapterImageExist);
+    // console.log(discoverChapterImageNotExist);
+    probeImage(
+      { mangaURL, idxChapter, idxImage },
+      discoverChapterImageExist,
+      discoverChapterImageNotExist
+    );
+  }
+
+  function discoverChapterImageExist({ mangaURL, idxChapter, idxImage }) {
+    if (
+      mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND] === undefined ||
+      mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND] < idxImage
+    ) {
+      mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND] = idxImage;
+    }
+
+    if (mangaDict[mangaURL][idxChapter][KEY_MIN_IDX_NOT_FOUND] === undefined) {
+      if (idxImage === 0) {
+        discoverChapterAux(mangaURL, idxChapter, 1);
+      } else {
+        const nextIdxImage = idxImage * 2;
+        discoverChapterAux(mangaURL, idxChapter, nextIdxImage);
+      }
+    } else {
+      const idxFound = mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND];
+      const idxNotFound =
+        mangaDict[mangaURL][idxChapter][KEY_MIN_IDX_NOT_FOUND];
+      if (1 < idxNotFound - idxFound) {
+        const nextIdxImage = Math.floor((idxNotFound + idxFound) / 2);
+        discoverChapterAux(mangaURL, idxChapter, nextIdxImage);
+      } else if (1 === idxNotFound - idxFound) {
+        // Terminal case: end of chapter found!
+        console.log("CHAPTER END AT", idxFound);
+        console.log(mangaDict);
+        if (callback) {
+          callback();
+        }
+      }
+    }
+  }
+
+  function discoverChapterImageNotExist({ mangaURL, idxChapter, idxImage }) {
+    if (
+      mangaDict[mangaURL][idxChapter][KEY_MIN_IDX_NOT_FOUND] === undefined ||
+      idxImage < mangaDict[mangaURL][idxChapter][KEY_MIN_IDX_NOT_FOUND]
+    ) {
+      mangaDict[mangaURL][idxChapter][KEY_MIN_IDX_NOT_FOUND] = idxImage;
+    }
+
+    if (mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND] === undefined) {
+      if (idxImage === 0) {
+        // Chapter doesn't exist
+        mangaDict[mangaURL][idxChapter] = NOT_EXIST;
+      } else {
+        const nextIdxImage = Math.floor(idxImage / 2);
+        discoverChapterAux(mangaURL, idxChapter, nextIdxImage);
+      }
+    } else {
+      const idxFound = mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND];
+      const idxNotFound =
+        mangaDict[mangaURL][idxChapter][KEY_MIN_IDX_NOT_FOUND];
+      if (1 < idxNotFound - idxFound) {
+        const nextIdxImage = Math.floor((idxNotFound + idxFound) / 2);
+        discoverChapterAux(mangaURL, idxChapter, nextIdxImage);
+      } else if (1 === idxNotFound - idxFound) {
+        // Terminal case: end of chapter found!
+        console.log("CHAPTER", idxChapter, " End at", idxFound);
+        console.log(mangaDict);
+        if (callback) {
+          callback();
+        }
+      }
+    }
+  }
 }
 
 function isMangaKnown(mangaURLValue) {
@@ -43,10 +216,11 @@ function isMangaKnown(mangaURLValue) {
   }
 }
 
-export function discoverManga(mangaURL, updateIdxLastChapter) {
-  callback = updateIdxLastChapter;
-  // console.log("discoverManga", mangaURL);
+export function discoverManga(mangaURL, dicoverMangaCallback) {
   if (isMangaKnown(mangaDict[mangaURL])) {
+    if (dicoverMangaCallback !== null) {
+      dicoverMangaCallback(mangaURL, mangaDict[mangaURL][KEY_LAST_CHAPTER]);
+    }
     return;
   }
 
@@ -57,93 +231,120 @@ export function discoverManga(mangaURL, updateIdxLastChapter) {
   }
   // Update the action key for the discovery of this manga
   _.merge(mangaDict, { [mangaURL]: { [KEY_ACTION]: SEARCH_BEGIN } });
-  // console.log(mangaDict);
   discoverMangaAux(mangaURL, firstIdxChapter);
-}
 
-function discoverMangaAux(mangaURL, idxChapter) {
-  const idxImage = 0;
-  probeImage({ mangaURL, idxChapter, idxImage });
-}
-
-let lastIdxChapterFound = null;
-let lastIdxChapterNotFound = null;
-
-function imageExist({ mangaURL, idxChapter, idxImage }) {
-  // console.log("imageExist");
-  if (idxImage === 0 && mangaDict[mangaURL][idxChapter] === undefined) {
-    mangaDict[mangaURL][idxChapter] = EXIST;
+  function discoverMangaAux(mangaURL, idxChapter) {
+    const idxImage = 0;
+    probeImage(
+      { mangaURL, idxChapter, idxImage },
+      discoverMangaImageExist,
+      discoverMangaImageNotExist
+    );
   }
-  if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_BEGIN) {
-    mangaDict[mangaURL][KEY_FIRST_CHAPTER] = idxChapter;
-    mangaDict[mangaURL][KEY_ACTION] = SEARCH_MIDDLE;
-    lastIdxChapterFound = idxChapter;
-    const nextIdxChapter = idxChapter * 2;
-    discoverMangaAux(mangaURL, nextIdxChapter);
-  } else if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_MIDDLE) {
-    lastIdxChapterFound = idxChapter;
-    const nextIdxChapter = idxChapter * 2;
-    discoverMangaAux(mangaURL, nextIdxChapter);
-  } else if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_END) {
-    lastIdxChapterFound = idxChapter;
-    if (lastIdxChapterNotFound - lastIdxChapterFound !== 1) {
-      const nextIdxChapter = Math.floor(
-        (lastIdxChapterNotFound + lastIdxChapterFound) / 2
-      );
+
+  let lastIdxChapterFound = null;
+  let lastIdxChapterNotFound = null;
+  const debug = false;
+
+  function discoverMangaImageExist({ mangaURL, idxChapter, idxImage }) {
+    if (idxImage === 0 && mangaDict[mangaURL][idxChapter] === undefined) {
+      mangaDict[mangaURL][idxChapter] = EXIST;
+    }
+    if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_BEGIN) {
+      mangaDict[mangaURL][KEY_FIRST_CHAPTER] = idxChapter;
+      mangaDict[mangaURL][KEY_ACTION] = SEARCH_MIDDLE;
+      lastIdxChapterFound = idxChapter;
+      const nextIdxChapter = idxChapter * 2;
+      if (debug) {
+        console.log("cas 0", mangaDict);
+      }
       discoverMangaAux(mangaURL, nextIdxChapter);
-    } else {
-      mangaDict[mangaURL][KEY_LAST_CHAPTER] = idxChapter;
-      mangaDict[mangaURL][KEY_ACTION] = null;
-      if (callback !== null) {
-        callback(mangaURL, idxChapter);
+    } else if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_MIDDLE) {
+      lastIdxChapterFound = idxChapter;
+      const nextIdxChapter = idxChapter * 2;
+      if (debug) {
+        console.log("cas 1", mangaDict);
+      }
+      discoverMangaAux(mangaURL, nextIdxChapter);
+    } else if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_END) {
+      lastIdxChapterFound = idxChapter;
+      if (lastIdxChapterNotFound - lastIdxChapterFound !== 1) {
+        const nextIdxChapter = Math.floor(
+          (lastIdxChapterNotFound + lastIdxChapterFound) / 2
+        );
+        if (debug) {
+          console.log("cas 2", mangaDict);
+        }
+        discoverMangaAux(mangaURL, nextIdxChapter);
+      } else {
+        mangaDict[mangaURL][KEY_LAST_CHAPTER] = lastIdxChapterFound;
+        mangaDict[mangaURL][KEY_ACTION] = null;
+        if (debug) {
+          console.log("cas 3", mangaDict);
+        }
+        if (dicoverMangaCallback !== null) {
+          dicoverMangaCallback(mangaURL, lastIdxChapterFound);
+        }
+      }
+    }
+  }
+
+  function discoverMangaImageNotExist({ mangaURL, idxChapter, idxImage }) {
+    if (idxImage === 0 && mangaDict[mangaURL][idxChapter] === undefined) {
+      mangaDict[mangaURL][idxChapter] = NOT_EXIST;
+    }
+    if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_BEGIN) {
+      const nextIdxChapter = idxChapter + 1;
+      if (debug) {
+        console.log("cas 4", mangaDict);
+      }
+      discoverMangaAux(mangaURL, nextIdxChapter);
+    } else if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_MIDDLE) {
+      mangaDict[mangaURL][KEY_ACTION] = SEARCH_END;
+      lastIdxChapterNotFound = idxChapter;
+      if (lastIdxChapterNotFound - lastIdxChapterFound !== 1) {
+        const nextIdxChapter = Math.floor(
+          (lastIdxChapterNotFound + lastIdxChapterFound) / 2
+        );
+        if (debug) {
+          console.log("cas 5", mangaDict);
+        }
+        discoverMangaAux(mangaURL, nextIdxChapter);
+      } else {
+        mangaDict[mangaURL][KEY_LAST_CHAPTER] = idxChapter;
+        mangaDict[mangaURL][KEY_ACTION] = null;
+      }
+    } else if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_END) {
+      lastIdxChapterNotFound = idxChapter;
+      if (lastIdxChapterNotFound - lastIdxChapterFound !== 1) {
+        const nextIdxChapter = Math.floor(
+          (lastIdxChapterNotFound + lastIdxChapterFound) / 2
+        );
+        if (debug) {
+          console.log("cas 6", mangaDict);
+        }
+        discoverMangaAux(mangaURL, nextIdxChapter);
+      } else {
+        mangaDict[mangaURL][KEY_LAST_CHAPTER] = lastIdxChapterFound;
+        mangaDict[mangaURL][KEY_ACTION] = null;
+        if (debug) {
+          console.log("cas 7", mangaDict);
+        }
+        if (dicoverMangaCallback !== null) {
+          dicoverMangaCallback(mangaURL, lastIdxChapterFound);
+        }
       }
     }
   }
 }
 
-function imageNotExist({ mangaURL, idxChapter, idxImage }) {
-  // console.log("imageNotExist");
-  if (idxImage === 0 && mangaDict[mangaURL][idxChapter] === undefined) {
-    mangaDict[mangaURL][idxChapter] = NOT_EXIST;
-  }
-  if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_BEGIN) {
-    const nextIdxChapter = idxChapter + 1;
-    discoverMangaAux(mangaURL, nextIdxChapter);
-  } else if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_MIDDLE) {
-    mangaDict[mangaURL][KEY_ACTION] = SEARCH_END;
-    lastIdxChapterNotFound = idxChapter;
-    if (lastIdxChapterNotFound - lastIdxChapterFound !== 1) {
-      const nextIdxChapter = Math.floor(
-        (lastIdxChapterNotFound + lastIdxChapterFound) / 2
-      );
-      discoverMangaAux(mangaURL, nextIdxChapter);
-    } else {
-      mangaDict[mangaURL][KEY_LAST_CHAPTER] = idxChapter;
-      mangaDict[mangaURL][KEY_ACTION] = null;
-    }
-  } else if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_END) {
-    lastIdxChapterNotFound = idxChapter;
-    if (lastIdxChapterNotFound - lastIdxChapterFound !== 1) {
-      const nextIdxChapter = Math.floor(
-        (lastIdxChapterNotFound + lastIdxChapterFound) / 2
-      );
-      discoverMangaAux(mangaURL, nextIdxChapter);
-    } else {
-      mangaDict[mangaURL][KEY_LAST_CHAPTER] = idxChapter;
-      mangaDict[mangaURL][KEY_ACTION] = null;
-      if (callback !== null) {
-        callback(mangaURL, idxChapter);
-      }
-    }
-  }
-}
-
-function probeImage(mangaInfo) {
+function probeImage(mangaInfo, imageExistCallback, imageNotExistCallback) {
+  // console.log("probeImage", mangaInfo);
   ReactDOM.render(
     <ProbeImage
       mangaInfo={mangaInfo}
-      imageExist={imageExist}
-      imageNotExist={imageNotExist}
+      imageExist={imageExistCallback}
+      imageNotExist={imageNotExistCallback}
     />,
     document.querySelector("#probe")
   );

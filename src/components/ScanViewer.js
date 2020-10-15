@@ -59,6 +59,8 @@ class ScanViewer extends React.Component {
   };
 
   imageLoaded = () => {
+    const { mangaURL, idxChapter, idxImage } = this.state;
+    pingMangaDict(mangaURL, idxChapter, idxImage);
     this.setState({ imageDisplayed: true, action: null });
   };
 
@@ -68,7 +70,6 @@ class ScanViewer extends React.Component {
     if (!(mangaURL !== "" && idxChapter !== null && idxImage !== null)) {
       return <WaitingScreen open={!imageDisplayed} />;
     } else {
-      pingMangaDict(mangaURL, idxChapter, idxImage);
       return (
         <React.Fragment>
           <WaitingScreen open={!imageDisplayed} />
