@@ -39,9 +39,6 @@ class ScanViewer extends React.Component {
 
   componentDidMount() {
     document.addEventListener("keydown", this.handleKeyDown);
-
-    // console.log("componentDidMount: this.props", this.props);
-    // console.log("componentDidMount: this.state", this.state);
     this.mayUpdateMangaURL();
   }
 
@@ -50,8 +47,6 @@ class ScanViewer extends React.Component {
   }
 
   componentDidUpdate() {
-    // console.log("componentDidUpdate: state", this.state);
-    // console.log("componentDidUpdate: props", this.props);
     this.mayUpdateMangaURL();
   }
 
@@ -65,8 +60,6 @@ class ScanViewer extends React.Component {
     const { mangaURL, idxChapter, idxImage, imageDisplayed } = this.state;
     if (imageDisplayed && evt.shiftKey && evt.key === "Enter") {
       let answer = previousImage(mangaURL, idxChapter, idxImage);
-      // console.log(answer);
-      // console.log(typeof answer === "object");
       while (answer === "NOT_READY") {
         answer = previousImage(mangaURL, idxChapter, idxImage);
       }
@@ -76,7 +69,6 @@ class ScanViewer extends React.Component {
         this.setState({
           ...answer,
           imageDisplayed: false,
-          // offsetX: 0,
         });
         window.scrollTo(0, 0);
       }
@@ -92,7 +84,6 @@ class ScanViewer extends React.Component {
         this.setState({
           ...answer,
           imageDisplayed: false,
-          // offsetX: 0,
         });
         window.scrollTo(0, 0);
       }
@@ -115,31 +106,28 @@ class ScanViewer extends React.Component {
   };
 
   updateIdxLastChapter = (mangaURL, idxLastChapter) => {
-    // console.log("updateIdxLastChapter state", this.state);
-    // console.log("updateIdxLastChapter props", this.props);
-    // console.log("mangaURL, idxLastChapter", mangaURL, idxLastChapter);
     this.setState({ mangaURL, idxChapter: idxLastChapter });
-    // console.log("UPDATED");
   };
 
+  // TODO: Show a progress bar over the current chapter
   render() {
     // console.log("render: ", this.state);
     const { mangaURL, idxChapter, idxImage, imageDisplayed } = this.state;
 
     if (mangaURL !== this.props.mangaURL) {
       // this.setState({ mangaURL, idxChapter: null, idxImage: 0 });
-      // return <WaitingScreen open={!imageDisplayed} />;
-      return null;
+      return <WaitingScreen open={!imageDisplayed} />;
+      // return null;
     }
 
     if (!(mangaURL !== "" && idxChapter !== null && idxImage !== null)) {
-      // return <WaitingScreen open={!imageDisplayed} />;
-      return null;
+      return <WaitingScreen open={!imageDisplayed} />;
+      // return null;
     } else {
       // console.log("state", this.state);
       return (
         <React.Fragment>
-          {/* <WaitingScreen open={!imageDisplayed} /> */}
+          <WaitingScreen open={!imageDisplayed} />
           <div
             style={{
               display: "inline-block",
@@ -149,7 +137,6 @@ class ScanViewer extends React.Component {
             ref={this.imageFrame}
           >
             <DisplayImage
-              // ref={this.imageFrame}
               mangaURL={mangaURL}
               idxChapter={idxChapter}
               idxImage={idxImage}

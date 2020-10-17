@@ -1,20 +1,22 @@
 import React from "react";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Backdrop from "@material-ui/core/Backdrop";
-import { withStyles } from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/styles";
 
-const styles = {
-  backdrop: {
-    zIndex: 10, // arbitrary value
-    color: "#111",
-    backgroundColor: "#a0b69b80",
-    display: "flex",
-    flexDirection: "column",
-  },
-};
+const useStyles = makeStyles((theme) => {
+  return {
+    backdrop: {
+      zIndex: theme.zIndex.mobileStepper,
+      color: theme.palette.info.contrastText,
+      backgroundColor: theme.palette.action.active,
+      display: "flex",
+      flexDirection: "column",
+    },
+  };
+});
 
 const WaitingScreen = (props) => {
-  const { classes } = props;
+  const classes = useStyles();
 
   return (
     <Backdrop className={classes.backdrop} open={props.open}>
@@ -25,4 +27,4 @@ const WaitingScreen = (props) => {
   );
 };
 
-export default withStyles(styles, { withTheme: true })(WaitingScreen);
+export default WaitingScreen;

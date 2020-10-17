@@ -7,7 +7,6 @@ import "../App.css";
 import SelectManga from "./SelectManga";
 import ScanViewer from "./ScanViewer";
 import LIST_MANGA from "../listManga";
-// import { discoverManga } from "../probe";
 
 // Documentation link:
 // https://www.colorhexa.com/aaaec1
@@ -24,20 +23,9 @@ class App extends React.Component {
     mangaURL: LIST_MANGA[0].URL,
   };
 
-  // componentDidMount() {
-  //   // Trigger the discovery of the first manga in the list
-  //   discoverManga(this.state.mangaURL, this.updateIdxLastChapter);
-  // }
-
-  // updateIdxLastChapter = (mangaURL, idxLastChapter) => {
-  //   this.setState({ mangaURL, idxLastChapter });
-  //   // console.log("UPDATED");
-  // };
-
   // TODO: retrieve manga object: title + URLpath
   selectManga = (mangaURL) => {
     this.setState({ mangaURL });
-    console.log("selectManga");
   };
 
   render() {
@@ -46,12 +34,10 @@ class App extends React.Component {
     return (
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        {/* <Container> */}
         <div>
           <SelectManga selectManga={this.selectManga} />
           <ScanViewer mangaURL={mangaURL} />
         </div>
-        {/* </Container> */}
       </ThemeProvider>
     );
   }
