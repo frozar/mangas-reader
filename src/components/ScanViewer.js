@@ -1,84 +1,161 @@
 import React from "react";
+// import ReactDOM from "react-dom";
 
 import DisplayImage from "./DisplayImage";
 import WaitingScreen from "./WaitingScreen";
-import { pingMangaDict } from "../probe";
-
-const ACTION_INC = 1;
-const ACTION_DEC = -1;
+import {
+  discoverManga,
+  pingMangaDict,
+  previousImage,
+  nextImage,
+} from "../probe";
 
 class ScanViewer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.imageFrame = React.createRef();
+  }
+
   state = {
     mangaURL: "",
     idxChapter: null,
-    idxImage: null,
-    action: null,
+    idxImage: 0,
     imageDisplayed: false,
+    offsetX: 0,
+    errorMsg: "",
+  };
+
+  mayUpdateMangaURL = () => {
+    if (this.state.mangaURL !== this.props.mangaURL) {
+      this.setState({
+        mangaURL: this.props.mangaURL,
+        idxChapter: null,
+        idxImage: 0,
+        offsetX: 0,
+      });
+      discoverManga(this.props.mangaURL, this.updateIdxLastChapter);
+    }
   };
 
   componentDidMount() {
-    document.addEventListener("keydown", this.handleKeyPress);
-  }
+    document.addEventListener("keydown", this.handleKeyDown);
 
-  componentDidUpdate() {
-    const { mangaURL, idxChapter } = this.props;
-    if (
-      !(
-        mangaURL === this.state.mangaURL && idxChapter === this.state.idxChapter
-      )
-    ) {
-      this.setState({ mangaURL, idxChapter, idxImage: 0 });
-    }
+    // console.log("componentDidMount: this.props", this.props);
+    // console.log("componentDidMount: this.state", this.state);
+    this.mayUpdateMangaURL();
   }
 
   componentWillUnmount() {
-    document.removeEventListener("keydown", this.handleKeyPress);
+    document.removeEventListener("keydown", this.handleKeyDown);
   }
 
-  handleKeyPress = (evt) => {
-    // TODO: check mangaDict to:
-    // 1/ Trigger the update of mangaDict if information not found
-    // 2/ Compute the next move, maybe compute by the probe
-    const { idxImage } = this.state;
-    if (evt.key === "ArrowLeft") {
-      this.setState({
-        imageDisplayed: false,
-        idxImage: idxImage - 1,
-        action: ACTION_DEC,
-      });
-      window.scrollTo(0, 0);
-    }
-    if (evt.key === "ArrowRight") {
-      this.setState({
-        imageDisplayed: false,
-        idxImage: idxImage + 1,
-        action: ACTION_INC,
-      });
-      window.scrollTo(0, 0);
+  componentDidUpdate() {
+    // console.log("componentDidUpdate: state", this.state);
+    // console.log("componentDidUpdate: props", this.props);
+    this.mayUpdateMangaURL();
+  }
+
+  handleKeyDown = (evt) => {
+    // TODO: handle a zoom level for the current image
+    // if ((evt.ctrlKey && evt.key === "+") || (evt.ctrlKey && evt.key === "-")) {
+    //   evt.preventDefault();
+    //   console.log("Ctrl +");
+    // }
+
+    const { mangaURL, idxChapter, idxImage, imageDisplayed } = this.state;
+    if (imageDisplayed && evt.shiftKey && evt.key === "Enter") {
+      let answer = previousImage(mangaURL, idxChapter, idxImage);
+      // console.log(answer);
+      // console.log(typeof answer === "object");
+      while (answer === "NOT_READY") {
+        answer = previousImage(mangaURL, idxChapter, idxImage);
+      }
+      if (answer === "NO_PREVIOUS_IMAGE") {
+        this.setState({ errorMsg: "No previous scan" });
+      } else if (typeof answer === "object") {
+        this.setState({
+          ...answer,
+          imageDisplayed: false,
+          // offsetX: 0,
+        });
+        window.scrollTo(0, 0);
+      }
+    } else if (imageDisplayed && !evt.shiftKey && evt.key === "Enter") {
+      let answer = nextImage(mangaURL, idxChapter, idxImage);
+
+      while (answer === "NOT_READY") {
+        answer = nextImage(mangaURL, idxChapter, idxImage);
+      }
+      if (answer === "NO_NEXT_IMAGE") {
+        this.setState({ errorMsg: "No next scan" });
+      } else if (typeof answer === "object") {
+        this.setState({
+          ...answer,
+          imageDisplayed: false,
+          // offsetX: 0,
+        });
+        window.scrollTo(0, 0);
+      }
     }
   };
 
+  centerImage = () => {
+    const midWindowWidth = window.innerWidth / 2;
+    const midImageFrameWidth = this.imageFrame.current.offsetWidth / 2;
+    const signedDist = midWindowWidth - midImageFrameWidth;
+    const offsetX = 0 < signedDist ? signedDist : 0;
+    this.setState({ offsetX: offsetX });
+  };
+
   imageLoaded = () => {
+    this.centerImage();
     const { mangaURL, idxChapter, idxImage } = this.state;
     pingMangaDict(mangaURL, idxChapter, idxImage);
     this.setState({ imageDisplayed: true, action: null });
   };
 
+  updateIdxLastChapter = (mangaURL, idxLastChapter) => {
+    // console.log("updateIdxLastChapter state", this.state);
+    // console.log("updateIdxLastChapter props", this.props);
+    // console.log("mangaURL, idxLastChapter", mangaURL, idxLastChapter);
+    this.setState({ mangaURL, idxChapter: idxLastChapter });
+    // console.log("UPDATED");
+  };
+
   render() {
+    // console.log("render: ", this.state);
     const { mangaURL, idxChapter, idxImage, imageDisplayed } = this.state;
 
+    if (mangaURL !== this.props.mangaURL) {
+      // this.setState({ mangaURL, idxChapter: null, idxImage: 0 });
+      // return <WaitingScreen open={!imageDisplayed} />;
+      return null;
+    }
+
     if (!(mangaURL !== "" && idxChapter !== null && idxImage !== null)) {
-      return <WaitingScreen open={!imageDisplayed} />;
+      // return <WaitingScreen open={!imageDisplayed} />;
+      return null;
     } else {
+      // console.log("state", this.state);
       return (
         <React.Fragment>
-          <WaitingScreen open={!imageDisplayed} />
-          <DisplayImage
-            mangaURL={mangaURL}
-            idxChapter={idxChapter}
-            idxImage={idxImage}
-            imageLoaded={this.imageLoaded}
-          />
+          {/* <WaitingScreen open={!imageDisplayed} /> */}
+          <div
+            style={{
+              display: "inline-block",
+              position: "relative",
+              left: `${this.state.offsetX}px`,
+            }}
+            ref={this.imageFrame}
+          >
+            <DisplayImage
+              // ref={this.imageFrame}
+              mangaURL={mangaURL}
+              idxChapter={idxChapter}
+              idxImage={idxImage}
+              imageLoaded={this.imageLoaded}
+            />
+          </div>
         </React.Fragment>
       );
     }

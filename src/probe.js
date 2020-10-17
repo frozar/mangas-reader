@@ -26,7 +26,8 @@ export let mangaDict = {
     935: 1,
     977: 1,
     987: 1,
-    992: 1, //{ maxIdxFound: 15, minIdxNotFound: 16 },
+    991: { maxIdxFound: 15, minIdxNotFound: 16 },
+    992: { maxIdxFound: 15, minIdxNotFound: 16 },
     993: 0,
     995: 0,
     998: 0,
@@ -37,6 +38,66 @@ export let mangaDict = {
     lastChapter: 992,
   },
 };
+
+export function previousImage(mangaURL, idxChapter, idxImage) {
+  if (0 < idxImage) {
+    const previousIdxImage = idxImage - 1;
+    return { mangaURL, idxChapter, idxImage: previousIdxImage };
+  } else if (idxImage === 0) {
+    if (mangaDict[mangaURL][KEY_FIRST_CHAPTER] < idxChapter) {
+      const previousIdxChapter = idxChapter - 1;
+      // If chapter exist and is not known yet
+      if (
+        !isChapterKnown(mangaURL, previousIdxChapter) &&
+        mangaDict[mangaURL][previousIdxChapter] !== NOT_EXIST
+      ) {
+        discoverChapter(mangaURL, previousIdxChapter, 0);
+        return "NOT_READY";
+      } else {
+        const previousIdxImage =
+          mangaDict[mangaURL][previousIdxChapter][KEY_MAX_IDX_FOUND];
+        return {
+          mangaURL,
+          idxChapter: previousIdxChapter,
+          idxImage: previousIdxImage,
+        };
+      }
+    } else if (mangaDict[mangaURL][KEY_FIRST_CHAPTER] === idxChapter) {
+      return "NO_PREVIOUS_IMAGE";
+    }
+  }
+}
+
+export function nextImage(mangaURL, idxChapter, idxImage) {
+  const lastIdxImage = mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND];
+  if (idxImage < lastIdxImage) {
+    return {
+      mangaURL,
+      idxChapter: idxChapter,
+      idxImage: idxImage + 1,
+    };
+  } else if (idxImage === lastIdxImage) {
+    const nextIdxChapter = idxChapter + 1;
+    // If chapter exist and is not known yet
+    if (
+      !isChapterKnown(mangaURL, nextIdxChapter) &&
+      mangaDict[mangaURL][nextIdxChapter] !== NOT_EXIST
+    ) {
+      discoverChapter(mangaURL, nextIdxChapter, 0);
+      return "NOT_READY";
+    } else {
+      if (nextIdxChapter <= mangaDict[mangaURL][KEY_LAST_CHAPTER]) {
+        return {
+          mangaURL,
+          idxChapter: nextIdxChapter,
+          idxImage: 0,
+        };
+      } else if (mangaDict[mangaURL][KEY_LAST_CHAPTER] < nextIdxChapter) {
+        return "NO_NEXT_IMAGE";
+      }
+    }
+  }
+}
 
 function isChapterKnown(mangaURL, idxChapter) {
   if (
@@ -64,8 +125,11 @@ function isChapterKnown(mangaURL, idxChapter) {
 }
 
 export function pingMangaDict(mangaURL, idxChapter, idxImage) {
-  console.log("PING");
-  console.log(mangaDict);
+  const debug = false;
+  if (debug) {
+    console.log("PING", mangaURL, idxChapter, idxImage);
+    console.log(mangaDict);
+  }
   if (mangaDict[mangaURL] === undefined) {
     discoverManga(mangaURL, null);
   }
