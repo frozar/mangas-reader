@@ -37,6 +37,22 @@ export let mangaDict = {
     firstChapter: 680,
     lastChapter: 992,
   },
+  "one-punch-man": {
+    52: 0,
+    53: 1,
+    106: 1,
+    132: 1,
+    134: { maxIdxFound: 61, minIdxNotFound: 62 },
+    135: { maxIdxFound: 17, minIdxNotFound: 18 },
+    136: 0,
+    138: 0,
+    145: 0,
+    159: 0,
+    212: 0,
+    action: null,
+    firstChapter: 53,
+    lastChapter: 135,
+  },
 };
 
 export function previousImage(mangaURL, idxChapter, idxImage) {

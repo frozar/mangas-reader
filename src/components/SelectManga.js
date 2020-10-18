@@ -24,10 +24,8 @@ export default function SelectManga(props) {
   const classes = useStyles();
   const [manga, setManga] = React.useState(LIST_MANGA[0].URL);
 
-  // console.log(props);
   const handleChange = (event) => {
     setManga(event.target.value);
-    // console.log(props);
     props.selectManga(event.target.value);
   };
 

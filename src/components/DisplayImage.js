@@ -1,45 +1,72 @@
 import React from "react";
 import Tooltip from "@material-ui/core/Tooltip";
 import Paper from "@material-ui/core/Paper";
+import Box from "@material-ui/core/Box";
+
+const BASE_URL = "https://lelscan.net/mangas";
 
 class DisplayImage extends React.Component {
-  getURL(mangaURL, idxChapter, idxImage) {
+  constructor(props) {
+    super(props);
+    this.refImageFrame = React.createRef();
+  }
+
+  imageLoaded = () => {
+    if (this.props.imageLoaded) {
+      this.props.imageLoaded();
+    }
+    if (this.props.getRef) {
+      this.props.getRef(this.refImageFrame);
+    }
+  };
+
+  getURL({ mangaURL, idxChapter, idxImage }) {
     const strIdxImg = idxImage.toLocaleString(undefined, {
       minimumIntegerDigits: 2,
     });
-    const baseURL = "https://lelscan.net/mangas";
-    return `${baseURL}/${mangaURL}/${idxChapter}/${strIdxImg}.jpg`;
+    return `${BASE_URL}/${mangaURL}/${idxChapter}/${strIdxImg}.jpg`;
+  }
+
+  tooltipTitle({ idxChapter, idxImage }) {
+    return `Chapter: ${idxChapter} - Scan: ${idxImage}`;
   }
 
   // TODO: use the metarial theme style system
   render() {
-    const { mangaURL, idxChapter, idxImage } = this.props;
-    const srcURL = this.getURL(mangaURL, idxChapter, idxImage);
+    const { imageInfo } = this.props;
+    const visibilityStyle = this.props.visibility
+      ? this.props.visibility
+      : "visible";
+    const offsetX = this.props.offsetX ? this.props.offsetX : 0;
     return (
-      <Tooltip title={`Chapter: ${idxChapter} - Scan: ${idxImage}`}>
-        <Paper
-          style={{
-            display: "inline-block",
-            margin: "2em",
-            padding: "2em",
-            // position: "absolute",
-            // left: "50vw",
-            // transform: "translate(-50%)",
-            backgroundColor: "#4e536b",
-          }}
-          elevation={5}
-        >
-          <img
-            // style={{
-            //   margin: "2em",
-            // }}
-            alt="manga"
-            src={srcURL}
-            // onError={this.handleOnError}
-            onLoad={this.props.imageLoaded}
-          />
-        </Paper>
-      </Tooltip>
+      <Box
+        style={{
+          display: "inline-block",
+          visibility: visibilityStyle,
+          position: "relative",
+          left: `${offsetX}px`,
+        }}
+        ref={this.refImageFrame}
+        component="div"
+      >
+        <Tooltip title={this.tooltipTitle(imageInfo)}>
+          <Paper
+            style={{
+              display: "inline-block",
+              margin: "2em",
+              padding: "2em",
+              backgroundColor: "#4e536b",
+            }}
+            elevation={5}
+          >
+            <img
+              alt="manga"
+              src={this.getURL(imageInfo)}
+              onLoad={this.imageLoaded}
+            />
+          </Paper>
+        </Tooltip>
+      </Box>
     );
   }
 }
