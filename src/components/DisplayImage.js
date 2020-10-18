@@ -33,23 +33,18 @@ class DisplayImage extends React.Component {
 
   // TODO: use the metarial theme style system
   render() {
-    const { imageInfo } = this.props;
-    const visibilityStyle = this.props.visibility
-      ? this.props.visibility
-      : "visible";
-    const offsetX = this.props.offsetX ? this.props.offsetX : 0;
+    const { mangaInfo } = this.props;
+    const offsetXProp = this.props.offsetX ? this.props.offsetX : 0;
     return (
       <Box
         style={{
           display: "inline-block",
-          visibility: visibilityStyle,
           position: "relative",
-          left: `${offsetX}px`,
+          left: `${offsetXProp}px`,
         }}
         ref={this.refImageFrame}
-        component="div"
       >
-        <Tooltip title={this.tooltipTitle(imageInfo)}>
+        <Tooltip title={this.tooltipTitle(mangaInfo)}>
           <Paper
             style={{
               display: "inline-block",
@@ -61,7 +56,7 @@ class DisplayImage extends React.Component {
           >
             <img
               alt="manga"
-              src={this.getURL(imageInfo)}
+              src={this.getURL(mangaInfo)}
               onLoad={this.imageLoaded}
             />
           </Paper>

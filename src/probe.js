@@ -79,7 +79,7 @@ export function previousImage(mangaURL, idxChapter, idxImage) {
         };
       }
     } else if (mangaDict[mangaURL][KEY_FIRST_CHAPTER] === idxChapter) {
-      return "NO_PREVIOUS_IMAGE";
+      return "NO_IMAGE";
     }
   }
 }
@@ -109,7 +109,7 @@ export function nextImage(mangaURL, idxChapter, idxImage) {
           idxImage: 0,
         };
       } else if (mangaDict[mangaURL][KEY_LAST_CHAPTER] < nextIdxChapter) {
-        return "NO_NEXT_IMAGE";
+        return "NO_IMAGE";
       }
     }
   }

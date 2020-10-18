@@ -1,10 +1,10 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import Slide from "@material-ui/core/Slide";
+import Box from "@material-ui/core/Box";
 
 import DisplayImage from "./DisplayImage";
 import WaitingScreen from "./WaitingScreen";
-// import probeImage from "./ProbeImage";
 import {
   discoverManga,
   pingMangaDict,
@@ -17,10 +17,6 @@ class ScanViewer extends React.Component {
     mangaURL: "",
     idxChapter: null,
     idxImage: 0,
-    previousMangaURL: "", // Not used
-    previousIdxChapter: null, // Not used
-    previousIdxImage: 0, // Not used
-    previousOffsetX: 0,
     displayedImage: false,
     offsetX: null,
     errorMsg: "",
@@ -55,47 +51,30 @@ class ScanViewer extends React.Component {
     // console.log("this.state", this.state);
   };
 
-  handleKeyDown = (evt) => {
-    const { mangaURL, idxChapter, idxImage, displayedImage } = this.state;
-    if (displayedImage && evt.shiftKey && evt.key === "Enter") {
-      let answer = previousImage(mangaURL, idxChapter, idxImage);
-      while (answer === "NOT_READY") {
-        answer = previousImage(mangaURL, idxChapter, idxImage);
-      }
-      if (answer === "NO_PREVIOUS_IMAGE") {
-        this.setState({ errorMsg: "No previous scan" });
-      } else if (typeof answer === "object") {
-        this.setState({
-          ...answer,
-          displayedImage: false,
-          offsetX: null,
-          previousMangaURL: this.state.mangaURL,
-          previousIdxChapter: this.state.idxChapter,
-          previousIdxImage: this.state.idxImage,
-          previousOffsetX: this.state.offsetX,
-        });
-        window.scrollTo(0, 0);
-      }
-    } else if (displayedImage && !evt.shiftKey && evt.key === "Enter") {
-      let answer = nextImage(mangaURL, idxChapter, idxImage);
+  moveImage = (previousOrNextImage, errorMsg) => {
+    const { mangaURL, idxChapter, idxImage } = this.state;
+    let answer = previousOrNextImage(mangaURL, idxChapter, idxImage);
+    while (answer === "NOT_READY") {
+      answer = previousOrNextImage(mangaURL, idxChapter, idxImage);
+    }
+    if (answer === "NO_IMAGE") {
+      this.setState({ errorMsg });
+    } else if (typeof answer === "object") {
+      this.setState({
+        ...answer,
+        displayedImage: false,
+        offsetX: null,
+      });
+      window.scrollTo(0, 0);
+    }
+  };
 
-      while (answer === "NOT_READY") {
-        answer = nextImage(mangaURL, idxChapter, idxImage);
-      }
-      if (answer === "NO_NEXT_IMAGE") {
-        this.setState({ errorMsg: "No next scan" });
-      } else if (typeof answer === "object") {
-        this.setState({
-          ...answer,
-          displayedImage: false,
-          offsetX: null,
-          previousMangaURL: this.state.mangaURL,
-          previousIdxChapter: this.state.idxChapter,
-          previousIdxImage: this.state.idxImage,
-          previousOffsetX: this.state.offsetX,
-        });
-        window.scrollTo(0, 0);
-      }
+  handleKeyDown = (evt) => {
+    const { displayedImage } = this.state;
+    if (displayedImage && evt.shiftKey && evt.key === "Enter") {
+      this.moveImage(previousImage, "No previous scan");
+    } else if (displayedImage && !evt.shiftKey && evt.key === "Enter") {
+      this.moveImage(nextImage, "No next scan");
     }
   };
 
@@ -134,11 +113,8 @@ class ScanViewer extends React.Component {
     if (!(mangaURL !== "" && idxChapter !== null && idxImage !== null)) {
       return <WaitingScreen open={!displayedImage} />;
     } else {
-      // console.log(this.state);
-      // const visibilityStyle = displayedImage ? "visible" : "hidden"
       const offsetXProp = this.state.offsetX;
       const inProp = offsetXProp !== null;
-      const visibilityProp = inProp ? "visible" : "hidden";
       // console.log({ offsetXProp, inProp });
       return (
         <React.Fragment>
@@ -151,9 +127,8 @@ class ScanViewer extends React.Component {
             timeout={2000}
           >
             <DisplayImage
-              imageInfo={{ mangaURL, idxChapter, idxImage }}
+              mangaInfo={{ mangaURL, idxChapter, idxImage }}
               imageLoaded={this.imageLoaded}
-              visibility={visibilityProp}
               offsetX={offsetXProp}
             />
           </Slide>
@@ -163,9 +138,11 @@ class ScanViewer extends React.Component {
   }
 }
 
-function probeImage(imageInfo, getRef) {
+function probeImage(mangaInfo, getRef) {
   ReactDOM.render(
-    <DisplayImage imageInfo={imageInfo} getRef={getRef} visibility="hidden" />,
+    <Box style={{ visibility: "hidden", position: "fixed", top: 0, left: 0 }}>
+      <DisplayImage {...{ mangaInfo, getRef }} />
+    </Box>,
     document.querySelector("#probe")
   );
 }

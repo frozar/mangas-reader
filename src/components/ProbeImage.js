@@ -2,7 +2,6 @@ import React from "react";
 import ReactDOM from "react-dom";
 
 function probeImage(mangaInfo, imageExistCallback, imageNotExistCallback) {
-  // console.log("probeImage", mangaInfo);
   ReactDOM.render(
     <ProbeImage
       mangaInfo={mangaInfo}
