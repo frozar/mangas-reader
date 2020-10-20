@@ -8,7 +8,7 @@ function probeImage(mangaInfo, imageExistCallback, imageNotExistCallback) {
       imageExist={imageExistCallback}
       imageNotExist={imageNotExistCallback}
     />,
-    document.querySelector("#probe")
+    document.createElement("div")
   );
 }
 

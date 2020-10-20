@@ -35,6 +35,7 @@ class DisplayImage extends React.Component {
   render() {
     const { mangaInfo } = this.props;
     const offsetXProp = this.props.offsetX ? this.props.offsetX : 0;
+    // console.log({ offsetXProp });
     return (
       <Box
         style={{

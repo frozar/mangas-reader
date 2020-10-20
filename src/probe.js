@@ -15,6 +15,7 @@ const KEY_LAST_CHAPTER = "lastChapter";
 const KEY_MAX_IDX_FOUND = "maxIdxFound";
 const KEY_MIN_IDX_NOT_FOUND = "minIdxNotFound";
 
+// // PROD INITIALISATION
 // export let mangaDict = {};
 
 // DEV INITIALISATION
@@ -144,7 +145,7 @@ export function pingMangaDict(mangaURL, idxChapter, idxImage) {
   const debug = false;
   if (debug) {
     console.log("PING", mangaURL, idxChapter, idxImage);
-    console.log(mangaDict);
+    console.log({ mangaDict });
   }
   if (mangaDict[mangaURL] === undefined) {
     discoverManga(mangaURL, null);
@@ -162,6 +163,15 @@ export function pingMangaDict(mangaURL, idxChapter, idxImage) {
 }
 
 function discoverChapter(mangaURL, idxChapter, idxImage, callback) {
+  const debug = false;
+  if (debug) {
+    console.group("discoverChapter");
+    console.log({ mangaURL, idxChapter, idxImage });
+    console.log(
+      "isChapterKnown(mangaURL, idxChapter)): ",
+      isChapterKnown(mangaURL, idxChapter)
+    );
+  }
   if (isChapterKnown(mangaURL, idxChapter)) {
     if (callback) {
       callback();
@@ -193,8 +203,16 @@ function discoverChapter(mangaURL, idxChapter, idxImage, callback) {
     nextIdxImage = 1;
   }
   discoverChapterAux(mangaURL, idxChapter, nextIdxImage);
+  if (debug) {
+    console.groupEnd("discoverChapter");
+  }
 
   function discoverChapterAux(mangaURL, idxChapter, idxImage) {
+    if (debug) {
+      console.group("discoverChapterAux");
+      console.log({ mangaURL, idxChapter, idxImage });
+      console.groupEnd("discoverChapterAux");
+    }
     probeImage(
       { mangaURL, idxChapter, idxImage },
       discoverChapterImageExist,
@@ -203,6 +221,11 @@ function discoverChapter(mangaURL, idxChapter, idxImage, callback) {
   }
 
   function discoverChapterImageExist({ mangaURL, idxChapter, idxImage }) {
+    if (debug) {
+      console.group("discoverChapterImageExist");
+      console.log({ mangaURL, idxChapter, idxImage });
+      console.groupEnd("discoverChapterImageExist");
+    }
     if (
       mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND] === undefined ||
       mangaDict[mangaURL][idxChapter][KEY_MAX_IDX_FOUND] < idxImage
@@ -226,8 +249,12 @@ function discoverChapter(mangaURL, idxChapter, idxImage, callback) {
         discoverChapterAux(mangaURL, idxChapter, nextIdxImage);
       } else if (1 === idxNotFound - idxFound) {
         // Terminal case: end of chapter found!
-        console.log("CHAPTER END AT", idxFound);
-        console.log(mangaDict);
+        if (debug) {
+          console.group("discoverChapterAux");
+          console.log("CHAPTER END AT", idxFound);
+          console.log({ mangaDict });
+          console.groupEnd("discoverChapterAux");
+        }
         if (callback) {
           callback();
         }
@@ -236,6 +263,11 @@ function discoverChapter(mangaURL, idxChapter, idxImage, callback) {
   }
 
   function discoverChapterImageNotExist({ mangaURL, idxChapter, idxImage }) {
+    if (debug) {
+      console.group("discoverChapterImageNotExist");
+      console.log({ mangaURL, idxChapter, idxImage });
+      console.groupEnd("discoverChapterImageNotExist");
+    }
     if (
       mangaDict[mangaURL][idxChapter][KEY_MIN_IDX_NOT_FOUND] === undefined ||
       idxImage < mangaDict[mangaURL][idxChapter][KEY_MIN_IDX_NOT_FOUND]
@@ -260,8 +292,12 @@ function discoverChapter(mangaURL, idxChapter, idxImage, callback) {
         discoverChapterAux(mangaURL, idxChapter, nextIdxImage);
       } else if (1 === idxNotFound - idxFound) {
         // Terminal case: end of chapter found!
-        console.log("CHAPTER", idxChapter, " End at", idxFound);
-        console.log(mangaDict);
+        if (debug) {
+          console.group("discoverChapterAux");
+          console.log("CHAPTER", idxChapter, " End at", idxFound);
+          console.log({ mangaDict });
+          console.groupEnd("discoverChapterAux");
+        }
         if (callback) {
           callback();
         }
@@ -284,6 +320,7 @@ function isMangaKnown(mangaURLValue) {
 }
 
 export function discoverManga(mangaURL, dicoverMangaCallback) {
+  const debug = false;
   if (isMangaKnown(mangaDict[mangaURL])) {
     if (dicoverMangaCallback !== null) {
       dicoverMangaCallback(mangaURL, mangaDict[mangaURL][KEY_LAST_CHAPTER]);
@@ -301,6 +338,11 @@ export function discoverManga(mangaURL, dicoverMangaCallback) {
   discoverMangaAux(mangaURL, firstIdxChapter);
 
   function discoverMangaAux(mangaURL, idxChapter) {
+    if (debug) {
+      console.group("discoverMangaAux");
+      console.log({ mangaURL, idxChapter });
+      console.groupEnd("discoverMangaAux");
+    }
     const idxImage = 0;
     probeImage(
       { mangaURL, idxChapter, idxImage },
@@ -311,11 +353,13 @@ export function discoverManga(mangaURL, dicoverMangaCallback) {
 
   let lastIdxChapterFound = null;
   let lastIdxChapterNotFound = null;
-  const debug = false;
 
   function discoverMangaImageExist({ mangaURL, idxChapter, idxImage }) {
     if (idxImage === 0 && mangaDict[mangaURL][idxChapter] === undefined) {
       mangaDict[mangaURL][idxChapter] = EXIST;
+    }
+    if (debug) {
+      console.group("discoverMangaImageExist");
     }
     if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_BEGIN) {
       mangaDict[mangaURL][KEY_FIRST_CHAPTER] = idxChapter;
@@ -354,11 +398,17 @@ export function discoverManga(mangaURL, dicoverMangaCallback) {
         }
       }
     }
+    if (debug) {
+      console.groupEnd("discoverMangaImageExist");
+    }
   }
 
   function discoverMangaImageNotExist({ mangaURL, idxChapter, idxImage }) {
     if (idxImage === 0 && mangaDict[mangaURL][idxChapter] === undefined) {
       mangaDict[mangaURL][idxChapter] = NOT_EXIST;
+    }
+    if (debug) {
+      console.group("discoverMangaImageNotExist");
     }
     if (mangaDict[mangaURL][KEY_ACTION] === SEARCH_BEGIN) {
       const nextIdxChapter = idxChapter + 1;
@@ -401,6 +451,9 @@ export function discoverManga(mangaURL, dicoverMangaCallback) {
           dicoverMangaCallback(mangaURL, lastIdxChapterFound);
         }
       }
+    }
+    if (debug) {
+      console.groupEnd("discoverMangaImageNotExist");
     }
   }
 }
