@@ -1,53 +1,78 @@
 import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
-import InputLabel from "@material-ui/core/InputLabel";
-import MenuItem from "@material-ui/core/MenuItem";
-import FormControl from "@material-ui/core/FormControl";
-import Select from "@material-ui/core/Select";
+import Grid from "@material-ui/core/Grid";
+import Box from "@material-ui/core/Box";
 
 import LIST_MANGA from "../listManga";
 
 const useStyles = makeStyles((theme) => ({
-  formControl: {
-    margin: theme.spacing(1),
-    minWidth: 120,
-    background: "#9ba0b6",
-    position: "absolute",
-    left: "1rem",
+  root: {
+    flexGrow: 1,
+    alignItems: "center!important",
+    padding: "1rem",
+    justifyContent: "flex-start!important",
   },
-  selectEmpty: {
-    marginTop: theme.spacing(2),
+  backgroundImageThumb: {
+    backgroundPosition: "50%",
+    backgroundSize: "cover",
+    backgroundRepeat: "no-repeat",
+    margin: "7px 7px 0",
+    height: "100%",
+    borderRadius: "8px",
+    position: "relative",
+    overflow: "hidden",
+    boxShadow: "0 0 20px 0 rgba(34,35,41,.9)",
+    cursor: "pointer",
+
+    transition: theme.transitions.create(["z-index", "transform"], {
+      duration: theme.transitions.duration.shortest,
+    }),
+    "&:hover": {
+      transform: "scale(1.1)",
+      zIndex: 10,
+      // Reset on touch devices, it doesn't add specificity
+      "@media (hover: none)": {
+        transform: "scale(1.1)",
+        zIndex: 10,
+      },
+    },
   },
 }));
 
 export default function SelectManga(props) {
   const classes = useStyles();
-  const [manga, setManga] = React.useState(LIST_MANGA[0].URL);
 
   const handleChange = (event) => {
-    setManga(event.target.value);
-    props.selectManga(event.target.value);
+    props.selectManga(event.target.getAttribute("value"));
   };
 
-  const renderedManga = LIST_MANGA.map((objManga) => {
-    return (
-      <MenuItem key={objManga.URL} value={objManga.URL}>
-        {objManga.title}
-      </MenuItem>
-    );
-  });
-
   return (
-    <FormControl className={classes.formControl}>
-      <InputLabel id="manga-select-label">Manga</InputLabel>
-      <Select
-        labelId="manga-select-label"
-        id="manga-select"
-        value={manga}
-        onChange={handleChange}
-      >
-        {renderedManga}
-      </Select>
-    </FormControl>
+    <React.Fragment>
+      <Grid container className={classes.root} justify="center" spacing={2}>
+        {LIST_MANGA.map((objManga) => (
+          <Box
+            style={{
+              flexGrow: "0",
+              flexShrink: "0",
+              flexBasis: "50%",
+              maxWidth: "25%",
+              height: "400px",
+              marginBottom: "1rem",
+            }}
+            key={objManga.URL}
+          >
+            <Grid
+              item
+              className={classes.backgroundImageThumb}
+              style={{
+                backgroundImage: `url(${objManga.jacket})`,
+              }}
+              value={objManga.URL}
+              onClick={handleChange}
+            ></Grid>
+          </Box>
+        ))}
+      </Grid>
+    </React.Fragment>
   );
 }

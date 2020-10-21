@@ -2,6 +2,8 @@ import React from "react";
 import { ThemeProvider } from "@material-ui/styles";
 import { createMuiTheme } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
+import { Router, Route, Switch } from "react-router-dom";
+import history from "../history";
 
 import "../App.css";
 import SelectManga from "./SelectManga";
@@ -26,19 +28,29 @@ class App extends React.Component {
   // TODO: retrieve manga object: title + URLpath
   selectManga = (mangaURL) => {
     this.setState({ mangaURL });
+    console.log("selectManga", mangaURL, this.state);
+    history.push("/");
   };
 
   render() {
-    // console.log("App: reander:", this.state);
+    console.log("App: render:", this.state);
     const { mangaURL } = this.state;
     return (
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <div>
-          <SelectManga selectManga={this.selectManga} />
-          <ScanViewer mangaURL={mangaURL} />
-        </div>
-      </ThemeProvider>
+      <Router history={history}>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <div>
+            <Switch>
+              <Route path="/" exact>
+                <ScanViewer mangaURL={mangaURL} />
+              </Route>
+              <Route path="/select/manga" exact>
+                <SelectManga selectManga={this.selectManga} />
+              </Route>
+            </Switch>
+          </div>
+        </ThemeProvider>
+      </Router>
     );
   }
 }
