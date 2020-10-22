@@ -10,8 +10,8 @@ const SEARCH_BEGIN = 0;
 const SEARCH_MIDDLE = 1;
 const SEARCH_END = 2;
 const KEY_ACTION = "action";
-const KEY_FIRST_CHAPTER = "firstChapter";
-const KEY_LAST_CHAPTER = "lastChapter";
+export const KEY_FIRST_CHAPTER = "firstChapter";
+export const KEY_LAST_CHAPTER = "lastChapter";
 const KEY_MAX_IDX_FOUND = "maxIdxFound";
 const KEY_MIN_IDX_NOT_FOUND = "minIdxNotFound";
 
@@ -323,14 +323,15 @@ export function discoverManga(mangaURL, dicoverMangaCallback) {
   const debug = false;
   if (isMangaKnown(mangaDict[mangaURL])) {
     if (dicoverMangaCallback !== null) {
-      dicoverMangaCallback(mangaURL, mangaDict[mangaURL][KEY_LAST_CHAPTER]);
+      // dicoverMangaCallback(mangaURL, mangaDict[mangaURL][KEY_LAST_CHAPTER]);
+      dicoverMangaCallback(mangaURL, mangaDict[mangaURL]);
     }
     return;
   }
 
   let firstIdxChapter = 1;
   const mangaInfo = _.find(LIST_MANGA, (objManga) => objManga.URL === mangaURL);
-  if (mangaInfo) {
+  if (mangaInfo && mangaInfo.biasFirstIdxChapter) {
     firstIdxChapter = mangaInfo.biasFirstIdxChapter;
   }
   // Update the action key for the discovery of this manga
@@ -394,7 +395,8 @@ export function discoverManga(mangaURL, dicoverMangaCallback) {
           console.log("cas 3", mangaDict);
         }
         if (dicoverMangaCallback !== null) {
-          dicoverMangaCallback(mangaURL, lastIdxChapterFound);
+          // dicoverMangaCallback(mangaURL, lastIdxChapterFound);
+          dicoverMangaCallback(mangaURL, mangaDict[mangaURL]);
         }
       }
     }
@@ -448,7 +450,8 @@ export function discoverManga(mangaURL, dicoverMangaCallback) {
           console.log("cas 7", mangaDict);
         }
         if (dicoverMangaCallback !== null) {
-          dicoverMangaCallback(mangaURL, lastIdxChapterFound);
+          // dicoverMangaCallback(mangaURL, lastIdxChapterFound);
+          dicoverMangaCallback(mangaURL, mangaDict[mangaURL]);
         }
       }
     }

@@ -1,7 +1,9 @@
 import React from "react";
 import ReactDOM from "react-dom";
+import { Link } from "react-router-dom";
 import Slide from "@material-ui/core/Slide";
 import Box from "@material-ui/core/Box";
+import Button from "@material-ui/core/Button";
 
 import DisplayImage from "./DisplayImage";
 import WaitingScreen from "./WaitingScreen";
@@ -10,6 +12,7 @@ import {
   pingMangaDict,
   previousImage,
   nextImage,
+  KEY_LAST_CHAPTER,
 } from "../probe";
 
 class ScanViewer extends React.Component {
@@ -24,6 +27,7 @@ class ScanViewer extends React.Component {
   };
   state = {
     mangaURL: "",
+    initIdxChapter: 0,
     ...this.initState,
   };
 
@@ -34,6 +38,14 @@ class ScanViewer extends React.Component {
         ...this.initState,
       });
       discoverManga(this.props.mangaURL, this.updateIdxLastChapter);
+    } else if (this.state.initIdxChapter !== this.props.idxChapter) {
+      this.setState({
+        ...this.initState,
+        mangaURL: this.props.mangaURL,
+        initIdxChapter: this.props.idxChapter,
+        idxChapter: this.props.idxChapter,
+        idxImage: 0,
+      });
     }
   };
 
@@ -121,7 +133,8 @@ class ScanViewer extends React.Component {
     }
   };
 
-  updateIdxLastChapter = (mangaURL, idxLastChapter) => {
+  updateIdxLastChapter = (mangaURL, dict) => {
+    const idxLastChapter = dict[KEY_LAST_CHAPTER];
     this.setState({ mangaURL, idxChapter: idxLastChapter });
   };
 
@@ -174,6 +187,19 @@ class ScanViewer extends React.Component {
       return (
         <React.Fragment>
           <WaitingScreen open={!displayedImageProp} />
+          <Button
+            style={{ position: "fixed", top: "10px", left: "10px" }}
+            variant="contained"
+            color="primary"
+          >
+            <Link
+              style={{ color: "white" }}
+              to="/select/manga"
+              className="item"
+            >
+              Select Manga
+            </Link>
+          </Button>
           <Slide
             direction={directionProp}
             in={inProp}

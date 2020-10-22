@@ -29,11 +29,11 @@ const useStyles = makeStyles((theme) => ({
     }),
     "&:hover": {
       transform: "scale(1.1)",
-      zIndex: 10,
+      zIndex: theme.zIndex.mobileStepper,
       // Reset on touch devices, it doesn't add specificity
       "@media (hover: none)": {
         transform: "scale(1.1)",
-        zIndex: 10,
+        zIndex: theme.zIndex.mobileStepper,
       },
     },
   },
@@ -42,7 +42,7 @@ const useStyles = makeStyles((theme) => ({
 export default function SelectManga(props) {
   const classes = useStyles();
 
-  const handleChange = (event) => {
+  const handleOnClick = (event) => {
     props.selectManga(event.target.getAttribute("value"));
   };
 
@@ -68,7 +68,7 @@ export default function SelectManga(props) {
                 backgroundImage: `url(${objManga.jacket})`,
               }}
               value={objManga.URL}
-              onClick={handleChange}
+              onClick={handleOnClick}
             ></Grid>
           </Box>
         ))}
