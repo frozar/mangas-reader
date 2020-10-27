@@ -1,9 +1,9 @@
 "use strict";
 
 // [START functions_helloworld_http]
-// const { exec } = require("child_process");
 const axios = require("axios");
 const { parse } = require("node-html-parser");
+const fs = require("fs");
 
 async function getIdxChapters(mangaURL) {
   const data = await axios
@@ -30,6 +30,37 @@ async function getIdxChapters(mangaURL) {
   return idxChapters;
 }
 
+async function getNbImage(path, idxChapter) {
+  const URL = "https://lelscan.net/scan-" + path + "/" + idxChapter;
+  const data = await axios
+    .get(URL)
+    .then(function (response) {
+      // console.log("response");
+      // console.log(response.data);
+      return response.data;
+    })
+    .catch(function (error) {
+      // res.send(error);
+      return error;
+    });
+
+  const root = parse(data);
+  const imagesLink = root.querySelector("#navigation").querySelectorAll("a");
+  const nbImage = imagesLink.length - 3;
+  // console.log("nbImage", idxChapter, nbImage);
+
+  return nbImage;
+}
+
+async function getDictChaptersNbImage(path, idxChapters) {
+  return idxChapters.reduce(async (acc, idx) => {
+    let accContent = await acc;
+    const nbImage = await getNbImage(path, idx);
+    accContent[idx] = nbImage;
+    return accContent;
+  }, Promise.resolve({}));
+}
+
 async function getMangas() {
   const data = await axios
     .get("https://lelscan.net/lecture-en-ligne.php")
@@ -45,25 +76,55 @@ async function getMangas() {
   // .then(function (data) {
   // console.log(data);
   const root = parse(data);
-  console.log("root");
-  const [selectChapters, selectMangas] = root
+  // console.log("root");
+  const selectMangas = root
     .querySelector("#header-image")
-    .querySelectorAll("select");
-  const chapters = selectChapters.querySelectorAll("option");
+    .querySelectorAll("select")[1];
+  // const chapters = selectChapters.querySelectorAll("option");
   // console.log(chapters.slice(0, 1));
   // console.log(chapters[0].childNodes[0]);
-  const idxChapter = chapters.map((opt) => opt.childNodes[0].rawText);
+  // const idxChapter = chapters.map((opt) => opt.childNodes[0].rawText);
   // console.log(idxChapter);
 
   const mangas = selectMangas.querySelectorAll("option");
   // console.log(mangas[0]);
-  const objMangas = mangas.map((opt) => {
-    return {
-      title: opt.childNodes[0].rawText,
-      URL: opt.rawAttrs.split("=")[1].split("'")[1],
-    };
-  });
-  // console.log(objMangas);
+  let objMangas = await Promise.all(
+    mangas.map(async (opt) => {
+      const URL = opt.rawAttrs.split("=")[1].split("'")[1];
+      const path = URL.replace(
+        "https://lelscan.net/lecture-en-ligne-",
+        ""
+      ).split(".")[0];
+      let idxChapters = await getIdxChapters(URL);
+      idxChapters.reverse();
+      const dict = await getDictChaptersNbImage(path, idxChapters);
+      return {
+        title: opt.childNodes[0].rawText,
+        URL,
+        path,
+        // idxChapters,
+        chapters: dict,
+      };
+    })
+  );
+
+  // console.log(objMangas[0]);
+  console.log(objMangas);
+
+  // const res = await getDictChaptersNbImage(
+  //   objMangas[0].path,
+  //   objMangas[0].idxChapters
+  // );
+  // console.log("res", res);
+
+  // const t = await res.then((content) => {
+  //   console.log("content", content);
+  //   return content;
+  // });
+  // console.log("t", t);
+
+  console.log(objMangas);
+
   return objMangas;
   // res.send("NOTHING\n");
   // res.send(mangas);
@@ -83,75 +144,20 @@ async function getMangas() {
  *                     More info: https://expressjs.com/en/api.html#res
  */
 exports.helloGET = async (req, res) => {
-  //   exec("./toRun.sh", (error, stdout, stderr) => {
-  //     if (error) {
-  //       res.send(error.message);
-  //       return;
-  //   }
-  //   if (stderr) {
-  //       res.send(stderr);
-  //       return;
-  //   }
-  //   res.json(JSON.parse(stdout));
-  // });
-  // res.send(`Hello ${escapeHtml(req.query.name || req.body.name || 'World')}!`);
+  // let objMangas = await getMangas();
+  // fs.writeFile("mangas.json", JSON.stringify(objMangas), () => {});
 
-  // axios
-  //   // .get("https://lelscan.net/lecture-en-ligne-one-piece.php")
-  //   .get("https://lelscan.net/lecture-en-ligne.php")
-  //   .then(function (response) {
-  //     // console.log("response");
-  //     // console.log(response.data);
-  //     return response.data;
-  //   })
-  //   .catch(function (error) {
-  //     res.send(error);
-  //   })
-  //   .then(function (data) {
-  //     const root = parse(data);
-  //     // console.log("root");
-  //     const [selectChapters, selectMangas] = root
-  //       .querySelector("#header-image")
-  //       .querySelectorAll("select");
-  //     const chapters = selectChapters.querySelectorAll("option");
-  //     // console.log(chapters.slice(0, 1));
-  //     // console.log(chapters[0].childNodes[0]);
-  //     const idxChapter = chapters.map((opt) => opt.childNodes[0].rawText);
-  //     console.log(idxChapter);
-
-  //     const mangas = selectMangas.querySelectorAll("option");
-  //     // console.log(mangas[0]);
-  //     const objMangas = mangas.map((opt) => {
-  //       return {
-  //         title: opt.childNodes[0].rawText,
-  //         URL: opt.rawAttrs.split("=")[1].split("'")[1],
-  //       };
-  //     });
-  //     console.log(objMangas);
-  //     // res.send(mangas);
-  //     // res.json(JSON.parse({ mangas, chapters }));
-  //   });
-
-  let objMangas = await getMangas();
-  // console.log(objMangas);
-  console.log(objMangas[0].URL);
-
-  // const idxChapters = await getIdxChapters(objMangas[0].URL);
-  objMangas = await Promise.all(
-    objMangas.map(async (manga) => {
-      const idxChapters = await getIdxChapters(manga.URL);
-      // console.log(manga);
-      // console.log(idxChapters);
-      // const res = { ...manga, idxChapters };
-      // // console.log(res);
-      // return res;
-      return { ...manga, idxChapters };
-    })
-  );
-
-  console.log(objMangas);
+  let objMangas;
+  fs.readFile("mangas.json", (err, data) => {
+    // if (err) throw err;
+    objMangas = JSON.parse(data);
+    res.send(objMangas);
+    // console.log(objMangas);
+  });
   // res.send("NOTHING\n");
-  res.send(objMangas);
-  // res.json(JSON.parse(objMangas));
+  // res.send(objMangas);
+
+  objMangas = await getMangas();
+  fs.writeFile("mangas.json", JSON.stringify(objMangas), () => {});
 };
 // [END functions_helloworld_get]
