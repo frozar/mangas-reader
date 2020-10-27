@@ -15,7 +15,9 @@
     "unit-test": "mocha test/index.test.js test/*unit*test.js test/*integration*test.js --timeout=2000 --exit",
     "system-test": "mocha test/*system*test.js --timeout=600000 --exit",
     "test": "npm run unit-test",
-    "start": "functions-framework --target=helloGET"
+    "start-old": "functions-framework --target=mangaGET",
+    "start": "nodemon node_modules/@google-cloud/functions-framework/build/src/index.js --target=mangaGET",
+    "deploy": "gcloud functions deploy mangaGET --runtime nodejs10 --trigger-http --allow-unauthenticated"
   },
   "dependencies": {
     "@google-cloud/debug-agent": "^5.0.0",
