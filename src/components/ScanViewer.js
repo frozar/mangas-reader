@@ -7,13 +7,64 @@ import Button from "@material-ui/core/Button";
 
 import DisplayImage from "./DisplayImage";
 import WaitingScreen from "./WaitingScreen";
-import {
-  discoverManga,
-  pingMangaDict,
-  previousImage,
-  nextImage,
-  KEY_LAST_CHAPTER,
-} from "../probe";
+// import {
+//   // discoverManga,
+//   // pingMangaDict,
+//   // previousImage,
+//   // nextImage,
+//   KEY_LAST_CHAPTER,
+// } from "../probe";
+
+function previousImage(mangaURL, idxChapter, idxImage, mangaDict) {
+  // console.log(mangaURL, idxChapter, idxImage, mangaDict);
+  const chapters = mangaDict[mangaURL].chapters;
+  // const idxImageMax = chapters[idxChapter];
+  // console.log("idxImageMax", idxImageMax);
+  if (0 < idxImage) {
+    // Go to the previous image
+    return [idxChapter, idxImage - 1];
+  } else if (0 === idxImage) {
+    const aChapters = Object.keys(chapters).sort();
+    const idxInTabChapter = aChapters.indexOf(idxChapter);
+    // const idxInTabChapterMax = aChapters.length - 1;
+    if (0 < idxInTabChapter) {
+      // Go to the next chapter
+      const idxPreviousChapter = aChapters[idxInTabChapter - 1];
+      console.log("idxPreviousChapter", idxPreviousChapter);
+      const idxImageMax = chapters[idxPreviousChapter] - 1;
+      return [idxPreviousChapter, idxImageMax];
+    } else {
+      // No more scan
+      console.info("Previous: no more scan");
+      return null;
+    }
+  }
+}
+
+function nextImage(mangaURL, idxChapter, idxImage, mangaDict) {
+  // console.log(mangaURL, idxChapter, idxImage, mangaDict);
+  const chapters = mangaDict[mangaURL].chapters;
+  const idxImageMax = chapters[idxChapter] - 1;
+  // console.log("idxImage", idxImage);
+  // console.log("idxImageMax", idxImageMax);
+  if (idxImage < idxImageMax) {
+    // Go to the next image
+    return [idxChapter, idxImage + 1];
+  } else if (idxImage === idxImageMax) {
+    const aChapters = Object.keys(chapters).sort();
+    const idxInTabChapter = aChapters.indexOf(idxChapter);
+    const idxInTabChapterMax = aChapters.length - 1;
+    if (idxInTabChapter < idxInTabChapterMax) {
+      // Go to the next chapter
+      const idxNextChapter = aChapters[idxInTabChapter + 1];
+      return [idxNextChapter, 0];
+    } else {
+      // No more scan
+      console.info("Next: no more scan");
+      return null;
+    }
+  }
+}
 
 class ScanViewer extends React.Component {
   initState = {
@@ -37,7 +88,7 @@ class ScanViewer extends React.Component {
         mangaURL: this.props.mangaURL,
         ...this.initState,
       });
-      discoverManga(this.props.mangaURL, this.updateIdxLastChapter);
+      // discoverManga(this.props.mangaURL, this.updateIdxLastChapter);
     } else if (this.state.initIdxChapter !== this.props.idxChapter) {
       this.setState({
         ...this.initState,
@@ -103,11 +154,49 @@ class ScanViewer extends React.Component {
   };
 
   handleOnExited = () => {
-    const { action } = this.state;
+    const { action, mangaURL, idxChapter, idxImage } = this.state;
     if (action === "PREVIOUS") {
-      this.moveImage(previousImage, "No previous scan");
+      // this.moveImage(previousImage, "No previous scan");
+      const res = previousImage(
+        mangaURL,
+        idxChapter,
+        idxImage,
+        this.props.mangaDict
+      );
+      if (res) {
+        const [idxChapter, idxImage] = res;
+        this.setState({
+          idxChapter,
+          idxImage,
+          displayedImage: false,
+          offsetX: 0,
+        });
+      }
+      // The end of the scan
+      else {
+        this.setState({ displayedImage: false, offsetX: 0 });
+      }
     } else if (action === "NEXT") {
-      this.moveImage(nextImage, "No next scan");
+      // this.moveImage(nextImage, "No next scan");
+      const res = nextImage(
+        mangaURL,
+        idxChapter,
+        idxImage,
+        this.props.mangaDict
+      );
+      if (res) {
+        const [idxChapter, idxImage] = res;
+        this.setState({
+          idxChapter,
+          idxImage,
+          displayedImage: false,
+          offsetX: 0,
+        });
+      }
+      // The end of the scan
+      else {
+        this.setState({ displayedImage: false, offsetX: 0 });
+      }
     }
   };
 
@@ -115,28 +204,28 @@ class ScanViewer extends React.Component {
     this.setState({
       displayedImage: true,
     });
-    const { mangaURL, idxChapter, idxImage } = this.state;
-    // I - Discover the current and sibling chapter if not done
-    pingMangaDict(mangaURL, idxChapter, idxImage);
-    // II - Probe the next image
-    const nextMangaInfo = nextImage(mangaURL, idxChapter, idxImage);
-    if (typeof nextMangaInfo === "object") {
-      // console.log("BEFORE nextMangaInfo");
-      probeImage("probe-next", nextMangaInfo);
-      // console.log("AFTER  nextMangaInfo");
-    }
-    const previousMangaInfo = previousImage(mangaURL, idxChapter, idxImage);
-    if (typeof previousMangaInfo === "object") {
-      // console.log("BEFORE previousMangaInfo");
-      probeImage("probe-previous", previousMangaInfo);
-      // console.log("AFTER  previousMangaInfo");
-    }
+    // const { mangaURL, idxChapter, idxImage } = this.state;
+    // // I - Discover the current and sibling chapter if not done
+    // pingMangaDict(mangaURL, idxChapter, idxImage);
+    // // II - Probe the next image
+    // const nextMangaInfo = nextImage(mangaURL, idxChapter, idxImage);
+    // if (typeof nextMangaInfo === "object") {
+    //   // console.log("BEFORE nextMangaInfo");
+    //   probeImage("probe-next", nextMangaInfo);
+    //   // console.log("AFTER  nextMangaInfo");
+    // }
+    // const previousMangaInfo = previousImage(mangaURL, idxChapter, idxImage);
+    // if (typeof previousMangaInfo === "object") {
+    //   // console.log("BEFORE previousMangaInfo");
+    //   probeImage("probe-previous", previousMangaInfo);
+    //   // console.log("AFTER  previousMangaInfo");
+    // }
   };
 
-  updateIdxLastChapter = (mangaURL, dict) => {
-    const idxLastChapter = dict[KEY_LAST_CHAPTER];
-    this.setState({ mangaURL, idxChapter: idxLastChapter });
-  };
+  // updateIdxLastChapter = (mangaURL, dict) => {
+  //   const idxLastChapter = dict[KEY_LAST_CHAPTER];
+  //   this.setState({ mangaURL, idxChapter: idxLastChapter });
+  // };
 
   setOffsetX = (ref) => {
     // console.log("ScanViewer: setOffsetX", ref);

@@ -48,19 +48,19 @@ export default function SelectChapter(props) {
   const classes = useStyles();
 
   useEffect(() => {
+    const updateRange = (mangaURL, dict) => {
+      // console.log("updateRange", dict);
+      const firstIdx = dict[KEY_FIRST_CHAPTER];
+      const lastIdx = dict[KEY_LAST_CHAPTER];
+      if (!_.isEqual(rangeChapter, [firstIdx, lastIdx])) {
+        setRangeChapter([firstIdx, lastIdx]);
+      }
+    };
+
     console.log("useEffect props", props);
     // setMangaURL(props.mangaURL);
     discoverManga(props.mangaURL, updateRange);
-  }, [rangeChapter]);
-
-  const updateRange = (mangaURL, dict) => {
-    // console.log("updateRange", dict);
-    const firstIdx = dict[KEY_FIRST_CHAPTER];
-    const lastIdx = dict[KEY_LAST_CHAPTER];
-    if (!_.isEqual(rangeChapter, [firstIdx, lastIdx])) {
-      setRangeChapter([firstIdx, lastIdx]);
-    }
-  };
+  }, [rangeChapter, props]);
 
   const handleOnClick = (event) => {
     event.persist();
