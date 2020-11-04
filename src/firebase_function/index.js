@@ -53,8 +53,15 @@ async function getNbImage(path, idxChapter) {
     });
 
   const root = parse(data);
-  const imagesLink = root.querySelector("#navigation").querySelectorAll("a");
-  const nbImage = imagesLink.length - 3;
+  // Every link which is not a number is filter out
+  const imagesLink = root
+    .querySelector("#navigation")
+    .querySelectorAll("a")
+    .filter((link) => {
+      const reg = /^\d+$/;
+      return reg.test(link.childNodes[0].rawText);
+    });
+  const nbImage = imagesLink.length;
 
   return nbImage;
 }
@@ -128,6 +135,7 @@ exports.mangaTitleSET = functions
 
     writeDB(objMangas);
 
+    res.set("Access-Control-Allow-Origin", "*");
     res.json(objMangas);
   });
 
@@ -158,6 +166,7 @@ exports.mangaChapterSET = functions
     }
 
     let resDict;
+    res.set("Access-Control-Allow-Origin", "*");
     if (queryURL) {
       let idxChapters = await getIdxChapters(queryURL);
       idxChapters.reverse();
@@ -181,6 +190,7 @@ exports.mangaGET = functions
   .https.onRequest(async (req, res) => {
     const refReadResult = db.collection("manga").doc("lelscan");
     const readResult = await refReadResult.get();
+    res.set("Access-Control-Allow-Origin", "*");
     let data = {};
     if (readResult) {
       if (data) {
