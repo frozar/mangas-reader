@@ -110,11 +110,38 @@ class ScanViewer extends React.Component {
   }
 
   handleKeyDown = (evt) => {
-    const { displayedImage } = this.state;
-    if (displayedImage && evt.shiftKey && evt.key === "Enter") {
-      this.setState({ action: "PREVIOUS", in: false });
-    } else if (displayedImage && !evt.shiftKey && evt.key === "Enter") {
-      this.setState({ action: "NEXT", in: false });
+    const { displayedImage, mangaURL, idxChapter, idxImage } = this.state;
+    // if (displayedImage) {
+    //   if (evt.shiftKey && evt.key === "Enter") {
+    //     this.setState({ action: "PREVIOUS", in: false });
+    //   } else if (!evt.shiftKey && evt.key === "Enter") {
+    //     this.setState({ action: "NEXT", in: false });
+    //   }
+    // }
+    if (displayedImage) {
+      let action;
+      let followingImage;
+      if (evt.shiftKey && evt.key === "Enter") {
+        action = "PREVIOUS";
+        followingImage = previousImage;
+      } else if (!evt.shiftKey && evt.key === "Enter") {
+        action = "NEXT";
+        followingImage = nextImage;
+      }
+
+      if (followingImage) {
+        // console.log("followingImage", followingImage);
+        const res = followingImage(
+          mangaURL,
+          idxChapter,
+          idxImage,
+          this.props.mangaDict
+        );
+        if (res) {
+          const [idxChapter, idxImage] = res;
+          this.setState({ idxChapter, idxImage, action, in: false });
+        }
+      }
     }
   };
 
@@ -134,70 +161,28 @@ class ScanViewer extends React.Component {
     // }
   };
 
-  moveImage = (previousOrNextImage, errorMsg) => {
-    const { mangaURL, idxChapter, idxImage } = this.state;
-    let answer = previousOrNextImage(mangaURL, idxChapter, idxImage);
-    while (answer === "NOT_READY") {
-      answer = previousOrNextImage(mangaURL, idxChapter, idxImage);
-    }
-    if (answer === "NO_IMAGE") {
-      this.setState({ errorMsg });
-    } else if (typeof answer === "object") {
-      this.setState({
-        ...answer,
-        displayedImage: false,
-        offsetX: 0,
-        // action: "",
-      });
-      window.scrollTo(0, 0);
-    }
-  };
+  // moveImage = (previousOrNextImage, errorMsg) => {
+  //   const { mangaURL, idxChapter, idxImage } = this.state;
+  //   let answer = previousOrNextImage(mangaURL, idxChapter, idxImage);
+  //   while (answer === "NOT_READY") {
+  //     answer = previousOrNextImage(mangaURL, idxChapter, idxImage);
+  //   }
+  //   if (answer === "NO_IMAGE") {
+  //     this.setState({ errorMsg });
+  //   } else if (typeof answer === "object") {
+  //     this.setState({
+  //       ...answer,
+  //       displayedImage: false,
+  //       offsetX: 0,
+  //       // action: "",
+  //     });
+  //     window.scrollTo(0, 0);
+  //   }
+  // };
 
   handleOnExited = () => {
-    const { action, mangaURL, idxChapter, idxImage } = this.state;
-    if (action === "PREVIOUS") {
-      // this.moveImage(previousImage, "No previous scan");
-      const res = previousImage(
-        mangaURL,
-        idxChapter,
-        idxImage,
-        this.props.mangaDict
-      );
-      if (res) {
-        const [idxChapter, idxImage] = res;
-        this.setState({
-          idxChapter,
-          idxImage,
-          displayedImage: false,
-          offsetX: 0,
-        });
-      }
-      // The end of the scan
-      else {
-        this.setState({ displayedImage: false, offsetX: 0 });
-      }
-    } else if (action === "NEXT") {
-      // this.moveImage(nextImage, "No next scan");
-      const res = nextImage(
-        mangaURL,
-        idxChapter,
-        idxImage,
-        this.props.mangaDict
-      );
-      if (res) {
-        const [idxChapter, idxImage] = res;
-        this.setState({
-          idxChapter,
-          idxImage,
-          displayedImage: false,
-          offsetX: 0,
-        });
-      }
-      // The end of the scan
-      else {
-        this.setState({ displayedImage: false, offsetX: 0 });
-      }
-    }
+    this.setState({ displayedImage: false, offsetX: 0 });
+    window.scrollTo(0, 0);
   };
 
   imageLoaded = () => {
@@ -309,6 +294,14 @@ class ScanViewer extends React.Component {
   }
 }
 
+/**
+ * Allow to get the HTML ref of an image (used to position the image
+ * on the page).
+ *
+ * @param {*} htmlId
+ * @param {*} mangaInfo
+ * @param {*} getRef
+ */
 function probeImage(htmlId, mangaInfo, getRef) {
   // console.log("probeImage mangaInfo:", mangaInfo);
   const { mangaURL, idxChapter, idxImage } = mangaInfo;
