@@ -40,18 +40,23 @@ class App extends React.Component {
   initStore = async () => {
     const request = await axios.get(URL_MANGA_GET);
     const mangaDict = request.data;
-    console.log("mangaDict", mangaDict);
+    // console.log("mangaDict", mangaDict);
     this.setState({ mangaDict });
   };
 
   updateMangaChapters = async (mangaTitle) => {
-    const request = await axios.get(URL_MANGA_CHAPTER_SET, {
+    // const request = await axios.get(URL_MANGA_CHAPTER_SET, {
+    //   params: {
+    //     path: mangaTitle,
+    //   },
+    // });
+    // const chapters = request.data;
+    // console.log("chapters", chapters);
+    axios.get(URL_MANGA_CHAPTER_SET, {
       params: {
         path: mangaTitle,
       },
     });
-    const chapters = request.data;
-    console.log("chapters", chapters);
   };
 
   componentDidMount() {
@@ -65,15 +70,15 @@ class App extends React.Component {
 
     // console.log("DidUpdate", this.state);
     if (this.state.mangaURL === "") {
-      console.log(this.defaultManga, this.state.mangaDict[this.defaultManga]);
+      // console.log(this.defaultManga, this.state.mangaDict[this.defaultManga]);
       // If the DB doesn't contain the chapters data about the default manga
       // (extremly rare), then:
       // 1. send a request to update default manga data,
       // 2. look for a manga with chapters data and display it
-      console.log(
-        "this.state.mangaDict[this.defaultManga]",
-        this.state.mangaDict[this.defaultManga]
-      );
+      // console.log(
+      //   "this.state.mangaDict[this.defaultManga]",
+      //   this.state.mangaDict[this.defaultManga]
+      // );
       if (this.state.mangaDict[this.defaultManga].chapters === undefined) {
         this.updateMangaChapters(this.defaultManga);
         for (const [path, objManga] of Object.entries(this.state.mangaDict)) {
@@ -118,7 +123,7 @@ class App extends React.Component {
   };
 
   render() {
-    console.log("App: render:", this.state);
+    // console.log("App: state:", this.state);
     const { mangaDict, mangaURL, idxChapter } = this.state;
     return (
       <Router history={history}>

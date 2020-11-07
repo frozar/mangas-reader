@@ -1,12 +1,13 @@
 import React from "react";
-import ReactDOM from "react-dom";
+// import ReactDOM from "react-dom";
 import { Link } from "react-router-dom";
-import Slide from "@material-ui/core/Slide";
-import Box from "@material-ui/core/Box";
+// import Slide from "@material-ui/core/Slide";
+// import Box from "@material-ui/core/Box";
 import Button from "@material-ui/core/Button";
+import { CSSTransition } from "react-transition-group";
 
 import DisplayImage from "./DisplayImage";
-import WaitingScreen from "./WaitingScreen";
+// import WaitingScreen from "./WaitingScreen";
 // import {
 //   // discoverManga,
 //   // pingMangaDict,
@@ -70,11 +71,11 @@ class ScanViewer extends React.Component {
   initState = {
     idxChapter: null,
     idxImage: 0,
-    displayedImage: false,
-    offsetX: 0,
+    // displayedImage: false,
+    // offsetX: 0,
     errorMsg: "",
     action: "",
-    in: false,
+    // in: false,
   };
   state = {
     mangaURL: "",
@@ -110,7 +111,7 @@ class ScanViewer extends React.Component {
   }
 
   handleKeyDown = (evt) => {
-    const { displayedImage, mangaURL, idxChapter, idxImage } = this.state;
+    const { mangaURL, idxChapter, idxImage } = this.state;
     // if (displayedImage) {
     //   if (evt.shiftKey && evt.key === "Enter") {
     //     this.setState({ action: "PREVIOUS", in: false });
@@ -118,31 +119,31 @@ class ScanViewer extends React.Component {
     //     this.setState({ action: "NEXT", in: false });
     //   }
     // }
-    if (displayedImage) {
-      let action;
-      let followingImage;
-      if (evt.shiftKey && evt.key === "Enter") {
-        action = "PREVIOUS";
-        followingImage = previousImage;
-      } else if (!evt.shiftKey && evt.key === "Enter") {
-        action = "NEXT";
-        followingImage = nextImage;
-      }
+    // if (displayedImage) {
+    let action;
+    let followingImageFct;
+    if (evt.shiftKey && evt.key === "Enter") {
+      action = "PREVIOUS";
+      followingImageFct = previousImage;
+    } else if (!evt.shiftKey && evt.key === "Enter") {
+      action = "NEXT";
+      followingImageFct = nextImage;
+    }
 
-      if (followingImage) {
-        // console.log("followingImage", followingImage);
-        const res = followingImage(
-          mangaURL,
-          idxChapter,
-          idxImage,
-          this.props.mangaDict
-        );
-        if (res) {
-          const [idxChapter, idxImage] = res;
-          this.setState({ idxChapter, idxImage, action, in: false });
-        }
+    if (followingImageFct) {
+      // console.log("followingImage", followingImage);
+      const res = followingImageFct(
+        mangaURL,
+        idxChapter,
+        idxImage,
+        this.props.mangaDict
+      );
+      if (res) {
+        const [idxChapter, idxImage] = res;
+        this.setState({ idxChapter, idxImage, action });
       }
     }
+    // }
   };
 
   componentDidUpdate = () => {
@@ -150,13 +151,13 @@ class ScanViewer extends React.Component {
     // const { offsetX } = this.state;
     // console.log({ offsetX });
     // if (offsetX === null) {
-    const { mangaURL, idxChapter, idxImage } = this.state;
+    // const { mangaURL, idxChapter, idxImage } = this.state;
     // console.log("componentDidUpdate", { mangaURL, idxChapter, idxImage });
-    probeImage(
-      "probe-current",
-      { mangaURL, idxChapter, idxImage },
-      this.setOffsetX
-    );
+    // probeImage(
+    //   "probe-current",
+    //   { mangaURL, idxChapter, idxImage },
+    //   this.setOffsetX
+    // );
     // console.log("this.state", this.state);
     // }
   };
@@ -180,15 +181,17 @@ class ScanViewer extends React.Component {
   //   }
   // };
 
-  handleOnExited = () => {
-    this.setState({ displayedImage: false, offsetX: 0 });
-    window.scrollTo(0, 0);
-  };
+  // handleOnExited = () => {
+  //   this.setState({ offsetX: 0 });
+  //   window.scrollTo(0, 0);
+  // };
 
   imageLoaded = () => {
-    this.setState({
-      displayedImage: true,
-    });
+    // this.setState({
+    //   displayedImage: true,
+    // });
+    window.scrollTo(0, 0);
+    // console.log("Should scroll");
     // const { mangaURL, idxChapter, idxImage } = this.state;
     // // I - Discover the current and sibling chapter if not done
     // pingMangaDict(mangaURL, idxChapter, idxImage);
@@ -212,57 +215,36 @@ class ScanViewer extends React.Component {
   //   this.setState({ mangaURL, idxChapter: idxLastChapter });
   // };
 
-  setOffsetX = (ref) => {
-    // console.log("ScanViewer: setOffsetX", ref);
-    const midWindowWidth = window.innerWidth / 2;
-    const midImageFrameWidth = ref.current.offsetWidth / 2;
-    const signedDist = midWindowWidth - midImageFrameWidth;
-    const offsetX = 0 < signedDist ? signedDist : 0;
-    // console.log({ midWindowWidth, midImageFrameWidth, signedDist, offsetX });
-    this.setState({ offsetX, in: true });
-  };
-
   // TODO: Show a progress bar over the current chapter
   render() {
     const { mangaURL, idxChapter, idxImage } = this.state;
+    console.log("ScanViewer: state:", this.state);
 
-    if (mangaURL !== this.props.mangaURL) {
-      return <WaitingScreen open={true} />;
-    }
+    // if (mangaURL !== this.props.mangaURL) {
+    //   return <WaitingScreen open={true} />;
+    // }
 
-    if (!(mangaURL !== "" && idxChapter !== null && idxImage !== null)) {
-      return <WaitingScreen open={true} />;
-    } else {
-      const displayedImageProp = this.state.displayedImage;
-      const offsetXProp = this.state.offsetX;
-      const inProp = this.state.in;
+    // if (!(mangaURL !== "" && idxChapter !== null && idxImage !== null)) {
+    //   // return <WaitingScreen open={true} />;
+    //   return null;
+    // } else {
+    if (mangaURL !== "" && idxChapter !== null && idxImage !== null) {
+      // const displayedImageProp = this.state.displayedImage;
+      // const offsetXProp = this.state.offsetX;
+      // const inProp = this.state.in;
+      // console.log("displayedImageProp", displayedImageProp);
+      // console.log("in", inProp);
 
-      let directionProp = "";
-      const { action } = this.state;
-      if (inProp) {
-        if (action === "PREVIOUS") {
-          directionProp = "right";
-        } else if (action === "NEXT") {
-          directionProp = "left";
-        } else {
-          directionProp = "left";
-        }
-      } else {
-        if (action === "PREVIOUS") {
-          directionProp = "left";
-        } else if (action === "NEXT") {
-          directionProp = "right";
-        } else {
-          directionProp = "right";
-        }
-      }
-      const timeout = 500;
-      // console.log({ offsetXProp, action, inProp, directionProp });
       return (
         <React.Fragment>
-          <WaitingScreen open={!displayedImageProp} />
-          <Button
-            style={{ position: "fixed", top: "10px", left: "10px" }}
+          {/* <WaitingScreen open={!displayedImageProp} /> */}
+          {/* <Button
+            style={{
+              // position: "fixed",
+              float: "left",
+              top: "10px",
+              left: "10px",
+            }}
             variant="contained"
             color="primary"
           >
@@ -273,46 +255,46 @@ class ScanViewer extends React.Component {
             >
               Select Manga
             </Link>
-          </Button>
-          <Slide
-            direction={directionProp}
-            in={inProp}
-            mountOnEnter
-            unmountOnExit
-            onExited={this.handleOnExited}
-            timeout={timeout}
+          </Button> */}
+          <CSSTransition
+            in={true}
+            appear={true}
+            timeout={2000}
+            classNames="fade"
           >
             <DisplayImage
               mangaInfo={{ mangaURL, idxChapter, idxImage }}
               imageLoaded={this.imageLoaded}
-              offsetX={offsetXProp}
+              // offsetX={offsetXProp}
             />
-          </Slide>
+          </CSSTransition>
         </React.Fragment>
       );
+    } else {
+      return null;
     }
   }
 }
 
-/**
- * Allow to get the HTML ref of an image (used to position the image
- * on the page).
- *
- * @param {*} htmlId
- * @param {*} mangaInfo
- * @param {*} getRef
- */
-function probeImage(htmlId, mangaInfo, getRef) {
-  // console.log("probeImage mangaInfo:", mangaInfo);
-  const { mangaURL, idxChapter, idxImage } = mangaInfo;
-  if (mangaURL !== "" && idxChapter !== null && idxImage !== null) {
-    ReactDOM.render(
-      <Box style={{ visibility: "hidden", position: "fixed", top: 0, left: 0 }}>
-        <DisplayImage {...{ mangaInfo, getRef }} />
-      </Box>,
-      document.querySelector("#" + htmlId)
-    );
-  }
-}
+// /**
+//  * Allow to get the HTML ref of an image (used to position the image
+//  * on the page).
+//  *
+//  * @param {*} htmlId
+//  * @param {*} mangaInfo
+//  * @param {*} getRef
+//  */
+// function probeImage(htmlId, mangaInfo, getRef) {
+//   // console.log("probeImage mangaInfo:", mangaInfo);
+//   const { mangaURL, idxChapter, idxImage } = mangaInfo;
+//   if (mangaURL !== "" && idxChapter !== null && idxImage !== null) {
+//     ReactDOM.render(
+//       <Box style={{ visibility: "hidden", position: "fixed", top: 0, left: 0 }}>
+//         <DisplayImage {...{ mangaInfo, getRef }} />
+//       </Box>,
+//       document.querySelector("#" + htmlId)
+//     );
+//   }
+// }
 
 export default ScanViewer;
