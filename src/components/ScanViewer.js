@@ -74,7 +74,7 @@ class ScanViewer extends React.Component {
     // displayedImage: false,
     // offsetX: 0,
     errorMsg: "",
-    action: "",
+    // action: "",
     // in: false,
   };
   state = {
@@ -112,21 +112,13 @@ class ScanViewer extends React.Component {
 
   handleKeyDown = (evt) => {
     const { mangaURL, idxChapter, idxImage } = this.state;
-    // if (displayedImage) {
-    //   if (evt.shiftKey && evt.key === "Enter") {
-    //     this.setState({ action: "PREVIOUS", in: false });
-    //   } else if (!evt.shiftKey && evt.key === "Enter") {
-    //     this.setState({ action: "NEXT", in: false });
-    //   }
-    // }
-    // if (displayedImage) {
-    let action;
+    // let action;
     let followingImageFct;
-    if (evt.shiftKey && evt.key === "Enter") {
-      action = "PREVIOUS";
+    if (evt.key === "ArrowLeft") {
+      // action = "PREVIOUS";
       followingImageFct = previousImage;
-    } else if (!evt.shiftKey && evt.key === "Enter") {
-      action = "NEXT";
+    } else if (evt.key === "ArrowRight") {
+      // action = "NEXT";
       followingImageFct = nextImage;
     }
 
@@ -140,7 +132,7 @@ class ScanViewer extends React.Component {
       );
       if (res) {
         const [idxChapter, idxImage] = res;
-        this.setState({ idxChapter, idxImage, action });
+        this.setState({ idxChapter, idxImage });
       }
     }
     // }
@@ -218,7 +210,7 @@ class ScanViewer extends React.Component {
   // TODO: Show a progress bar over the current chapter
   render() {
     const { mangaURL, idxChapter, idxImage } = this.state;
-    console.log("ScanViewer: state:", this.state);
+    // console.log("ScanViewer: state:", this.state);
 
     // if (mangaURL !== this.props.mangaURL) {
     //   return <WaitingScreen open={true} />;
@@ -238,7 +230,7 @@ class ScanViewer extends React.Component {
       return (
         <React.Fragment>
           {/* <WaitingScreen open={!displayedImageProp} /> */}
-          {/* <Button
+          <Button
             style={{
               // position: "fixed",
               float: "left",
@@ -255,7 +247,7 @@ class ScanViewer extends React.Component {
             >
               Select Manga
             </Link>
-          </Button> */}
+          </Button>
           <CSSTransition
             in={true}
             appear={true}

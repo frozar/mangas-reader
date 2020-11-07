@@ -22,7 +22,7 @@ body {
 }
 .fade-enter.fade-enter-active {
   opacity: 1;
-  transition: opacity 1000ms linear;
+  transition: opacity 300ms linear;
 }
 
 /* exit */
@@ -34,7 +34,7 @@ body {
 }
 .fade-exit.fade-exit-active {
   opacity: 0;
-  transition: opacity 1000ms linear;
+  transition: opacity 300ms linear;
 }
 .fade-exit-done {
   opacity: 0;

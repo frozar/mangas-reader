@@ -66,7 +66,6 @@ class DisplayImage extends React.Component {
       //   }}
       //   // ref={this.refImageFrame}
       // >
-      // <Tooltip title={this.tooltipTitle(mangaInfo)}>
       // <Paper
       //   style={{
       //     display: "inline-block",
@@ -121,7 +120,7 @@ class DisplayImage extends React.Component {
         <CSSTransition
           key={this.getURL(mangaInfo)}
           // key={mangaInfo.idxImage}
-          timeout={1000}
+          timeout={300}
           // classNames="slide"
           classNames="fade"
           // ref={this.refImageFrame}
@@ -140,45 +139,46 @@ class DisplayImage extends React.Component {
                 }
               }
             > */}
-          <img
-            style={{
-              // display: "inline",
-              // // // position: "absolute",
-              // // // margin: "0 auto",
-              // position: "relative",
-              // // left: "-50%",
-              // // border: "dotted red 1px",
-              position: "absolute",
-              left: "0",
-              right: "0",
-              // marginLeft: "auto",
-              // marginRight: "auto",
-              // // // // width: "90%",
-              // // maxWidth: "-webkit-fill-available",
-              // // minWidth: "fit-content",
-              margin: "1em auto",
-              padding: "2em",
-              backgroundColor: "rgb(78, 83, 107)",
-              // position: "absolute",
+          <Tooltip title={this.tooltipTitle(mangaInfo)}>
+            <img
+              style={{
+                // display: "inline",
+                // // // position: "absolute",
+                // // // margin: "0 auto",
+                // position: "relative",
+                // // left: "-50%",
+                // // border: "dotted red 1px",
+                position: "absolute",
+                left: "0",
+                right: "0",
+                // marginLeft: "auto",
+                // marginRight: "auto",
+                // // // // width: "90%",
+                // // maxWidth: "-webkit-fill-available",
+                // // minWidth: "fit-content",
+                margin: "1em auto",
+                padding: "2em",
+                backgroundColor: "rgb(78, 83, 107)",
+                // position: "absolute",
 
-              // .MuiPaper-elevation-5
-              boxShadow:
-                "0px 3px 5px -1px rgba(0,0,0,0.2), 0px 5px 8px 0px rgba(0,0,0,0.14), 0px 1px 14px 0px rgba(0,0,0,0.12)",
-              // .MuiPaper-rounded
-              borderRadius: "2em",
-              // .MuiPaper-root
-              color: "rgba(0, 0, 0, 0.87)",
-              maxWidth: "-webkit-fill-available",
-            }}
-            alt="manga"
-            src={this.getURL(mangaInfo)}
-            onLoad={this.imageLoaded}
-          />
-          {/* </div> */}
+                // .MuiPaper-elevation-5
+                boxShadow:
+                  "0px 3px 5px -1px rgba(0,0,0,0.2), 0px 5px 8px 0px rgba(0,0,0,0.14), 0px 1px 14px 0px rgba(0,0,0,0.12)",
+                // .MuiPaper-rounded
+                borderRadius: "2em",
+                // .MuiPaper-root
+                color: "rgba(0, 0, 0, 0.87)",
+                maxWidth: "-webkit-fill-available",
+              }}
+              alt="manga"
+              src={this.getURL(mangaInfo)}
+              onLoad={this.imageLoaded}
+            />
+            {/* </div> */}
+          </Tooltip>
         </CSSTransition>
       </TransitionGroup>
       // </Paper>
-      // </Tooltip>
       // </Box>
     );
   }
