@@ -103,14 +103,14 @@ class ScanViewer extends React.Component {
     }
 
     if (followingImageFct) {
-      const res = followingImageFct(
+      const mangaInfo = followingImageFct(
         mangaURL,
         idxChapter,
         idxImage,
         this.props.mangaDict
       );
-      if (res) {
-        const [idxChapter, idxImage] = res;
+      if (mangaInfo) {
+        const [idxChapter, idxImage] = mangaInfo;
         this.setState({ idxChapter, idxImage });
       }
     }
@@ -125,9 +125,12 @@ class ScanViewer extends React.Component {
    * scroll behavior to its top.
    */
   imageLoaded = () => {
-    const bodyRect = document.body.getBoundingClientRect(),
-      elemRect = this.refImageFrame.current.getBoundingClientRect(),
+    let offsetTop = 0;
+    if (this.refImageFrame.current) {
+      const bodyRect = document.body.getBoundingClientRect();
+      const elemRect = this.refImageFrame.current.getBoundingClientRect();
       offsetTop = elemRect.top - bodyRect.top;
+    }
     window.scrollTo({ top: offsetTop, behavior: "smooth" });
   };
 
@@ -138,7 +141,6 @@ class ScanViewer extends React.Component {
     if (mangaURL !== "" && idxChapter !== null && idxImage !== null) {
       return (
         <React.Fragment>
-          {/* <WaitingScreen open={!displayedImageProp} /> */}
           <Button
             style={{
               float: "left",

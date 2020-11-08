@@ -9,7 +9,7 @@ body {
 }
 .fade-appear.fade-appear-active {
   opacity: 1;
-  transition: opacity 1000ms linear;
+  transition: opacity 500ms linear;
 }
 
 /* enter */
