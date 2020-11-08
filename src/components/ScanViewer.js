@@ -115,19 +115,6 @@ class ScanViewer extends React.Component {
     this.mayUpdateMangaURL();
   };
 
-  /**
-   * Compute the position of the DisplayImage component to adjust the
-   * scroll behavior to its top.
-   */
-  imageLoaded = (node) => {
-    if (node) {
-      const bodyRect = document.body.getBoundingClientRect();
-      const elemRect = node.getBoundingClientRect();
-      const offsetTop = elemRect.top - bodyRect.top;
-      window.scrollTo({ top: offsetTop, behavior: "smooth" });
-    }
-  };
-
   render() {
     const { mangaURL, idxChapter, idxImage } = this.state;
 
@@ -163,10 +150,7 @@ class ScanViewer extends React.Component {
             timeout={500}
             classNames="fade"
           >
-            <DisplayImage
-              mangaInfo={{ mangaURL, idxChapter, idxImage }}
-              imageLoaded={this.imageLoaded}
-            />
+            <DisplayImage mangaInfo={{ mangaURL, idxChapter, idxImage }} />
           </CSSTransition>
 
           <LinearProgress

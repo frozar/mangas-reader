@@ -43,8 +43,21 @@ class DisplayImage extends React.Component {
             key={this.getURL(mangaInfo)}
             timeout={600}
             classNames="slide"
-            onExited={(node) => {
-              this.props.imageLoaded(node);
+            /**
+             * Compute the position of the DisplayImage component to adjust the
+             * scroll behavior to its top.
+             */
+            onEnter={(node) => {
+              if (node) {
+                const bodyRect = document.body.getBoundingClientRect();
+                const elemRect = node.getBoundingClientRect();
+                const offsetTop = elemRect.top - bodyRect.top;
+                // Weirdly have to put the scrolling animation in a setTimeout to get
+                // it work simultanously with the image transition animation
+                setTimeout(() => {
+                  window.scrollTo({ top: offsetTop, behavior: "smooth" });
+                }, 0);
+              }
             }}
           >
             <Tooltip title={this.tooltipTitle(mangaInfo)}>
