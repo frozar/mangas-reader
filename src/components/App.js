@@ -139,12 +139,15 @@ class App extends React.Component {
                 />
               </Route>
               <Route path="/select/manga" exact>
-                <SelectManga selectManga={this.selectManga} />
+                <SelectManga
+                  selectManga={this.selectManga}
+                  mangaDict={mangaDict}
+                />
               </Route>
               <Route path="/select/chapter" exact>
                 <SelectChapter
                   selectChapter={this.selectChapter}
-                  mangaURL={this.state.mangaURL}
+                  mangaURL={mangaURL}
                 />
               </Route>
             </Switch>
