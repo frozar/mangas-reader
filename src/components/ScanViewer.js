@@ -68,6 +68,11 @@ function nextImage(mangaURL, idxChapter, idxImage, mangaDict) {
 }
 
 class ScanViewer extends React.Component {
+  constructor(props) {
+    super(props);
+    this.refImageFrame = React.createRef();
+  }
+
   initState = {
     idxChapter: null,
     idxImage: 0,
@@ -182,7 +187,17 @@ class ScanViewer extends React.Component {
     // this.setState({
     //   displayedImage: true,
     // });
-    window.scrollTo(0, 0);
+    // window.scrollTo(0, 0);
+    // window.scrollTo({ top: 0, behavior: "smooth" });
+    console.log("this.refImageFrame");
+    console.log(this.refImageFrame);
+    // Compute the position of the DisplayImage component to adjust the
+    // scroll behavior to its top.
+    const bodyRect = document.body.getBoundingClientRect(),
+      elemRect = this.refImageFrame.current.getBoundingClientRect(),
+      offset = elemRect.top - bodyRect.top;
+    console.log("offset", offset);
+    window.scrollTo({ top: offset, behavior: "smooth" });
     // console.log("Should scroll");
     // const { mangaURL, idxChapter, idxImage } = this.state;
     // // I - Discover the current and sibling chapter if not done
@@ -258,6 +273,7 @@ class ScanViewer extends React.Component {
               mangaInfo={{ mangaURL, idxChapter, idxImage }}
               imageLoaded={this.imageLoaded}
               // offsetX={offsetXProp}
+              ref={this.refImageFrame}
             />
           </CSSTransition>
         </React.Fragment>

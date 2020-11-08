@@ -173,6 +173,7 @@ class DisplayImage extends React.Component {
               alt="manga"
               src={this.getURL(mangaInfo)}
               onLoad={this.imageLoaded}
+              ref={this.props.innerRef}
             />
             {/* </div> */}
           </Tooltip>
@@ -184,4 +185,8 @@ class DisplayImage extends React.Component {
   }
 }
 
-export default DisplayImage;
+// Documentation link:
+// https://stackoverflow.com/questions/51526461/how-to-use-react-forwardref-in-a-class-based-component#answer-52223103
+export default React.forwardRef((props, ref) => (
+  <DisplayImage innerRef={ref} {...props} />
+));
