@@ -1,12 +1,7 @@
-import _ from "lodash";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
-
-// import LIST_MANGA from "../listManga";
-import WaitingScreen from "./WaitingScreen";
-import { discoverManga, KEY_FIRST_CHAPTER, KEY_LAST_CHAPTER } from "../probe";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -43,43 +38,18 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 export default function SelectChapter(props) {
-  // const [mangaURL, setMangaURL] = useState("");
-  const [rangeChapter, setRangeChapter] = useState([-1, -1]);
   const classes = useStyles();
-
-  useEffect(() => {
-    const updateRange = (mangaURL, dict) => {
-      // console.log("updateRange", dict);
-      const firstIdx = dict[KEY_FIRST_CHAPTER];
-      const lastIdx = dict[KEY_LAST_CHAPTER];
-      if (!_.isEqual(rangeChapter, [firstIdx, lastIdx])) {
-        setRangeChapter([firstIdx, lastIdx]);
-      }
-    };
-
-    console.log("useEffect props", props);
-    // setMangaURL(props.mangaURL);
-    discoverManga(props.mangaURL, updateRange);
-  }, [rangeChapter, props]);
 
   const handleOnClick = (event) => {
     event.persist();
-    console.log(event);
-    console.log(event.target.getAttribute("value"));
+    // console.log(event);
+    // console.log(event.target.getAttribute("value"));
     const idxChapter = event.target.getAttribute("value");
     props.selectChapter(idxChapter);
   };
 
-  const renderRange = (rangeChapter) => {
-    // console.log("renderRange", rangeChapter);
-    // console.log(
-    //   "_.range(rangeChapter)",
-    //   _.range(rangeChapter[1], rangeChapter[0], -1)
-    // );
-    // const listToRender = _.range(rangeChapter[0], rangeChapter[0] + 7);
-    const listToRender = _.range(rangeChapter[1], rangeChapter[0], -1);
-    return listToRender.map((idx) => {
-      // console.log("idx", idx);
+  const renderRange = (listIdxChapters) => {
+    return listIdxChapters.map((idx) => {
       return (
         <Box
           style={{
@@ -88,7 +58,8 @@ export default function SelectChapter(props) {
             flexBasis: "50%",
             maxWidth: "25%",
             height: "400px",
-            marginBottom: "1rem",
+            marginBottom: "3rem",
+            textAlign: "center",
           }}
           key={idx}
         >
@@ -101,20 +72,29 @@ export default function SelectChapter(props) {
             value={idx}
             onClick={handleOnClick}
           ></Grid>
+          <h3>{idx}</h3>
         </Box>
       );
     });
   };
 
-  if (rangeChapter === [-1, -1]) {
-    return <WaitingScreen open={true} />;
-  } else {
-    return (
-      <React.Fragment>
-        <Grid container className={classes.root} justify="center" spacing={2}>
-          {renderRange(rangeChapter)}
-        </Grid>
-      </React.Fragment>
-    );
+  let listIdxChapters = [];
+  if (
+    props.mangaDict &&
+    props.mangaDict[props.mangaURL] &&
+    props.mangaDict[props.mangaURL].chapters
+  ) {
+    listIdxChapters = Object.keys(props.mangaDict[props.mangaURL].chapters)
+      .sort()
+      .reverse();
   }
+  // console.log("listIdxChapters", listIdxChapters);
+  return (
+    <React.Fragment>
+      <Grid container className={classes.root} justify="center" spacing={2}>
+        {/* {renderRange(rangeChapter)} */}
+        {renderRange(listIdxChapters)}
+      </Grid>
+    </React.Fragment>
+  );
 }

@@ -148,6 +148,7 @@ class App extends React.Component {
                 <SelectChapter
                   selectChapter={this.selectChapter}
                   mangaURL={mangaURL}
+                  mangaDict={mangaDict}
                 />
               </Route>
             </Switch>
