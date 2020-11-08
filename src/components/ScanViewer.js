@@ -2,9 +2,9 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Button from "@material-ui/core/Button";
 import { CSSTransition } from "react-transition-group";
+import LinearProgress from "@material-ui/core/LinearProgress";
 
 import DisplayImage from "./DisplayImage";
-// import WaitingScreen from "./WaitingScreen";
 
 function previousImage(mangaURL, idxChapter, idxImage, mangaDict) {
   const chapters = mangaDict[mangaURL].chapters;
@@ -51,11 +51,6 @@ function nextImage(mangaURL, idxChapter, idxImage, mangaDict) {
 }
 
 class ScanViewer extends React.Component {
-  constructor(props) {
-    super(props);
-    this.refImageFrame = React.createRef();
-  }
-
   initState = {
     idxChapter: null,
     idxImage: 0,
@@ -124,19 +119,23 @@ class ScanViewer extends React.Component {
    * Compute the position of the DisplayImage component to adjust the
    * scroll behavior to its top.
    */
-  imageLoaded = () => {
-    let offsetTop = 0;
-    if (this.refImageFrame.current) {
+  imageLoaded = (node) => {
+    if (node) {
       const bodyRect = document.body.getBoundingClientRect();
-      const elemRect = this.refImageFrame.current.getBoundingClientRect();
-      offsetTop = elemRect.top - bodyRect.top;
+      const elemRect = node.getBoundingClientRect();
+      const offsetTop = elemRect.top - bodyRect.top;
+      window.scrollTo({ top: offsetTop, behavior: "smooth" });
     }
-    window.scrollTo({ top: offsetTop, behavior: "smooth" });
   };
 
-  // TODO: Show a progress bar over the current chapter
   render() {
     const { mangaURL, idxChapter, idxImage } = this.state;
+
+    let progressBarValue = 0;
+    if (this.props.mangaDict && this.props.mangaDict[mangaURL]) {
+      const nbImage = this.props.mangaDict[mangaURL].chapters[idxChapter];
+      progressBarValue = ((idxImage + 1) / nbImage) * 100;
+    }
 
     if (mangaURL !== "" && idxChapter !== null && idxImage !== null) {
       return (
@@ -167,9 +166,21 @@ class ScanViewer extends React.Component {
             <DisplayImage
               mangaInfo={{ mangaURL, idxChapter, idxImage }}
               imageLoaded={this.imageLoaded}
-              ref={this.refImageFrame}
             />
           </CSSTransition>
+
+          <LinearProgress
+            style={{
+              position: "fixed",
+              bottom: "0px",
+              overflow: "inherit",
+              height: "0.4em",
+              width: "-webkit-fill-available",
+              zIndex: 10000,
+            }}
+            variant="determinate"
+            value={progressBarValue}
+          />
         </React.Fragment>
       );
     } else {

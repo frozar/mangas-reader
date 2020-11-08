@@ -19,9 +19,6 @@ class DisplayImage extends React.Component {
 
   imageLoaded = () => {
     this.setState({ loading: false });
-    if (this.props.imageLoaded) {
-      this.props.imageLoaded();
-    }
   };
 
   getURL({ mangaURL, idxChapter, idxImage }) {
@@ -36,21 +33,23 @@ class DisplayImage extends React.Component {
   }
 
   render() {
-    // console.log("state:", this.state);
     const { mangaInfo } = this.props;
+
     return (
       <React.Fragment>
         <WaitingScreen open={this.state.loading} />
         <TransitionGroup>
           <CSSTransition
             key={this.getURL(mangaInfo)}
-            timeout={300}
-            classNames="fade"
+            timeout={600}
+            classNames="slide"
+            onExited={(node) => {
+              this.props.imageLoaded(node);
+            }}
           >
             <Tooltip title={this.tooltipTitle(mangaInfo)}>
               <img
                 style={{
-                  display: this.state.loading ? "none" : "block",
                   position: "absolute",
                   left: "0",
                   right: "0",
@@ -69,7 +68,6 @@ class DisplayImage extends React.Component {
                 alt="manga"
                 src={this.getURL(mangaInfo)}
                 onLoad={this.imageLoaded}
-                ref={this.props.innerRef}
               />
             </Tooltip>
           </CSSTransition>
@@ -79,8 +77,4 @@ class DisplayImage extends React.Component {
   }
 }
 
-// Documentation link:
-// https://stackoverflow.com/questions/51526461/how-to-use-react-forwardref-in-a-class-based-component#answer-52223103
-export default React.forwardRef((props, ref) => (
-  <DisplayImage innerRef={ref} {...props} />
-));
+export default DisplayImage;

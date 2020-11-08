@@ -43,24 +43,24 @@ body {
 /* slide enter */
 .slide-enter {
   opacity: 0;
-  transform: scale(0.97) translateY(5px);
+  transform: scale(1) translateX(100px);
   z-index: 1;
 }
 .slide-enter.slide-enter-active {
   opacity: 1;
-  transform: scale(1) translateY(0);
-  transition: opacity 3000ms linear 1000ms, transform 3000ms ease-in-out 1000ms;
+  transform: scale(1) translateX(0);
+  transition: opacity 300ms linear 300ms, transform 300ms ease-out 300ms;
 }
 
 /* slide exit */
 .slide-exit {
   opacity: 1;
-  transform: scale(1) translateY(0);
+  transform: scale(1) translateX(0);
 }
 .slide-exit.slide-exit-active {
   opacity: 0;
-  transform: scale(0.97) translateY(5px);
-  transition: opacity 1000ms linear, transform 1000ms ease-out;
+  transform: scale(1) translateX(-100px);
+  transition: opacity 300ms linear, transform 300ms ease-in;
 }
 .slide-exit-done {
   opacity: 0;
