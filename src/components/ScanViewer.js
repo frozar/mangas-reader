@@ -6,82 +6,43 @@ import LinearProgress from "@material-ui/core/LinearProgress";
 
 import DisplayImage from "./DisplayImage";
 
-function previousImage(mangaURL, idxChapter, idxImage, mangaDict) {
-  const chapters = mangaDict[mangaURL].chapters;
-  if (0 < idxImage) {
-    // Go to the previous image
-    return [idxChapter, idxImage - 1];
-  } else if (0 === idxImage) {
-    const aChapters = Object.keys(chapters).sort();
-    const idxInTabChapter = aChapters.indexOf(idxChapter);
-    if (0 < idxInTabChapter) {
-      // Go to the next chapter
-      const idxPreviousChapter = aChapters[idxInTabChapter - 1];
-      console.log("idxPreviousChapter", idxPreviousChapter);
-      const idxImageMax = chapters[idxPreviousChapter] - 1;
-      return [idxPreviousChapter, idxImageMax];
-    } else {
-      // No more scan
-      console.info("Previous: no more scan");
-      return null;
-    }
-  }
-}
-
-function nextImage(mangaURL, idxChapter, idxImage, mangaDict) {
-  const chapters = mangaDict[mangaURL].chapters;
-  const idxImageMax = chapters[idxChapter] - 1;
-  if (idxImage < idxImageMax) {
-    // Go to the next image
-    return [idxChapter, idxImage + 1];
-  } else if (idxImage === idxImageMax) {
-    const aChapters = Object.keys(chapters).sort();
-    const idxInTabChapter = aChapters.indexOf(idxChapter);
-    const idxInTabChapterMax = aChapters.length - 1;
-    if (idxInTabChapter < idxInTabChapterMax) {
-      // Go to the next chapter
-      const idxNextChapter = aChapters[idxInTabChapter + 1];
-      return [idxNextChapter, 0];
-    } else {
-      // No more scan
-      console.info("Next: no more scan");
-      return null;
-    }
-  }
-}
-
 class ScanViewer extends React.Component {
-  initState = {
-    idxChapter: null,
+  state = {
     idxImage: 0,
     errorMsg: "",
   };
-  state = {
-    mangaURL: "",
-    initIdxChapter: 0,
-    ...this.initState,
+
+  previousImage = async (imagesURL, idxImage) => {
+    let previousIdxImage;
+    if (0 < idxImage) {
+      // Go to the previous image
+      previousIdxImage = idxImage - 1;
+    } else if (idxImage === 0) {
+      // Go to the previous chapter
+      previousIdxImage = await this.props.previousChapter();
+    }
+    if (previousIdxImage !== null) {
+      this.setState({ idxImage: previousIdxImage });
+    }
   };
 
-  mayUpdateMangaURL = () => {
-    if (this.state.mangaURL !== this.props.mangaURL) {
-      this.setState({
-        mangaURL: this.props.mangaURL,
-        ...this.initState,
-      });
-    } else if (this.state.initIdxChapter !== this.props.idxChapter) {
-      this.setState({
-        ...this.initState,
-        mangaURL: this.props.mangaURL,
-        initIdxChapter: this.props.idxChapter,
-        idxChapter: this.props.idxChapter,
-        idxImage: 0,
-      });
+  nextImage = async (imagesURL, idxImage) => {
+    const idxImageMax = imagesURL.length - 1;
+    let nextIdxImage;
+    if (idxImage < idxImageMax) {
+      // Go to the next image
+      nextIdxImage = idxImage + 1;
+    } else if (idxImage === idxImageMax) {
+      // Go to the next chapter
+      nextIdxImage = await this.props.nextChapter();
+    }
+    if (nextIdxImage !== null) {
+      this.setState({ idxImage: nextIdxImage });
     }
   };
 
   componentDidMount() {
     document.addEventListener("keydown", this.handleKeyDown);
-    this.mayUpdateMangaURL();
   }
 
   componentWillUnmount() {
@@ -89,42 +50,31 @@ class ScanViewer extends React.Component {
   }
 
   handleKeyDown = (evt) => {
-    const { mangaURL, idxChapter, idxImage } = this.state;
+    const { mangaPath, idxChapter, imagesURL } = this.props;
+    const { idxImage } = this.state;
     let followingImageFct;
     if (evt.key === "ArrowLeft") {
-      followingImageFct = previousImage;
+      followingImageFct = this.previousImage;
     } else if (evt.key === "ArrowRight") {
-      followingImageFct = nextImage;
+      followingImageFct = this.nextImage;
     }
-
     if (followingImageFct) {
-      const mangaInfo = followingImageFct(
-        mangaURL,
-        idxChapter,
-        idxImage,
-        this.props.mangaDict
-      );
-      if (mangaInfo) {
-        const [idxChapter, idxImage] = mangaInfo;
-        this.setState({ idxChapter, idxImage });
-      }
+      followingImageFct(imagesURL, idxImage);
     }
-  };
-
-  componentDidUpdate = () => {
-    this.mayUpdateMangaURL();
   };
 
   render() {
-    const { mangaURL, idxChapter, idxImage } = this.state;
+    const { mangaPath, idxChapter, imagesURL } = this.props;
+    const { idxImage } = this.state;
 
     let progressBarValue = 0;
-    if (this.props.mangaDict && this.props.mangaDict[mangaURL]) {
-      const nbImage = this.props.mangaDict[mangaURL].chapters[idxChapter];
+    if (0 < imagesURL.length) {
+      const nbImage = imagesURL.length;
       progressBarValue = ((idxImage + 1) / nbImage) * 100;
     }
 
-    if (mangaURL !== "" && idxChapter !== null && idxImage !== null) {
+    if (mangaPath !== "" && idxChapter !== null && imagesURL.length !== 0) {
+      const imageURL = imagesURL[idxImage];
       return (
         <React.Fragment>
           <Button
@@ -150,7 +100,10 @@ class ScanViewer extends React.Component {
             timeout={500}
             classNames="fade"
           >
-            <DisplayImage mangaInfo={{ mangaURL, idxChapter, idxImage }} />
+            <DisplayImage
+              mangaInfo={{ idxChapter, idxImage }}
+              imageURL={imageURL}
+            />
           </CSSTransition>
 
           <LinearProgress

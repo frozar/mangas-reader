@@ -1,3 +1,6 @@
+import firebase from "../firebase";
+import "firebase/firestore";
+
 import React from "react";
 import { ThemeProvider } from "@material-ui/styles";
 import { createMuiTheme } from "@material-ui/core/styles";
@@ -10,12 +13,14 @@ import "../App.css";
 import SelectManga from "./SelectManga";
 import SelectChapter from "./SelectChapter";
 import ScanViewer from "./ScanViewer";
-// import LIST_MANGA from "../listManga";
 
-const URL_MANGA_GET =
-  "https://europe-west1-manga-b8fb3.cloudfunctions.net/mangaGET";
-const URL_MANGA_CHAPTER_SET =
-  "https://europe-west1-manga-b8fb3.cloudfunctions.net/mangaChapterSET";
+firebase.analytics();
+const db = firebase.firestore();
+
+const URL_MANGA_TITLE_SET =
+  "https://europe-west1-manga-b8fb3.cloudfunctions.net/mangaTitleGET";
+const URL_MANGA_IMAGES_SET =
+  "https://europe-west1-manga-b8fb3.cloudfunctions.net/mangaImagesSET";
 
 // Documentation link:
 // https://www.colorhexa.com/aaaec1
@@ -27,92 +32,79 @@ const theme = createMuiTheme({
   },
 });
 
-class App extends React.Component {
-  state = {
-    mangaDict: null,
-    // mangaURL: LIST_MANGA[0].URL,
-    mangaURL: "",
-    idxChapter: 0,
-  };
+async function getIdxChapters(mangaPath) {
+  const snapshot = await db
+    .collection("lelscan")
+    .doc(mangaPath)
+    .collection("chapters")
+    .get();
 
-  defaultManga = "one-piece";
+  let idxChapters = [];
+  snapshot.forEach((doc) => {
+    idxChapters.push(doc.id);
+  });
 
-  initStore = async () => {
-    const request = await axios.get(URL_MANGA_GET);
-    const mangaDict = request.data;
-    // console.log("mangaDict", mangaDict);
-    this.setState({ mangaDict });
-  };
+  return idxChapters.sort();
+}
 
-  updateMangaChapters = async (mangaTitle) => {
-    // const request = await axios.get(URL_MANGA_CHAPTER_SET, {
-    //   params: {
-    //     path: mangaTitle,
-    //   },
-    // });
-    // const chapters = request.data;
-    // console.log("chapters", chapters);
-    axios.get(URL_MANGA_CHAPTER_SET, {
+async function getLastIdxChapter(mangaPath) {
+  const idxChapters = await getIdxChapters(mangaPath);
+
+  return idxChapters.reverse()[0];
+}
+
+async function getImagesURL(mangaPath, idxChapter) {
+  const doc = await db
+    .collection("lelscan")
+    .doc(mangaPath)
+    .collection("chapters")
+    .doc(idxChapter)
+    .get();
+
+  let imagesURL = doc.data()["URL"];
+  if (imagesURL.length === 0) {
+    const request = await axios.get(URL_MANGA_IMAGES_SET, {
       params: {
-        path: mangaTitle,
+        path: mangaPath,
+        idxChapter: idxChapter,
       },
     });
-  };
-
-  componentDidMount() {
-    this.initStore();
+    imagesURL = request.data;
   }
 
-  componentDidUpdate() {
-    if (!this.state.mangaDict) {
-      return;
+  return imagesURL;
+}
+
+class App extends React.Component {
+  state = {
+    mangaPath: "",
+    idxChapter: "0",
+    imagesURL: [],
+  };
+
+  defaultMangaPath = "one-piece";
+
+  async componentDidMount() {
+    const doc = await db.collection("lelscan").doc(this.defaultMangaPath).get();
+    const data = doc.data();
+
+    if (data === undefined) {
+      await axios.get(URL_MANGA_TITLE_SET);
     }
 
-    // console.log("DidUpdate", this.state);
-    if (this.state.mangaURL === "") {
-      // console.log(this.defaultManga, this.state.mangaDict[this.defaultManga]);
-      // If the DB doesn't contain the chapters data about the default manga
-      // (extremly rare), then:
-      // 1. send a request to update default manga data,
-      // 2. look for a manga with chapters data and display it
-      // console.log(
-      //   "this.state.mangaDict[this.defaultManga]",
-      //   this.state.mangaDict[this.defaultManga]
-      // );
-      if (this.state.mangaDict[this.defaultManga].chapters === undefined) {
-        this.updateMangaChapters(this.defaultManga);
-        for (const [path, objManga] of Object.entries(this.state.mangaDict)) {
-          const { chapters } = objManga;
-          if (chapters) {
-            const idxLastChapter = Object.keys(chapters).sort().reverse()[0];
-            // console.log("chapters", idxLastChapter);
-            // console.log("URL", URL);
-            this.setState({
-              mangaURL: path,
-              idxChapter: idxLastChapter,
-            });
-            break;
-          }
-        }
-      }
-      // Else chapters data is avalaible in the default manga, so display it
-      else {
-        const { path, chapters } = this.state.mangaDict[this.defaultManga];
-        const idxLastChapter = Object.keys(chapters).sort().reverse()[0];
-        this.setState({
-          mangaURL: path,
-          idxChapter: idxLastChapter,
-        });
-      }
-      // this.updateMangaChapters(this.defaultManga);
-    }
+    const lastIdxChapter = await getLastIdxChapter(this.defaultMangaPath);
+    const imagesURL = await getImagesURL(this.defaultMangaPath, lastIdxChapter);
+    this.setState({
+      mangaPath: this.defaultMangaPath,
+      idxChapter: lastIdxChapter,
+      imagesURL: imagesURL,
+    });
   }
 
   // TODO: retrieve manga object: title + URLpath
-  selectManga = (mangaURL) => {
-    this.setState({ mangaURL });
-    console.log("selectManga", mangaURL, this.state);
-    // history.push("/");
+  selectManga = (mangaPath) => {
+    this.setState({ mangaPath });
+    console.log("selectManga", mangaPath, this.state);
     history.push("/select/chapter");
   };
 
@@ -122,9 +114,43 @@ class App extends React.Component {
     history.push("/");
   };
 
+  previousChapter = async () => {
+    const { mangaPath, idxChapter } = this.state;
+    const idxChapters = await getIdxChapters(mangaPath);
+    console.log("idxChapters", idxChapters);
+    const idx = idxChapters.indexOf(idxChapter);
+    if (0 < idx) {
+      const idxPreviousChapter = idxChapters[idx - 1];
+      const imagesURL = await getImagesURL(mangaPath, idxPreviousChapter);
+      const idxImage = imagesURL.length - 1;
+      this.setState({ idxChapter: idxPreviousChapter, imagesURL });
+      return idxImage;
+    } else {
+      console.info("previousChapter: no more scan");
+      return null;
+    }
+  };
+
+  nextChapter = async () => {
+    const { mangaPath, idxChapter } = this.state;
+    const idxChapters = await getIdxChapters(mangaPath);
+    const idx = idxChapters.indexOf(idxChapter);
+    const maxIdx = idxChapters.length - 1;
+    if (idx < maxIdx) {
+      const idxNextChapter = idxChapters[idx + 1];
+      const imagesURL = await getImagesURL(mangaPath, idxNextChapter);
+      const idxImage = 0;
+      this.setState({ idxChapter: idxNextChapter, imagesURL });
+      return idxImage;
+    } else {
+      console.info("nextChapter: no more scan");
+      return null;
+    }
+  };
+
   render() {
-    // console.log("App: state:", this.state);
-    const { mangaDict, mangaURL, idxChapter } = this.state;
+    console.log("App: state:", this.state);
+    const { mangaPath, idxChapter, imagesURL } = this.state;
     return (
       <Router history={history}>
         <ThemeProvider theme={theme}>
@@ -133,24 +159,26 @@ class App extends React.Component {
             <Switch>
               <Route path="/" exact>
                 <ScanViewer
-                  mangaURL={mangaURL}
+                  mangaPath={mangaPath}
                   idxChapter={idxChapter}
-                  mangaDict={mangaDict}
+                  imagesURL={imagesURL}
+                  nextChapter={this.nextChapter}
+                  previousChapter={this.previousChapter}
                 />
               </Route>
-              <Route path="/select/manga" exact>
-                <SelectManga
-                  selectManga={this.selectManga}
-                  mangaDict={mangaDict}
-                />
-              </Route>
-              <Route path="/select/chapter" exact>
-                <SelectChapter
-                  selectChapter={this.selectChapter}
-                  mangaURL={mangaURL}
-                  mangaDict={mangaDict}
-                />
-              </Route>
+              {/* //         <Route path="/select/manga" exact>
+      //           <SelectManga
+      //             selectManga={this.selectManga}
+      //             mangaDict={mangaDict}
+      //           />
+      //         </Route>
+      //         <Route path="/select/chapter" exact>
+      //           <SelectChapter
+      //             selectChapter={this.selectChapter}
+      //             mangaPath={mangaPath}
+      //             mangaDict={mangaDict}
+      //           />
+      //         </Route> */}
             </Switch>
           </div>
         </ThemeProvider>

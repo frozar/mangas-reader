@@ -5,12 +5,10 @@ import { CSSTransition, TransitionGroup } from "react-transition-group";
 
 import WaitingScreen from "./WaitingScreen";
 
-const BASE_URL = "https://lelscan.net/mangas";
-
 class DisplayImage extends React.Component {
   state = { loading: true };
 
-  shouldComponentUpdate(nextProps, nextState) {
+  shouldComponentUpdate(nextProps) {
     if (!_.isEqual(this.props, nextProps)) {
       this.setState({ loading: true });
     }
@@ -21,26 +19,19 @@ class DisplayImage extends React.Component {
     this.setState({ loading: false });
   };
 
-  getURL({ mangaURL, idxChapter, idxImage }) {
-    const strIdxImg = idxImage.toLocaleString(undefined, {
-      minimumIntegerDigits: 2,
-    });
-    return `${BASE_URL}/${mangaURL}/${idxChapter}/${strIdxImg}.jpg`;
-  }
-
   tooltipTitle({ idxChapter, idxImage }) {
     return `Chapter: ${idxChapter} - Scan: ${idxImage}`;
   }
 
   render() {
-    const { mangaInfo } = this.props;
+    const { mangaInfo, imageURL } = this.props;
 
     return (
       <React.Fragment>
         <WaitingScreen open={this.state.loading} />
         <TransitionGroup>
           <CSSTransition
-            key={this.getURL(mangaInfo)}
+            key={imageURL}
             timeout={600}
             classNames="slide"
             /**
@@ -79,7 +70,7 @@ class DisplayImage extends React.Component {
                   maxWidth: "-webkit-fill-available",
                 }}
                 alt="manga"
-                src={this.getURL(mangaInfo)}
+                src={imageURL}
                 onLoad={this.imageLoaded}
               />
             </Tooltip>
