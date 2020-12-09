@@ -10,7 +10,7 @@ import history from "../history";
 import axios from "axios";
 
 import "../App.css";
-// import SelectManga from "./SelectManga";
+import SelectManga from "./SelectManga";
 // import SelectChapter from "./SelectChapter";
 import ScanViewer from "./ScanViewer";
 
@@ -173,19 +173,19 @@ class App extends React.Component {
                   previousChapter={this.previousChapter}
                 />
               </Route>
-              {/* //         <Route path="/select/manga" exact>
-      //           <SelectManga
-      //             selectManga={this.selectManga}
-      //             mangaDict={mangaDict}
-      //           />
-      //         </Route>
-      //         <Route path="/select/chapter" exact>
-      //           <SelectChapter
-      //             selectChapter={this.selectChapter}
-      //             mangaPath={mangaPath}
-      //             mangaDict={mangaDict}
-      //           />
-      //         </Route> */}
+              <Route path="/select/manga" exact>
+                <SelectManga
+                  selectManga={this.selectManga}
+                  mangaDict={mangaDict}
+                />
+              </Route>
+              {/* <Route path="/select/chapter" exact>
+                 <SelectChapter
+                   selectChapter={this.selectChapter}
+                   mangaPath={mangaPath}
+                   mangaDict={mangaDict}
+                 />
+               </Route> */}
             </Switch>
           </div>
         </ThemeProvider>

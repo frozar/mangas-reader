@@ -216,10 +216,11 @@ exports.mangaTitleSET = functions
         "https://lelscan.net/lecture-en-ligne-",
         ""
       ).split(".")[0];
+      const thumb = "https://lelscan.net/mangas/" + path + "/thumb_cover.jpg";
 
       if (mangaToAdd.includes(path)) {
         const doc = db.collection("lelscan").doc(path);
-        doc.set({ title, URL, path }, { merge: true });
+        doc.set({ title, URL, path, thumb }, { merge: true });
       }
       if (mangaAvailable.includes(path)) {
         toWait.push(updateChaptersCollection(URL, path));
