@@ -31,7 +31,7 @@ export default class DisplayImage extends React.Component {
   };
 
   tooltipTitle({ idxChapter, idxImage }) {
-    return `Chapter: ${idxChapter} - Scan: ${idxImage}`;
+    return `Chapter: ${idxChapter} - Scan: ${idxImage + 1}`;
   }
 
   render() {
