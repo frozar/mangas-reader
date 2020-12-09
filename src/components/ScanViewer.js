@@ -50,7 +50,7 @@ class ScanViewer extends React.Component {
   }
 
   handleKeyDown = (evt) => {
-    const { mangaPath, idxChapter, imagesURL } = this.props;
+    const { imagesURL } = this.props;
     const { idxImage } = this.state;
     let followingImageFct;
     if (evt.key === "ArrowLeft") {

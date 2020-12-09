@@ -10,15 +10,15 @@ import history from "../history";
 import axios from "axios";
 
 import "../App.css";
-import SelectManga from "./SelectManga";
-import SelectChapter from "./SelectChapter";
+// import SelectManga from "./SelectManga";
+// import SelectChapter from "./SelectChapter";
 import ScanViewer from "./ScanViewer";
 
 firebase.analytics();
 const db = firebase.firestore();
 
 const URL_MANGA_TITLE_SET =
-  "https://europe-west1-manga-b8fb3.cloudfunctions.net/mangaTitleGET";
+  "https://europe-west1-manga-b8fb3.cloudfunctions.net/mangaTitleSET";
 const URL_MANGA_IMAGES_SET =
   "https://europe-west1-manga-b8fb3.cloudfunctions.net/mangaImagesSET";
 
@@ -86,10 +86,17 @@ class App extends React.Component {
 
   async componentDidMount() {
     const doc = await db.collection("lelscan").doc(this.defaultMangaPath).get();
-    const data = doc.data();
+    let data = doc.data();
 
     if (data === undefined) {
       await axios.get(URL_MANGA_TITLE_SET);
+      const doc1 = await db
+        .collection("lelscan")
+        .doc(this.defaultMangaPath)
+        .get();
+      data = doc1.data();
+    } else {
+      axios.get(URL_MANGA_TITLE_SET);
     }
 
     const lastIdxChapter = await getLastIdxChapter(this.defaultMangaPath);
@@ -117,7 +124,7 @@ class App extends React.Component {
   previousChapter = async () => {
     const { mangaPath, idxChapter } = this.state;
     const idxChapters = await getIdxChapters(mangaPath);
-    console.log("idxChapters", idxChapters);
+    // console.log("idxChapters", idxChapters);
     const idx = idxChapters.indexOf(idxChapter);
     if (0 < idx) {
       const idxPreviousChapter = idxChapters[idx - 1];

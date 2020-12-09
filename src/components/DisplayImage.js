@@ -1,22 +1,33 @@
-import _ from "lodash";
 import React from "react";
 import Tooltip from "@material-ui/core/Tooltip";
 import { CSSTransition, TransitionGroup } from "react-transition-group";
 
 import WaitingScreen from "./WaitingScreen";
 
-class DisplayImage extends React.Component {
+export default class DisplayImage extends React.Component {
   state = { loading: true };
 
-  shouldComponentUpdate(nextProps) {
-    if (!_.isEqual(this.props, nextProps)) {
-      this.setState({ loading: true });
-    }
-    return true;
+  componentDidMount() {
+    this.updateLoadingState("componentDidMount");
   }
 
+  updateLoadingState = () => {
+    const scans = document.querySelectorAll("#scan");
+    if (scans.length !== 1) {
+      this.setState({ loading: true });
+      return;
+    }
+    const scan = scans[0];
+    if (!scan) {
+      this.setState({ loading: true });
+      return;
+    }
+    const isLoaded = scan.complete && scan.naturalHeight !== 0;
+    this.setState({ loading: !isLoaded });
+  };
+
   imageLoaded = () => {
-    this.setState({ loading: false });
+    this.updateLoadingState();
   };
 
   tooltipTitle({ idxChapter, idxImage }) {
@@ -39,6 +50,7 @@ class DisplayImage extends React.Component {
              * scroll behavior to its top.
              */
             onEnter={(node) => {
+              this.updateLoadingState("onEnter");
               if (node) {
                 const bodyRect = document.body.getBoundingClientRect();
                 const elemRect = node.getBoundingClientRect();
@@ -50,9 +62,13 @@ class DisplayImage extends React.Component {
                 }, 0);
               }
             }}
+            onExit={this.updateLoadingState}
+            onExited={this.updateLoadingState}
+            onEntered={this.updateLoadingState}
           >
             <Tooltip title={this.tooltipTitle(mangaInfo)}>
               <img
+                id="scan"
                 style={{
                   position: "absolute",
                   left: "0",
@@ -80,5 +96,3 @@ class DisplayImage extends React.Component {
     );
   }
 }
-
-export default DisplayImage;
