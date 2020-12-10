@@ -1,12 +1,9 @@
-import firebase from "../firebase";
-import "firebase/firestore";
-
 import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
 
-const db = firebase.firestore();
+import { getMangas } from "../db.js";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -41,20 +38,6 @@ const useStyles = makeStyles((theme) => ({
     },
   },
 }));
-
-async function getMangas() {
-  const snapshot = await db.collection("lelscan").get();
-
-  let mangas = [];
-  snapshot.forEach((doc) => {
-    const data = doc.data();
-    mangas.push({ URL: data.URL, title: data.title, thumb: data.thumb });
-  });
-
-  return mangas.sort((obj1, obj2) => {
-    return obj1.title.localeCompare(obj2.title);
-  });
-}
 
 export default function SelectManga(props) {
   const classes = useStyles();

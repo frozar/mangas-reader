@@ -10,17 +10,17 @@ import history from "../history";
 import axios from "axios";
 
 import "../App.css";
+
 import SelectManga from "./SelectManga";
 // import SelectChapter from "./SelectChapter";
 import ScanViewer from "./ScanViewer";
+import { getLastIdxChapter, getImagesURL, getIdxChapters } from "../db.js";
 
 firebase.analytics();
 const db = firebase.firestore();
 
 const URL_MANGA_TITLE_SET =
   "https://europe-west1-manga-b8fb3.cloudfunctions.net/mangaTitleSET";
-const URL_MANGA_IMAGES_SET =
-  "https://europe-west1-manga-b8fb3.cloudfunctions.net/mangaImagesSET";
 
 // Documentation link:
 // https://www.colorhexa.com/aaaec1
@@ -31,49 +31,6 @@ const theme = createMuiTheme({
     },
   },
 });
-
-async function getIdxChapters(mangaPath) {
-  const snapshot = await db
-    .collection("lelscan")
-    .doc(mangaPath)
-    .collection("chapters")
-    .get();
-
-  let idxChapters = [];
-  snapshot.forEach((doc) => {
-    idxChapters.push(doc.id);
-  });
-
-  return idxChapters.sort();
-}
-
-async function getLastIdxChapter(mangaPath) {
-  const idxChapters = await getIdxChapters(mangaPath);
-
-  return idxChapters.reverse()[0];
-}
-
-async function getImagesURL(mangaPath, idxChapter) {
-  const doc = await db
-    .collection("lelscan")
-    .doc(mangaPath)
-    .collection("chapters")
-    .doc(idxChapter)
-    .get();
-
-  let imagesURL = doc.data()["URL"];
-  if (imagesURL.length === 0) {
-    const request = await axios.get(URL_MANGA_IMAGES_SET, {
-      params: {
-        path: mangaPath,
-        idxChapter: idxChapter,
-      },
-    });
-    imagesURL = request.data;
-  }
-
-  return imagesURL;
-}
 
 class App extends React.Component {
   state = {
