@@ -1,7 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
+
+import { getIdxChapters } from "../db.js";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -49,6 +51,7 @@ export default function SelectChapter(props) {
   };
 
   const renderRange = (listIdxChapters) => {
+    // TODO: make a request to get first image of each chapter
     return listIdxChapters.map((idx) => {
       return (
         <Box
@@ -67,7 +70,7 @@ export default function SelectChapter(props) {
             item
             className={classes.backgroundImageThumb}
             style={{
-              backgroundImage: `url(https://lelscan.net/mangas/${props.mangaURL}/${idx}/00.jpg)`,
+              backgroundImage: `url(https://lelscan.net/mangas/${props.path}/${idx}/00.jpg)`,
             }}
             value={idx}
             onClick={handleOnClick}
@@ -78,16 +81,29 @@ export default function SelectChapter(props) {
     });
   };
 
-  let listIdxChapters = [];
-  if (
-    props.mangaDict &&
-    props.mangaDict[props.mangaURL] &&
-    props.mangaDict[props.mangaURL].chapters
-  ) {
-    listIdxChapters = Object.keys(props.mangaDict[props.mangaURL].chapters)
-      .sort()
-      .reverse();
-  }
+  // let listIdxChapters = [];
+  const [listIdxChapters, setListIdxChapters] = useState([]);
+
+  useEffect(() => {
+    async function fetchData() {
+      const tmpListIdxChapters = await getIdxChapters(props.path);
+      tmpListIdxChapters.reverse();
+      console.log("tmpListIdxChapters", tmpListIdxChapters);
+      setListIdxChapters(tmpListIdxChapters);
+    }
+    fetchData();
+  }, []);
+
+  // if (
+  //   props.mangaDict &&
+  //   props.mangaDict[props.mangaURL] &&
+  //   props.mangaDict[props.mangaURL].chapters
+  // ) {
+  //   listIdxChapters = Object.keys(props.mangaDict[props.mangaURL].chapters)
+  //     .sort()
+  //     .reverse();
+  // }
+
   // console.log("listIdxChapters", listIdxChapters);
   return (
     <React.Fragment>

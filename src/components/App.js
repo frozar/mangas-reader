@@ -12,7 +12,7 @@ import axios from "axios";
 import "../App.css";
 
 import SelectManga from "./SelectManga";
-// import SelectChapter from "./SelectChapter";
+import SelectChapter from "./SelectChapter";
 import ScanViewer from "./ScanViewer";
 import { getLastIdxChapter, getImagesURL, getIdxChapters } from "../db.js";
 
@@ -34,7 +34,7 @@ const theme = createMuiTheme({
 
 class App extends React.Component {
   state = {
-    mangaPath: "",
+    path: "",
     idxChapter: "0",
     imagesURL: [],
   };
@@ -59,16 +59,16 @@ class App extends React.Component {
     const lastIdxChapter = await getLastIdxChapter(this.defaultMangaPath);
     const imagesURL = await getImagesURL(this.defaultMangaPath, lastIdxChapter);
     this.setState({
-      mangaPath: this.defaultMangaPath,
+      path: this.defaultMangaPath,
       idxChapter: lastIdxChapter,
       imagesURL: imagesURL,
     });
   }
 
   // TODO: retrieve manga object: title + URLpath
-  selectManga = (mangaPath) => {
-    this.setState({ mangaPath });
-    console.log("selectManga", mangaPath, this.state);
+  setPath = (path) => {
+    this.setState({ path });
+    console.log("setPath", path, this.state);
     history.push("/select/chapter");
   };
 
@@ -79,13 +79,13 @@ class App extends React.Component {
   };
 
   previousChapter = async () => {
-    const { mangaPath, idxChapter } = this.state;
-    const idxChapters = await getIdxChapters(mangaPath);
+    const { path, idxChapter } = this.state;
+    const idxChapters = await getIdxChapters(path);
     // console.log("idxChapters", idxChapters);
     const idx = idxChapters.indexOf(idxChapter);
     if (0 < idx) {
       const idxPreviousChapter = idxChapters[idx - 1];
-      const imagesURL = await getImagesURL(mangaPath, idxPreviousChapter);
+      const imagesURL = await getImagesURL(path, idxPreviousChapter);
       const idxImage = imagesURL.length - 1;
       this.setState({ idxChapter: idxPreviousChapter, imagesURL });
       return idxImage;
@@ -96,13 +96,13 @@ class App extends React.Component {
   };
 
   nextChapter = async () => {
-    const { mangaPath, idxChapter } = this.state;
-    const idxChapters = await getIdxChapters(mangaPath);
+    const { path, idxChapter } = this.state;
+    const idxChapters = await getIdxChapters(path);
     const idx = idxChapters.indexOf(idxChapter);
     const maxIdx = idxChapters.length - 1;
     if (idx < maxIdx) {
       const idxNextChapter = idxChapters[idx + 1];
-      const imagesURL = await getImagesURL(mangaPath, idxNextChapter);
+      const imagesURL = await getImagesURL(path, idxNextChapter);
       const idxImage = 0;
       this.setState({ idxChapter: idxNextChapter, imagesURL });
       return idxImage;
@@ -114,7 +114,7 @@ class App extends React.Component {
 
   render() {
     console.log("App: state:", this.state);
-    const { mangaPath, idxChapter, imagesURL } = this.state;
+    const { path: path, idxChapter, imagesURL } = this.state;
     return (
       <Router history={history}>
         <ThemeProvider theme={theme}>
@@ -123,7 +123,7 @@ class App extends React.Component {
             <Switch>
               <Route path="/" exact>
                 <ScanViewer
-                  mangaPath={mangaPath}
+                  mangaPath={path}
                   idxChapter={idxChapter}
                   imagesURL={imagesURL}
                   nextChapter={this.nextChapter}
@@ -131,15 +131,15 @@ class App extends React.Component {
                 />
               </Route>
               <Route path="/select/manga" exact>
-                <SelectManga selectManga={this.selectManga} />
+                <SelectManga setPath={this.setPath} />
               </Route>
-              {/* <Route path="/select/chapter" exact>
-                 <SelectChapter
-                   selectChapter={this.selectChapter}
-                   mangaPath={mangaPath}
-                   mangaDict={mangaDict}
-                 />
-               </Route> */}
+              <Route path="/select/chapter" exact>
+                <SelectChapter
+                  selectChapter={this.selectChapter}
+                  path={path}
+                  //  mangaDict={mangaDict}
+                />
+              </Route>
             </Switch>
           </div>
         </ThemeProvider>

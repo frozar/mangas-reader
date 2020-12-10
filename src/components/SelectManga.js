@@ -42,10 +42,6 @@ const useStyles = makeStyles((theme) => ({
 export default function SelectManga(props) {
   const classes = useStyles();
 
-  const handleOnClick = (event) => {
-    props.selectManga(event.target.getAttribute("value"));
-  };
-
   const [lObjManga, setLObjManga] = useState([]);
 
   useEffect(() => {
@@ -56,10 +52,14 @@ export default function SelectManga(props) {
     fetchData();
   }, []);
 
+  const handleOnClick = (event) => {
+    props.setPath(event.target.getAttribute("value"));
+  };
+
   return (
     <React.Fragment>
       <Grid container className={classes.root} justify="center" spacing={2}>
-        {lObjManga.map(({ URL, title, thumb }) => (
+        {lObjManga.map(({ URL, title, thumb, path }) => (
           <Box
             style={{
               flexGrow: "0",
@@ -78,7 +78,7 @@ export default function SelectManga(props) {
               style={{
                 backgroundImage: `url("${thumb}")`,
               }}
-              value={URL}
+              value={path}
               onClick={handleOnClick}
             ></Grid>
             <span>{title}</span>

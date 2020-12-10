@@ -57,7 +57,7 @@ export async function getMangas() {
   let mangas = [];
   snapshot.forEach((doc) => {
     const data = doc.data();
-    mangas.push({ URL: data.URL, title: data.title, thumb: data.thumb });
+    mangas.push(data);
   });
 
   return mangas.sort((obj1, obj2) => {
