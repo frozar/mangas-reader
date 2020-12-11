@@ -68,7 +68,7 @@ class App extends React.Component {
   // TODO: retrieve manga object: title + URLpath
   setPath = (path) => {
     this.setState({ path });
-    console.log("setPath", path, this.state);
+    console.log("setPath", path);
     history.push("/select/chapter");
   };
 
@@ -114,7 +114,7 @@ class App extends React.Component {
 
   render() {
     console.log("App: state:", this.state);
-    const { path: path, idxChapter, imagesURL } = this.state;
+    const { path, idxChapter, imagesURL } = this.state;
     return (
       <Router history={history}>
         <ThemeProvider theme={theme}>

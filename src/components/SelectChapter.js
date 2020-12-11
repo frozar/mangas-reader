@@ -44,8 +44,6 @@ export default function SelectChapter(props) {
 
   const handleOnClick = (event) => {
     event.persist();
-    // console.log(event);
-    // console.log(event.target.getAttribute("value"));
     const idxChapter = event.target.getAttribute("value");
     props.selectChapter(idxChapter);
   };
@@ -81,7 +79,6 @@ export default function SelectChapter(props) {
     });
   };
 
-  // let listIdxChapters = [];
   const [listIdxChapters, setListIdxChapters] = useState([]);
 
   useEffect(() => {
@@ -92,23 +89,12 @@ export default function SelectChapter(props) {
       setListIdxChapters(tmpListIdxChapters);
     }
     fetchData();
-  }, []);
-
-  // if (
-  //   props.mangaDict &&
-  //   props.mangaDict[props.mangaURL] &&
-  //   props.mangaDict[props.mangaURL].chapters
-  // ) {
-  //   listIdxChapters = Object.keys(props.mangaDict[props.mangaURL].chapters)
-  //     .sort()
-  //     .reverse();
-  // }
+  }, [props.path]);
 
   // console.log("listIdxChapters", listIdxChapters);
   return (
     <React.Fragment>
       <Grid container className={classes.root} justify="center" spacing={2}>
-        {/* {renderRange(rangeChapter)} */}
         {renderRange(listIdxChapters)}
       </Grid>
     </React.Fragment>
