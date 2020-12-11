@@ -64,7 +64,7 @@ class ScanViewer extends React.Component {
   };
 
   render() {
-    const { mangaPath, idxChapter, imagesURL } = this.props;
+    const { path, idxChapter, imagesURL } = this.props;
     const { idxImage } = this.state;
 
     let progressBarValue = 0;
@@ -73,7 +73,7 @@ class ScanViewer extends React.Component {
       progressBarValue = ((idxImage + 1) / nbImage) * 100;
     }
 
-    if (mangaPath !== "" && idxChapter !== null && imagesURL.length !== 0) {
+    if (path !== "" && idxChapter !== null && imagesURL.length !== 0) {
       const imageURL = imagesURL[idxImage];
       return (
         <React.Fragment>

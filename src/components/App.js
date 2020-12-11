@@ -123,7 +123,7 @@ class App extends React.Component {
             <Switch>
               <Route path="/" exact>
                 <ScanViewer
-                  mangaPath={path}
+                  path={path}
                   idxChapter={idxChapter}
                   imagesURL={imagesURL}
                   nextChapter={this.nextChapter}

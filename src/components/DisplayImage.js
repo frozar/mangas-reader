@@ -11,23 +11,24 @@ export default class DisplayImage extends React.Component {
     this.updateLoadingState("componentDidMount");
   }
 
-  updateLoadingState = () => {
-    const scans = document.querySelectorAll("#scan");
-    if (scans.length !== 1) {
+  updateLoadingState = (callerName) => {
+    const scans = Array.from(document.querySelectorAll("#scan"));
+    if (scans.length === 0) {
       this.setState({ loading: true });
-      return;
+    } else if (scans.length === 1) {
+      const scan = scans[0];
+      const isLoaded = scan.complete && scan.naturalHeight !== 0;
+      this.setState({ loading: !isLoaded });
+    } else {
+      const someScanNotLoaded = scans
+        .map((scan) => scan.complete && scan.naturalHeight !== 0)
+        .some((bool) => bool === false);
+      this.setState({ loading: someScanNotLoaded });
     }
-    const scan = scans[0];
-    if (!scan) {
-      this.setState({ loading: true });
-      return;
-    }
-    const isLoaded = scan.complete && scan.naturalHeight !== 0;
-    this.setState({ loading: !isLoaded });
   };
 
   imageLoaded = () => {
-    this.updateLoadingState();
+    this.updateLoadingState("imageLoaded");
   };
 
   tooltipTitle({ idxChapter, idxImage }) {
@@ -62,9 +63,9 @@ export default class DisplayImage extends React.Component {
                 }, 0);
               }
             }}
-            onExit={this.updateLoadingState}
-            onExited={this.updateLoadingState}
-            onEntered={this.updateLoadingState}
+            onExit={() => this.updateLoadingState("onExit")}
+            onExited={() => this.updateLoadingState("onExited")}
+            onEntered={() => this.updateLoadingState("onEntered")}
           >
             <Tooltip title={this.tooltipTitle(mangaInfo)}>
               <img
