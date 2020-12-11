@@ -12,18 +12,38 @@ export default class DisplayImage extends React.Component {
   }
 
   updateLoadingState = (callerName) => {
+    // console.log("callerName", callerName);
     const scans = Array.from(document.querySelectorAll("#scan"));
     if (scans.length === 0) {
       this.setState({ loading: true });
+      // console.log("0 loading: true");
+      // console.log("");
     } else if (scans.length === 1) {
       const scan = scans[0];
       const isLoaded = scan.complete && scan.naturalHeight !== 0;
       this.setState({ loading: !isLoaded });
+      // console.log("1 loading:", !isLoaded);
+      // console.log("");
     } else {
       const someScanNotLoaded = scans
         .map((scan) => scan.complete && scan.naturalHeight !== 0)
         .some((bool) => bool === false);
       this.setState({ loading: someScanNotLoaded });
+      // console.log(
+      //   "1 map",
+      //   scans.map((scan) => scan.complete && scan.naturalHeight !== 0)
+      // );
+      // console.log(
+      //   "2 map",
+      //   scans
+      //     .map((scan) => scan.complete && scan.naturalHeight !== 0)
+      //     .some((bool) => bool === false)
+      // );
+      // console.log("2 loading:", someScanNotLoaded);
+      // console.log("");
+      if (someScanNotLoaded) {
+        setTimeout(() => this.updateLoadingState("self)"), 0);
+      }
     }
   };
 

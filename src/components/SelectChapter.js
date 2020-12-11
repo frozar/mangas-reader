@@ -3,13 +3,13 @@ import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
 
+import WaitingScreen from "./WaitingScreen";
 import { getIdxChapters, getImagesURL } from "../db.js";
 
 const useStyles = makeStyles((theme) => ({
   root: {
     flexGrow: 1,
     alignItems: "center!important",
-    padding: "1rem",
     justifyContent: "flex-start!important",
   },
   backgroundImageThumb: {
@@ -63,7 +63,7 @@ export default function SelectChapter(props) {
   const handleOnClick = (event) => {
     event.persist();
     const idxChapter = event.target.getAttribute("value");
-    props.selectChapter(idxChapter);
+    props.selectChapter(props.path, idxChapter);
   };
 
   const renderChaptersJacket = () => {
@@ -107,9 +107,12 @@ export default function SelectChapter(props) {
       });
   };
 
+  // console.log("chaptersJacket", Object.keys(chaptersJacket).length);
+  const loading = Object.keys(chaptersJacket).length === 0;
   return (
     <React.Fragment>
-      <Grid container className={classes.root} justify="center" spacing={2}>
+      <WaitingScreen open={loading} />
+      <Grid container className={classes.root} justify="center" spacing={0}>
         {renderChaptersJacket()}
       </Grid>
     </React.Fragment>

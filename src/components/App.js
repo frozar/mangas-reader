@@ -72,9 +72,10 @@ class App extends React.Component {
     history.push("/select/chapter");
   };
 
-  selectChapter = (idxChapter) => {
-    console.log("selectChapter", this.state);
-    this.setState({ idxChapter });
+  selectChapter = async (path, idxChapter) => {
+    console.log("selectChapter", { path, idxChapter });
+    const imagesURL = await getImagesURL(path, idxChapter);
+    this.setState({ path, idxChapter, imagesURL });
     history.push("/");
   };
 
@@ -113,35 +114,33 @@ class App extends React.Component {
   };
 
   render() {
-    console.log("App: state:", this.state);
     const { path, idxChapter, imagesURL } = this.state;
+    console.log("App: state:", { path, idxChapter, imagesURL });
     return (
       <Router history={history}>
         <ThemeProvider theme={theme}>
           <CssBaseline />
-          <div>
-            <Switch>
-              <Route path="/" exact>
-                <ScanViewer
-                  path={path}
-                  idxChapter={idxChapter}
-                  imagesURL={imagesURL}
-                  nextChapter={this.nextChapter}
-                  previousChapter={this.previousChapter}
-                />
-              </Route>
-              <Route path="/select/manga" exact>
-                <SelectManga setPath={this.setPath} />
-              </Route>
-              <Route path="/select/chapter" exact>
-                <SelectChapter
-                  selectChapter={this.selectChapter}
-                  path={path}
-                  //  mangaDict={mangaDict}
-                />
-              </Route>
-            </Switch>
-          </div>
+          <Switch>
+            <Route path="/" exact>
+              <ScanViewer
+                path={path}
+                idxChapter={idxChapter}
+                imagesURL={imagesURL}
+                nextChapter={this.nextChapter}
+                previousChapter={this.previousChapter}
+              />
+            </Route>
+            <Route path="/select/manga" exact>
+              <SelectManga setPath={this.setPath} />
+            </Route>
+            <Route path="/select/chapter" exact>
+              <SelectChapter
+                selectChapter={this.selectChapter}
+                path={path}
+                //  mangaDict={mangaDict}
+              />
+            </Route>
+          </Switch>
         </ThemeProvider>
       </Router>
     );
