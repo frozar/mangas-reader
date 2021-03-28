@@ -12,6 +12,8 @@ const db = admin.firestore();
 // The Firebase Admin SDK to access Cloud Firestore.
 const firebase_tools = require("firebase-tools");
 
+const LELSCAN_ROOT = "lelscans";
+
 /**
  * For a given manga, returns the number of chapter in this manga.
  *
@@ -24,17 +26,21 @@ async function getIdxChapters(mangaURL) {
       return response.data;
     })
     .catch((error) => {
-      console.error("getIdxChapters: Cannot get info from lelscan");
+      console.error("getIdxChapters: Cannot get info from lelscans");
       return error;
     });
 
-  const root = parse(data);
-  const selectChapters = root
-    .querySelector("#header-image")
-    .querySelectorAll("select")[0];
-  const chapters = selectChapters.querySelectorAll("option");
-  const idxChapters = chapters.map((opt) => opt.childNodes[0].rawText);
-  return idxChapters;
+  if (!data) {
+    return null;
+  } else {
+    const root = parse(data);
+    const selectChapters = root
+      .querySelector("#header-image")
+      .querySelectorAll("select")[0];
+    const chapters = selectChapters.querySelectorAll("option");
+    const idxChapters = chapters.map((opt) => opt.childNodes[0].rawText);
+    return idxChapters;
+  }
 }
 
 async function getImageURL(URL) {
@@ -44,13 +50,13 @@ async function getImageURL(URL) {
       return response.data;
     })
     .catch((error) => {
-      console.error("getImageURL: Cannot get info from lelscan");
+      console.error("getImageURL: Cannot get info from lelscans");
       return error;
     });
 
   const root = parse(data);
   const imageURL =
-    "https://lelscan.net" +
+    "https://lelscans.net" +
     root
       .querySelector("#image")
       .querySelector("img")
@@ -69,14 +75,14 @@ async function getImageURL(URL) {
  * @param {Integer} idxChapter index of the chapter to retrieve the number of scan
  */
 async function getChapterImagesURL(path, idxChapter) {
-  const URL = "https://lelscan.net/scan-" + path + "/" + idxChapter;
+  const URL = "https://lelscans.net/scan-" + path + "/" + idxChapter;
   const data = await axios
     .get(URL)
     .then((response) => {
       return response.data;
     })
     .catch((error) => {
-      console.error("getChapterImagesURL: Cannot get info from lelscan");
+      console.error("getChapterImagesURL: Cannot get info from lelscans");
       return error;
     });
 
@@ -114,10 +120,11 @@ const runtimeOpts = {
 };
 
 async function updateChaptersCollection(URL, path) {
+  console.info("[updateChaptersCollection] URL", URL);
   const idxAvailable = await getIdxChapters(URL);
 
   const snapshot = await db
-    .collection("lelscan")
+    .collection(LELSCAN_ROOT)
     .doc(path)
     .collection("chapters")
     .get();
@@ -131,15 +138,20 @@ async function updateChaptersCollection(URL, path) {
   const idxToRemove = _.xor(idxInDB, idxStillAvailable);
   const idxToAdd = _.xor(idxAvailable, idxStillAvailable);
 
+  console.info("[updateChaptersCollection] idxToAdd", idxToAdd);
   // Remove the unavailable chapters
   for (const idx of idxToRemove) {
-    db.collection("lelscan").doc(path).collection("chapters").doc(idx).delete();
+    db.collection(LELSCAN_ROOT)
+      .doc(path)
+      .collection("chapters")
+      .doc(idx)
+      .delete();
   }
 
   // Add the unavailable chapters
   for (const idx of idxToAdd) {
     const doc = db
-      .collection("lelscan")
+      .collection(LELSCAN_ROOT)
       .doc(path)
       .collection("chapters")
       .doc(idx);
@@ -148,86 +160,12 @@ async function updateChaptersCollection(URL, path) {
 }
 
 /**
- * Write the title and URL in DB for each manga available on lelscan.
+ * Write the title and URL in DB for each manga available on lelscans.
  */
 exports.mangaTitleSET = functions
   .region("europe-west1")
   .runWith(runtimeOpts)
   .https.onRequest(async (req, res) => {
-    let failed = false;
-    const data = await axios
-      .get("https://lelscan.net/lecture-en-ligne.php")
-      .then((response) => {
-        return response.data;
-      })
-      .catch((error) => {
-        console.error("mangaTitleSET: Cannot get info from lelscan");
-        failed = true;
-        return error;
-      });
-
-    if (failed) {
-      return "mangaTitleSET: FAILURE";
-    }
-
-    const root = parse(data);
-    const selectMangas = root
-      .querySelector("#header-image")
-      .querySelectorAll("select")[1]
-      .querySelectorAll("option");
-
-    const snapshot = await db.collection("lelscan").get();
-
-    let mangaInDB = [];
-    snapshot.forEach((doc) => {
-      mangaInDB.push(doc.id);
-    });
-
-    const mangaAvailable = selectMangas.map((opt) => {
-      const URL = opt.rawAttrs.split("=")[1].split("'")[1];
-      const path = URL.replace(
-        "https://lelscan.net/lecture-en-ligne-",
-        ""
-      ).split(".")[0];
-      return path;
-    });
-
-    const mangaStillAvailable = _.intersection(mangaAvailable, mangaInDB);
-    const mangaToRemove = _.xor(mangaInDB, mangaStillAvailable);
-    const mangaToAdd = _.xor(mangaAvailable, mangaStillAvailable);
-
-    if (mangaToRemove.length !== 0) {
-      console.log("mangaTitleSET: mangaToRemove", mangaToRemove);
-    }
-    // Delete manga to remove
-    for (const mangaPath in mangaToRemove) {
-      deletePathDB("lelscan" + mangaPath);
-    }
-
-    if (mangaToAdd.length !== 0) {
-      console.log("mangaTitleSET: mangaToAdd", mangaToAdd);
-    }
-    // Add manga to add
-    let toWait = [];
-    for (const opt of selectMangas) {
-      const title = opt.childNodes[0].rawText;
-      const URL = opt.rawAttrs.split("=")[1].split("'")[1];
-      const path = URL.replace(
-        "https://lelscan.net/lecture-en-ligne-",
-        ""
-      ).split(".")[0];
-      const thumb = "https://lelscan.net/mangas/" + path + "/thumb_cover.jpg";
-
-      if (mangaToAdd.includes(path)) {
-        const doc = db.collection("lelscan").doc(path);
-        doc.set({ title, URL, path, thumb }, { merge: true });
-      }
-      if (mangaAvailable.includes(path)) {
-        toWait.push(updateChaptersCollection(URL, path));
-      }
-    }
-    await Promise.all(toWait);
-
     res.setHeader(
       "Access-Control-Allow-Headers",
       "X-Requested-With,content-type"
@@ -238,12 +176,88 @@ exports.mangaTitleSET = functions
       "GET, POST, OPTIONS, PUT, PATCH, DELETE"
     );
     res.setHeader("Access-Control-Allow-Credentials", true);
-    res.send("mangaTitleSET");
+
+    const data = await axios
+      .get("https://lelscans.net")
+      .then((response) => {
+        return response.data;
+      })
+      .catch((error) => {
+        console.error("mangaTitleSET: Cannot get info from lelscans");
+        return error;
+      });
+
+    if (!data) {
+      res.send("mangaTitleSET: FAILURE");
+      return "mangaTitleSET: FAILURE";
+    }
+
+    const root = parse(data);
+    const selectMangas = root
+      .querySelector("#header-image")
+      .querySelectorAll("select")[1]
+      .querySelectorAll("option");
+
+    console.info("[mangaTitleSET] selectMangas", selectMangas);
+
+    const snapshot = await db.collection(LELSCAN_ROOT).get();
+
+    let mangaInDB = [];
+    snapshot.forEach((doc) => {
+      mangaInDB.push(doc.id);
+    });
+
+    const mangaAvailable = selectMangas.map((opt) => {
+      const URL = opt.rawAttrs.split("=")[1].split("'")[1];
+      const path = URL.replace(
+        "https://lelscans.net/lecture-en-ligne-",
+        ""
+      ).split(".")[0];
+      return path;
+    });
+
+    const mangaStillAvailable = _.intersection(mangaAvailable, mangaInDB);
+    const mangaToRemove = _.xor(mangaInDB, mangaStillAvailable);
+    const mangaToAdd = _.xor(mangaAvailable, mangaStillAvailable);
+
+    if (mangaToRemove.length !== 0) {
+      console.info("[mangaTitleSET] mangaToRemove", mangaToRemove);
+    }
+    // Delete manga to remove
+    for (const mangaPath in mangaToRemove) {
+      deletePathDB("lelscans" + mangaPath);
+    }
+
+    if (mangaToAdd.length !== 0) {
+      console.info("[mangaTitleSET] mangaToAdd", mangaToAdd);
+    }
+    // Add manga to add
+    let toWait = [];
+    for (const opt of selectMangas) {
+      const title = opt.childNodes[0].rawText;
+      const URL = opt.rawAttrs.split("=")[1].split("'")[1];
+      const path = URL.replace(
+        "https://lelscans.net/lecture-en-ligne-",
+        ""
+      ).split(".")[0];
+      const thumb = "https://lelscans.net/mangas/" + path + "/thumb_cover.jpg";
+
+      if (mangaToAdd.includes(path)) {
+        const doc = db.collection(LELSCAN_ROOT).doc(path);
+        doc.set({ title, URL, path, thumb }, { merge: true });
+      }
+      if (mangaAvailable.includes(path)) {
+        toWait.push(updateChaptersCollection(URL, path));
+      }
+    }
+    await Promise.all(toWait);
+
+    res.send("mangaTitleSET: SUCCESS");
     return "mangaTitleSET";
   });
 
 async function getQueryURL(queryPath) {
-  const doc = db.collection("lelscan").doc(queryPath);
+  const doc = db.collection(LELSCAN_ROOT).doc(queryPath);
   const readResult = await doc.get();
   let dataManga;
   if (readResult) {
@@ -283,7 +297,7 @@ exports.mangaImagesSET = functions
       );
 
       const doc = await db
-        .collection("lelscan")
+        .collection(LELSCAN_ROOT)
         .doc(queryPath)
         .collection("chapters")
         .doc(queryIdxChapter);
