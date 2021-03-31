@@ -5,7 +5,7 @@ import React from "react";
 import { ThemeProvider } from "@material-ui/styles";
 import { createMuiTheme } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
-import { Router, Route, Switch } from "react-router-dom";
+import { Router, Route, Switch, Redirect } from "react-router-dom";
 import history from "../history";
 import axios from "axios";
 
@@ -14,69 +14,55 @@ import "../App.css";
 import SelectManga from "./SelectManga";
 import SelectChapter from "./SelectChapter";
 import ScanViewer from "./ScanViewer";
-import { getLastIdxChapter, getImagesURL, getIdxChapters } from "../db.js";
+import {
+  // getLastIdxChapter,
+  getImagesURL,
+  getIdxChapters,
+  CLOUD_FUNCTION_ROOT,
+  // LELSCANS_ROOT,
+} from "../db.js";
 
 firebase.analytics();
 const db = firebase.firestore();
 
-const URL_MANGA_TITLE_SET =
-  "https://europe-west1-manga-b8fb3.cloudfunctions.net/mangaTitleSET";
+const URL_MANGA_TITLE_SET = CLOUD_FUNCTION_ROOT + "mangaTitleSET";
 
 // Documentation link:
 // https://www.colorhexa.com/aaaec1
 const theme = createMuiTheme({
   palette: {
     background: {
-      default: "#aaaec1",
+      default: "white",
     },
+    lightBlue: "#ABDAFF",
+    dark: "#25313C",
   },
 });
 
 class App extends React.Component {
   state = {
-    path: "",
-    idxChapter: "0",
+    path: undefined,
+    idxChapter: undefined,
     imagesURL: [],
   };
 
-  defaultMangaPath = "one-piece";
+  // defaultMangaPath = "one-piece";
 
-  async componentDidMount() {
-    const doc = await db.collection("lelscan").doc(this.defaultMangaPath).get();
-    let data = doc.data();
-
-    if (data === undefined) {
-      await axios.get(URL_MANGA_TITLE_SET);
-      const doc1 = await db
-        .collection("lelscan")
-        .doc(this.defaultMangaPath)
-        .get();
-      data = doc1.data();
-    } else {
-      axios.get(URL_MANGA_TITLE_SET);
-    }
-
-    const lastIdxChapter = await getLastIdxChapter(this.defaultMangaPath);
-    const imagesURL = await getImagesURL(this.defaultMangaPath, lastIdxChapter);
-    this.setState({
-      path: this.defaultMangaPath,
-      idxChapter: lastIdxChapter,
-      imagesURL: imagesURL,
-    });
+  componentDidMount() {
+    axios.get(URL_MANGA_TITLE_SET);
   }
 
-  // TODO: retrieve manga object: title + URLpath
-  setPath = (path) => {
+  selectManga = (path) => {
     this.setState({ path });
     console.log("setPath", path);
-    history.push("/select/chapter");
+    history.push("/chapter");
   };
 
   selectChapter = async (path, idxChapter) => {
     console.log("selectChapter", { path, idxChapter });
     const imagesURL = await getImagesURL(path, idxChapter);
     this.setState({ path, idxChapter, imagesURL });
-    history.push("/");
+    history.push("/reader");
   };
 
   previousChapter = async () => {
@@ -113,6 +99,14 @@ class App extends React.Component {
     }
   };
 
+  resetState = () => {
+    this.setState({
+      path: undefined,
+      idxChapter: undefined,
+      imagesURL: [],
+    });
+  };
+
   render() {
     const { path, idxChapter, imagesURL } = this.state;
     console.log("App: state:", { path, idxChapter, imagesURL });
@@ -122,22 +116,21 @@ class App extends React.Component {
           <CssBaseline />
           <Switch>
             <Route path="/" exact>
+              <Redirect to="/manga" />
+            </Route>
+            <Route path="/manga" exact>
+              <SelectManga selectManga={this.selectManga} />
+            </Route>
+            <Route path="/chapter" exact>
+              <SelectChapter selectChapter={this.selectChapter} path={path} />
+            </Route>
+            <Route path="/reader" exact>
               <ScanViewer
                 path={path}
                 idxChapter={idxChapter}
                 imagesURL={imagesURL}
                 nextChapter={this.nextChapter}
                 previousChapter={this.previousChapter}
-              />
-            </Route>
-            <Route path="/select/manga" exact>
-              <SelectManga setPath={this.setPath} />
-            </Route>
-            <Route path="/select/chapter" exact>
-              <SelectChapter
-                selectChapter={this.selectChapter}
-                path={path}
-                //  mangaDict={mangaDict}
               />
             </Route>
           </Switch>

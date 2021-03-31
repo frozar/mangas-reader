@@ -12,7 +12,7 @@ const db = admin.firestore();
 // The Firebase Admin SDK to access Cloud Firestore.
 const firebase_tools = require("firebase-tools");
 
-const LELSCAN_ROOT = "lelscans";
+const LELSCANS_ROOT = "lelscans";
 
 /**
  * For a given manga, returns the number of chapter in this manga.
@@ -124,7 +124,7 @@ async function updateChaptersCollection(URL, path) {
   const idxAvailable = await getIdxChapters(URL);
 
   const snapshot = await db
-    .collection(LELSCAN_ROOT)
+    .collection(LELSCANS_ROOT)
     .doc(path)
     .collection("chapters")
     .get();
@@ -141,7 +141,7 @@ async function updateChaptersCollection(URL, path) {
   console.info("[updateChaptersCollection] idxToAdd", idxToAdd);
   // Remove the unavailable chapters
   for (const idx of idxToRemove) {
-    db.collection(LELSCAN_ROOT)
+    db.collection(LELSCANS_ROOT)
       .doc(path)
       .collection("chapters")
       .doc(idx)
@@ -151,7 +151,7 @@ async function updateChaptersCollection(URL, path) {
   // Add the unavailable chapters
   for (const idx of idxToAdd) {
     const doc = db
-      .collection(LELSCAN_ROOT)
+      .collection(LELSCANS_ROOT)
       .doc(path)
       .collection("chapters")
       .doc(idx);
@@ -200,7 +200,7 @@ exports.mangaTitleSET = functions
 
     console.info("[mangaTitleSET] selectMangas", selectMangas);
 
-    const snapshot = await db.collection(LELSCAN_ROOT).get();
+    const snapshot = await db.collection(LELSCANS_ROOT).get();
 
     let mangaInDB = [];
     snapshot.forEach((doc) => {
@@ -243,7 +243,7 @@ exports.mangaTitleSET = functions
       const thumb = "https://lelscans.net/mangas/" + path + "/thumb_cover.jpg";
 
       if (mangaToAdd.includes(path)) {
-        const doc = db.collection(LELSCAN_ROOT).doc(path);
+        const doc = db.collection(LELSCANS_ROOT).doc(path);
         doc.set({ title, URL, path, thumb }, { merge: true });
       }
       if (mangaAvailable.includes(path)) {
@@ -257,7 +257,7 @@ exports.mangaTitleSET = functions
   });
 
 async function getQueryURL(queryPath) {
-  const doc = db.collection(LELSCAN_ROOT).doc(queryPath);
+  const doc = db.collection(LELSCANS_ROOT).doc(queryPath);
   const readResult = await doc.get();
   let dataManga;
   if (readResult) {
@@ -275,11 +275,6 @@ exports.mangaImagesSET = functions
   .region("europe-west1")
   .runWith(runtimeOpts)
   .https.onRequest(async (req, res) => {
-    const queryPath = req.query.path;
-    const queryIdxChapter = req.query.idxChapter;
-
-    const queryURL = await getQueryURL(queryPath);
-
     res.setHeader(
       "Access-Control-Allow-Headers",
       "X-Requested-With,content-type"
@@ -290,6 +285,26 @@ exports.mangaImagesSET = functions
       "GET, POST, OPTIONS, PUT, PATCH, DELETE"
     );
     res.setHeader("Access-Control-Allow-Credentials", true);
+
+    const queryPath = req.query.path;
+    const queryIdxChapter = req.query.idxChapter;
+    console.log("[mangaImagesSET] queryPath", queryPath);
+    console.log("[mangaImagesSET] queryIdxChapter", queryIdxChapter);
+
+    const errors = [];
+    if (!queryPath) {
+      errors.push("[mangaImagesSET]: queryPath undefined.");
+    }
+    if (!queryIdxChapter) {
+      errors.push("[mangaImagesSET]: queryIdxChapter undefined.");
+    }
+
+    if (errors.length > 0) {
+      res.send(errors.join("</br>"));
+      return;
+    }
+
+    const queryURL = await getQueryURL(queryPath);
     if (queryURL) {
       const chapterImagesURL = await getChapterImagesURL(
         queryPath,
@@ -297,7 +312,7 @@ exports.mangaImagesSET = functions
       );
 
       const doc = await db
-        .collection(LELSCAN_ROOT)
+        .collection(LELSCANS_ROOT)
         .doc(queryPath)
         .collection("chapters")
         .doc(queryIdxChapter);
