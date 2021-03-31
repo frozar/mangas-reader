@@ -3,41 +3,25 @@ import "firebase/firestore";
 
 import React from "react";
 import { ThemeProvider } from "@material-ui/styles";
-import { createMuiTheme } from "@material-ui/core/styles";
+// import { createMuiTheme } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { Router, Route, Switch, Redirect } from "react-router-dom";
 import history from "../history";
 import axios from "axios";
+
+import theme from "../style/theme";
 
 import "../App.css";
 
 import SelectManga from "./SelectManga";
 import SelectChapter from "./SelectChapter";
 import ScanViewer from "./ScanViewer";
-import {
-  // getLastIdxChapter,
-  getImagesURL,
-  getIdxChapters,
-  CLOUD_FUNCTION_ROOT,
-  // LELSCANS_ROOT,
-} from "../db.js";
+import { getImagesURL, getIdxChapters, CLOUD_FUNCTION_ROOT } from "../db.js";
 
 firebase.analytics();
 const db = firebase.firestore();
 
 const URL_MANGA_TITLE_SET = CLOUD_FUNCTION_ROOT + "mangaTitleSET";
-
-// Documentation link:
-// https://www.colorhexa.com/aaaec1
-const theme = createMuiTheme({
-  palette: {
-    background: {
-      default: "white",
-    },
-    lightBlue: "#ABDAFF",
-    dark: "#25313C",
-  },
-});
 
 class App extends React.Component {
   state = {
@@ -54,7 +38,7 @@ class App extends React.Component {
 
   selectManga = (path) => {
     this.setState({ path });
-    console.log("setPath", path);
+    console.log("[selectManga] path", path);
     history.push("/chapter");
   };
 

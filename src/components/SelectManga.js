@@ -2,37 +2,23 @@ import React, { useState, useEffect } from "react";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
+import Typography from "@material-ui/core/Typography";
 
 import { getMangas } from "../db.js";
 
 const useStyles = makeStyles((theme) => ({
   container: {
-    margin: "30px 180px",
-    paddingLeft: "30px",
-    paddingRight: "30px",
-    background: theme.palette.lightBlue,
-    borderRadius: 20,
-    overflow: "hidden",
+    ...theme.container,
   },
   title: {
-    /* H1 */
-    fontFamily: "Lato",
-    fontStyle: "normal",
-    fontWeight: "800",
-    fontSize: "36px",
-    lineHeight: "40px",
-
-    color: theme.palette.dark,
-    textAlign: "center",
-    marginTop: "20px",
-    marginBottom: "0px",
+    ...theme.title,
   },
   cardContainer: {
     marginTop: "30px",
     marginBottom: "-10px",
   },
   card: {
-    background: "#BBC8D4",
+    background: theme.palette.cardBackground,
     borderRadius: "20px",
     overflow: "hidden",
     marginBottom: "30px",
@@ -74,15 +60,6 @@ const useStyles = makeStyles((theme) => ({
   },
   cardTitle: {
     textAlign: "center",
-
-    /* H2 */
-    fontFamily: "Lato",
-    fontStyle: "normal",
-    fontWeight: "normal",
-    fontSize: "18px",
-    lineHeight: "20px",
-
-    color: theme.palette.dark,
   },
 }));
 
@@ -99,8 +76,8 @@ export default function SelectManga(props) {
     fetchData();
   }, []);
 
-  const handleOnClick = (event) => {
-    props.selectManga(event.target.getAttribute("value"));
+  const handleOnClick = (event, path) => {
+    props.selectManga(path);
   };
 
   return (
@@ -113,8 +90,15 @@ export default function SelectManga(props) {
         spacing={2}
         wrap="wrap"
       >
-        {lObjManga.map(({ URL, title, thumb, path }, idx) => (
-          <Grid key={URL} item value={path} onClick={handleOnClick}>
+        {lObjManga.map(({ URL, title, thumb, path }) => (
+          <Grid
+            key={URL}
+            item
+            value={path}
+            onClick={(event) => {
+              handleOnClick(event, path);
+            }}
+          >
             <Box className={classes.card}>
               <Box
                 className={classes.backgroundImageThumb}
@@ -129,7 +113,9 @@ export default function SelectManga(props) {
                 className={classes.cardTitleContainer}
               >
                 <Grid item>
-                  <Box className={classes.cardTitle}>{title}</Box>
+                  <Typography className={classes.cardTitle} variant="h2">
+                    {title}
+                  </Typography>
                 </Grid>
               </Grid>
             </Box>
