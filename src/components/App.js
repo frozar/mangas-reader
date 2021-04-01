@@ -3,7 +3,6 @@ import "firebase/firestore";
 
 import React from "react";
 import { ThemeProvider } from "@material-ui/styles";
-// import { createMuiTheme } from "@material-ui/core/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { Router, Route, Switch, Redirect } from "react-router-dom";
 import history from "../history";
@@ -19,7 +18,7 @@ import ScanViewer from "./ScanViewer";
 import { getImagesURL, getIdxChapters, CLOUD_FUNCTION_ROOT } from "../db.js";
 
 firebase.analytics();
-const db = firebase.firestore();
+// const db = firebase.firestore();
 
 const URL_MANGA_TITLE_SET = CLOUD_FUNCTION_ROOT + "mangaTitleSET";
 

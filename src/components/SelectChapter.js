@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from "react";
+import history from "../history";
+
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
-import Box from "@material-ui/core/Box";
-import Typography from "@material-ui/core/Typography";
+import Button from "@material-ui/core/Button";
 
 import { getIdxChapters, getImagesURL } from "../db.js";
+import GridCard from "./GridCard.js";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -14,52 +16,7 @@ const useStyles = makeStyles((theme) => ({
     ...theme.title,
   },
   cardContainer: {
-    marginTop: "30px",
-    marginBottom: "-10px",
-  },
-  card: {
-    background: "#BBC8D4",
-    borderRadius: "20px",
-    overflow: "hidden",
-    marginBottom: "30px",
-    paddingLeft: "15px",
-    paddingRight: "15px",
-    height: "300px",
-    width: "150px",
-    boxShadow: "0 10px 15px 2px rgba(0, 0, 0,.3)",
-    cursor: "pointer",
-
-    transition: theme.transitions.create(["z-index", "transform"], {
-      duration: theme.transitions.duration.shortest,
-    }),
-    "&:hover": {
-      transform: "scale(1.02)",
-      zIndex: theme.zIndex.mobileStepper,
-      // Reset on touch devices, it doesn't add specificity
-      "@media (hover: none)": {
-        transform: "scale(1.02)",
-        zIndex: theme.zIndex.mobileStepper,
-      },
-    },
-  },
-  backgroundImageThumb: {
-    backgroundPosition: "50%",
-    backgroundSize: "cover",
-    backgroundRepeat: "no-repeat",
-
-    height: "70%",
-    marginTop: "15px",
-    marginBottom: "10px",
-
-    borderRadius: "4px",
-    position: "relative",
-    overflow: "hidden",
-  },
-  cardTitleContainer: {
-    height: "calc(100% - 70% - 15px - 10px)",
-  },
-  cardTitle: {
-    textAlign: "center",
+    ...theme.cardContainer,
   },
 }));
 
@@ -78,64 +35,70 @@ export default function SelectChapter(props) {
           tmpChaptersJacket[idxChapter] = imagesURL[0];
         })
       );
-      // console.log("tmpChaptersJacket", tmpChaptersJacket);
       setChaptersJacket(tmpChaptersJacket);
     }
-    fetchData();
+    if (props.path) {
+      fetchData();
+    }
   }, [props.path]);
 
-  const handleOnClick = (event) => {
+  const cards = Object.keys(chaptersJacket)
+    .map((idx) => {
+      return {
+        label: idx,
+        picture: chaptersJacket[idx]
+          ? chaptersJacket[idx]
+          : "/img/imagePlaceholder.png",
+      };
+    })
+    .sort(({ label: idxA }, { label: idxB }) => {
+      return Number(idxA) - Number(idxB);
+    })
+    .reverse();
+
+  const handleOnClick = (event, label) => {
     event.persist();
-    const idxChapter = event.target.getAttribute("value");
-    props.selectChapter(props.path, idxChapter);
+    props.selectChapter(props.path, label);
   };
 
-  const renderChaptersJacket = () => {
-    return Object.keys(chaptersJacket)
-      .sort(function (a, b) {
-        return Number(a) - Number(b);
-      })
-      .reverse()
-      .map((idx) => (
-        <Grid
-          key={idx}
-          item
-          value={idx}
-          onClick={(event) => {
-            handleOnClick(event, idx);
-          }}
-        >
-          <Box className={classes.card}>
-            <Box
-              className={classes.backgroundImageThumb}
-              style={{
-                backgroundImage: `url("${
-                  chaptersJacket[idx]
-                    ? chaptersJacket[idx]
-                    : "/imagePlaceholder.png"
-                }")`,
-              }}
-            />
-            <Grid
-              container
-              direction="column"
-              justify="center"
-              className={classes.cardTitleContainer}
-            >
-              <Grid item>
-                <Typography className={classes.cardTitle} variant="h2">
-                  {idx}
-                </Typography>
-              </Grid>
-            </Grid>
-          </Box>
-        </Grid>
-      ));
-  };
+  // If the current path is undefined, get back to manga selection.
+  if (!props.path) {
+    console.log("[selectChapter] path", props.path);
+    history.push("/manga");
+  }
 
   return (
     <div className={classes.container}>
-      <h1 className={classes.title}>Choisis ton chapitre</h1>
+      <Grid
+        container
+        direction="row"
+        alignItems="center"
+        style={{
+          marginTop: "20px",
+        }}
+      >
+        <Grid item xs={3}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              console.log("before push");
+              history.push("/manga");
+              console.log("after push");
+            }}
+            // style={{ textDecoration: "none" }}
+            startIcon={
+              <img src="/img/arrowBack.svg" height="18px" alt="back arrow" />
+            }
+          >
+            Changer de manga
+          </Button>
+        </Grid>
+        <Grid item xs={6}>
+          <h1 className={classes.title}>Choisis ton chapitre</h1>
+        </Grid>
+        <Grid item xs={3} />
+      </Grid>
       <Grid
         container
         className={classes.cardContainer}
@@ -143,7 +106,7 @@ export default function SelectChapter(props) {
         spacing={2}
         wrap="wrap"
       >
-        {renderChaptersJacket()}
+        <GridCard cards={cards} handleOnClick={handleOnClick} />
       </Grid>
     </div>
   );

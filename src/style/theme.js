@@ -9,6 +9,7 @@ const defaultTheme = createMuiTheme({
     background: {
       default: "#e3e8ed",
     },
+    primary: { main: "#e3e8ed" },
     containerBackground: "white",
     cardBackground: lightGrey,
     dark: dark,
@@ -20,12 +21,6 @@ const defaultTheme = createMuiTheme({
 export default createMuiTheme({
   palette: {
     ...defaultTheme.palette,
-    // background: {
-    //   default: "#e3e8ed",
-    // },
-    // containerBackground: "white",
-    // cardBackground: lightGrey,
-    // dark: dark,
   },
   typography: {
     h1: {
@@ -55,7 +50,14 @@ export default createMuiTheme({
   },
   title: {
     textAlign: "center",
-    marginTop: "20px",
+    marginTop: "0px",
     marginBottom: "0px",
+  },
+  cardContainer: {
+    width: "100%",
+    marginLeft: 0,
+    marginRight: 0,
+    marginTop: "30px",
+    marginBottom: "-10px",
   },
 });
