@@ -29,12 +29,19 @@ export default function SelectChapter(props) {
     async function fetchData() {
       const tmpChaptersJacket = {};
       const tmpListIdxChapters = await getIdxChapters(props.path);
+      // console.log("[SelectChapter] tmpListIdxChapters", tmpListIdxChapters);
       await Promise.all(
         tmpListIdxChapters.map(async (idxChapter) => {
           const imagesURL = await getImagesURL(props.path, idxChapter);
           tmpChaptersJacket[idxChapter] = imagesURL[0];
         })
       );
+      // console.log("[SelectChapter] tmpChaptersJacket", tmpChaptersJacket);
+      // tmpListIdxChapters.map((idxChapter) => {
+      //   // const imagesURL = await getImagesURL(props.path, idxChapter);
+      //   tmpChaptersJacket[idxChapter] = undefined;
+      //   return idxChapter;
+      // });
       setChaptersJacket(tmpChaptersJacket);
     }
     if (props.path) {

@@ -1,13 +1,15 @@
 import firebase from "./firebase";
 import "firebase/firestore";
-// const admin = require('firebase-admin');
-// import admin from "firebase-admin";
 
 import axios from "axios";
 
 const db = firebase.firestore();
-// admin.initializeApp();
 // console.log("process.env.FIREBASE_CONFIG", process.env.FIREBASE_CONFIG);
+
+console.log("window.location.hostname", window.location.hostname);
+if (window.location.hostname === "localhost") {
+  db.useEmulator("localhost", 8080);
+}
 
 // Dev environment
 export const CLOUD_FUNCTION_ROOT =
@@ -19,18 +21,38 @@ const URL_MANGA_IMAGES_SET = CLOUD_FUNCTION_ROOT + "mangaImagesSET";
 export const LELSCANS_ROOT = "lelscans";
 
 export async function getIdxChapters(mangaPath) {
+  // const snapshot = await db
+  //   .collection(LELSCANS_ROOT)
+  //   .doc(mangaPath)
+  //   .collection("chapters")
+  //   .get();
+
+  const getOptions = {
+    source: "server",
+  };
+
   const snapshot = await db
     .collection(LELSCANS_ROOT)
     .doc(mangaPath)
-    .collection("chapters")
-    .get();
+    .get(getOptions);
 
-  let idxChapters = [];
-  snapshot.forEach((doc) => {
-    idxChapters.push(doc.id);
-  });
+  const data = snapshot.data();
+  const getChapters = await snapshot.get("chapters");
+  console.log("[getIdxChapters] snapshot", snapshot);
+  console.log("[getIdxChapters] mangaPath", mangaPath);
+  console.log("[getIdxChapters] getChapters", getChapters);
+  console.log("[getIdxChapters] data", data);
+  const { chapters, title } = data;
+  console.log("[getIdxChapters] chapters", chapters);
+  console.log("[getIdxChapters] title", title);
+
+  let idxChapters = Object.keys(chapters);
+  // snapshot.forEach((doc) => {
+  //   idxChapters.push(doc.id);
+  // });
 
   return idxChapters.sort((a, b) => Number(a) - Number(b));
+  // return [];
 }
 
 export async function getLastIdxChapter(mangaPath) {
@@ -39,14 +61,10 @@ export async function getLastIdxChapter(mangaPath) {
 }
 
 export async function getImagesURL(mangaPath, idxChapter) {
-  const doc = await db
-    .collection(LELSCANS_ROOT)
-    .doc(mangaPath)
-    .collection("chapters")
-    .doc(idxChapter)
-    .get();
+  const doc = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
 
-  let imagesURL = doc.data()["URL"];
+  const { chapters } = doc.data();
+  let imagesURL = chapters[idxChapter];
   if (imagesURL.length === 0) {
     const request = await axios.get(URL_MANGA_IMAGES_SET, {
       params: {
@@ -66,9 +84,12 @@ export async function getMangas() {
   let mangas = [];
   snapshot.forEach((doc) => {
     const data = doc.data();
+    // console.log("[getMangas] data", data);
     mangas.push(data);
   });
 
+  // console.log("[getMangas] db", db);
+  // console.log("[getMangas] mangas", mangas);
   return mangas.sort((obj1, obj2) => {
     return obj1.title.localeCompare(obj2.title);
   });

@@ -31,9 +31,9 @@ class App extends React.Component {
 
   // defaultMangaPath = "one-piece";
 
-  componentDidMount() {
-    axios.get(URL_MANGA_TITLE_SET);
-  }
+  // componentDidMount() {
+  //   axios.get(URL_MANGA_TITLE_SET);
+  // }
 
   selectManga = (path) => {
     this.setState({ path });
