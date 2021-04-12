@@ -11,6 +11,7 @@ import {
   CLOUD_FUNCTION_ROOT,
   getIdxChapters,
   getImagesURL,
+  getMangaChapters,
 } from "../db.js";
 import GridCard from "./GridCard.js";
 
@@ -34,73 +35,19 @@ export default function SelectChapter(props) {
   const [chaptersJacket, setChaptersJacket] = useState({});
 
   useEffect(() => {
-    async function fetchData(iter = 0) {
-      if (1 < iter) {
-        return;
-      }
-      // const tmpChaptersJacket = {};
-      // const tmpListIdxChapters = await getIdxChapters(props.path);
-      // console.log("[SelectChapter] tmpListIdxChapters", tmpListIdxChapters);
-      // await Promise.all(
-      //   tmpListIdxChapters.map(async (idxChapter) => {
-      //     const imagesURL = await getImagesURL(props.path, idxChapter);
-      //     console.log(
-      //       "[SelectChapter] idxChapter, imagesURL",
-      //       idxChapter,
-      //       imagesURL
-      //     );
-      //     console.log("");
-      //     tmpChaptersJacket[idxChapter] = imagesURL[0];
-      //   })
-      // );
-      // // console.log("[SelectChapter] tmpChaptersJacket", tmpChaptersJacket);
-      // // tmpListIdxChapters.map((idxChapter) => {
-      // //   // const imagesURL = await getImagesURL(props.path, idxChapter);
-      // //   tmpChaptersJacket[idxChapter] = undefined;
-      // //   return idxChapter;
-      // // });
-      // console.log("[SelectChapter] tmpChaptersJacket", tmpChaptersJacket);
-      // setChaptersJacket(tmpChaptersJacket);
+    async function fetchData() {
+      const chapters = await getMangaChapters(props.path);
+      console.log("[useEffect] chapters", chapters);
 
-      const chapters = await getChapters(props.path);
-      // Object.entries(chapters, (key, val) => {
-      //   console.log("key", key);
-      //   console.log("val", val);
-      // });
-
-      // const idxToDisplay = [];
-      console.log("[SelectChapter] chapters", chapters);
-      const idxToLookFor = [];
       const chaptersJacket = {};
-      for (const [idx, imagesURL] of Object.entries(chapters)) {
-        console.log("[SelectChapter] idx", idx);
-        console.log("[SelectChapter] imagesURL", imagesURL);
-        if (imagesURL.length !== 0) {
-          // idxToDisplay.push(idx);
-          chaptersJacket[idx] = imagesURL[0];
-        } else {
-          idxToLookFor.push(idx);
-        }
+      for (const [idx, details] of Object.entries(chapters)) {
+        const { content: imagesURL } = details;
+        chaptersJacket[idx] = imagesURL[0];
+        // console.log("[SelectChapter] idx", idx);
+        // console.log("[SelectChapter] imagesURL", imagesURL);
       }
-      console.log("");
+      // console.log("");
       setChaptersJacket(chaptersJacket);
-
-      if (idxToLookFor.length !== 0) {
-        console.log("[SelectChapter] idxToLookFor", idxToLookFor);
-        await axios.get(URL_MANGA_CHAPTERS_SET, {
-          params: {
-            path: props.path,
-            idxChapter: idxToLookFor,
-          },
-        });
-
-        setTimeout(() => {
-          fetchData(iter + 1);
-        }, 1000);
-      }
-      // for (const idx of idxToDisplay) {
-
-      // }
     }
     if (props.path) {
       fetchData();
@@ -147,9 +94,7 @@ export default function SelectChapter(props) {
             variant="contained"
             color="primary"
             onClick={() => {
-              console.log("before push");
               history.push("/manga");
-              console.log("after push");
             }}
             // style={{ textDecoration: "none" }}
             startIcon={
