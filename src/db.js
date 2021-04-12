@@ -11,30 +11,51 @@ if (window.location.hostname === "localhost") {
   db.useEmulator("localhost", 8080);
 }
 
-// Dev environment
 export const CLOUD_FUNCTION_ROOT =
-  "http://localhost:5001/manga-b8fb3/europe-west1/";
-// // Production environment
-// const CLOUD_FUNCTION_ROOT = "https://europe-west1-manga-b8fb3.cloudfunctions.net/";
+  window.location.hostname === "localhost"
+    ? "http://localhost:5001/manga-b8fb3/europe-west1/"
+    : "https://europe-west1-manga-b8fb3.cloudfunctions.net/";
 
 const URL_MANGA_IMAGES_SET = CLOUD_FUNCTION_ROOT + "mangaImagesSET";
+const URL_MANGAS_GET = CLOUD_FUNCTION_ROOT + "mangasGET";
 export const LELSCANS_ROOT = "lelscans";
 
+export async function getMangas() {
+  const request = await axios.get(URL_MANGAS_GET);
+  console.log("[getMangas] request", request);
+  // imagesURL = request.data;
+  const mangas = request.data;
+
+  return mangas;
+
+  // const snapshot = await db.collection(LELSCANS_ROOT).get();
+
+  // let mangas = [];
+  // snapshot.forEach((doc) => {
+  //   const data = doc.data();
+  //   console.log("[getMangas] data", data);
+  //   mangas.push(data);
+  // });
+
+  // // console.log("[getMangas] db", db);
+  // // console.log("[getMangas] mangas", mangas);
+  // return mangas.sort((obj1, obj2) => {
+  //   return obj1.title.localeCompare(obj2.title);
+  // });
+}
+
+export async function getChapters(mangaPath) {
+  const snapshot = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
+
+  const data = snapshot.data();
+  const { chapters } = data;
+  console.log("[getChapters] chapters", chapters);
+
+  return chapters;
+}
+
 export async function getIdxChapters(mangaPath) {
-  // const snapshot = await db
-  //   .collection(LELSCANS_ROOT)
-  //   .doc(mangaPath)
-  //   .collection("chapters")
-  //   .get();
-
-  const getOptions = {
-    source: "server",
-  };
-
-  const snapshot = await db
-    .collection(LELSCANS_ROOT)
-    .doc(mangaPath)
-    .get(getOptions);
+  const snapshot = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
 
   const data = snapshot.data();
   const getChapters = await snapshot.get("chapters");
@@ -55,11 +76,6 @@ export async function getIdxChapters(mangaPath) {
   // return [];
 }
 
-export async function getLastIdxChapter(mangaPath) {
-  const idxChapters = await getIdxChapters(mangaPath);
-  return idxChapters.reverse()[0];
-}
-
 export async function getImagesURL(mangaPath, idxChapter) {
   const doc = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
 
@@ -74,23 +90,7 @@ export async function getImagesURL(mangaPath, idxChapter) {
     });
     imagesURL = request.data;
   }
+  console.log("[getImagesURL] imagesURL", imagesURL);
 
   return imagesURL;
-}
-
-export async function getMangas() {
-  const snapshot = await db.collection(LELSCANS_ROOT).get();
-
-  let mangas = [];
-  snapshot.forEach((doc) => {
-    const data = doc.data();
-    // console.log("[getMangas] data", data);
-    mangas.push(data);
-  });
-
-  // console.log("[getMangas] db", db);
-  // console.log("[getMangas] mangas", mangas);
-  return mangas.sort((obj1, obj2) => {
-    return obj1.title.localeCompare(obj2.title);
-  });
 }

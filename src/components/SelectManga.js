@@ -27,8 +27,15 @@ export default function SelectManga(props) {
 
   useEffect(() => {
     async function fetchData() {
+      // console.log("IN fetchData");
       const tmpLObjManga = await getMangas();
-      setLObjManga(tmpLObjManga);
+      // console.log("tmpLObjManga", tmpLObjManga);
+      const mangas = Object.values(tmpLObjManga);
+      mangas.sort((obj1, obj2) => {
+        return obj1.title.localeCompare(obj2.title);
+      });
+      // console.log("mangas", mangas);
+      setLObjManga(mangas);
     }
     fetchData();
   }, []);
