@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
-import dashify from "dashify";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
+import Typography from "@material-ui/core/Typography";
 
 import { getMangas } from "../db.js";
 import GridCard from "./GridCard.js";
@@ -12,8 +12,8 @@ const useStyles = makeStyles((theme) => ({
     ...theme.container,
   },
   title: {
-    ...theme.title,
     marginTop: "20px",
+    textAlign: "center",
   },
   cardContainer: {
     ...theme.cardContainer,
@@ -52,13 +52,14 @@ export default function SelectManga(props) {
     });
 
   const handleOnClick = (event, title) => {
-    const path = dashify(title);
-    props.selectManga(path);
+    props.selectManga(title);
   };
 
   return (
     <div className={classes.container}>
-      <h1 className={classes.title}>Choisis ton manga</h1>
+      <Typography variant="h1" className={classes.title}>
+        Choisis ton manga
+      </Typography>
       <Grid
         container
         className={classes.cardContainer}

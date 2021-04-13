@@ -48,11 +48,6 @@ export default createMuiTheme({
     borderRadius: 20,
     overflow: "hidden",
   },
-  title: {
-    textAlign: "center",
-    marginTop: "0px",
-    marginBottom: "0px",
-  },
   cardContainer: {
     width: "100%",
     marginLeft: 0,

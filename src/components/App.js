@@ -5,6 +5,7 @@ import { ThemeProvider } from "@material-ui/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { Router, Route, Switch, Redirect } from "react-router-dom";
 import history from "../history";
+import dashify from "dashify";
 
 import theme from "../style/theme";
 
@@ -20,18 +21,14 @@ firebase.analytics();
 class App extends React.Component {
   state = {
     path: undefined,
+    title: undefined,
     idxChapter: undefined,
     imagesURL: [],
   };
 
-  // defaultMangaPath = "one-piece";
-
-  // componentDidMount() {
-  //   axios.get(URL_MANGA_TITLE_SET);
-  // }
-
-  selectManga = (path) => {
-    this.setState({ path });
+  selectManga = (title) => {
+    const path = dashify(title);
+    this.setState({ path, title });
     console.log("[selectManga] path", path);
     history.push("/chapter");
   };
@@ -86,8 +83,8 @@ class App extends React.Component {
   };
 
   render() {
-    const { path, idxChapter, imagesURL } = this.state;
-    console.log("App: state:", { path, idxChapter, imagesURL });
+    const { path, title, idxChapter, imagesURL } = this.state;
+    console.log("App: state:", { path, title, idxChapter, imagesURL });
     return (
       <Router history={history}>
         <ThemeProvider theme={theme}>
@@ -100,7 +97,11 @@ class App extends React.Component {
               <SelectManga selectManga={this.selectManga} />
             </Route>
             <Route path="/chapter" exact>
-              <SelectChapter selectChapter={this.selectChapter} path={path} />
+              <SelectChapter
+                selectChapter={this.selectChapter}
+                path={path}
+                title={title}
+              />
             </Route>
             <Route path="/reader" exact>
               {path === undefined || idxChapter === undefined ? (

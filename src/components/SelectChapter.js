@@ -4,6 +4,7 @@ import history from "../history";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
+import Typography from "@material-ui/core/Typography";
 
 import { getMangaChapters } from "../db.js";
 import GridCard from "./GridCard.js";
@@ -13,7 +14,13 @@ const useStyles = makeStyles((theme) => ({
     ...theme.container,
   },
   title: {
-    ...theme.title,
+    textAlign: "center",
+  },
+  subTitle: {
+    textAlign: "end",
+    textTransform: "uppercase",
+    fontWeight: "800",
+    color: theme.palette.grey[500],
   },
   cardContainer: {
     ...theme.cardContainer,
@@ -96,9 +103,21 @@ export default function SelectChapter(props) {
           </Button>
         </Grid>
         <Grid item xs={6}>
-          <h1 className={classes.title}>Choisis ton chapitre</h1>
+          <Typography variant="h1" className={classes.title}>
+            Choisis ton chapitre
+          </Typography>
         </Grid>
-        <Grid item xs={3} />
+        <Grid
+          item
+          xs={3}
+          style={{
+            marginTop: "auto",
+          }}
+        >
+          <Typography variant="h2" className={classes.subTitle}>
+            {props.title}
+          </Typography>
+        </Grid>
       </Grid>
       <Grid
         container
