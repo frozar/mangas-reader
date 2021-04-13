@@ -327,8 +327,6 @@ exports.mangaTitleSET = functions
     await Promise.all(toWait);
 
     res.status(200).send("mangaTitleSET: SUCCESS");
-    // return mangaToAdd;
-    // return true;
   });
 
 /**
@@ -429,7 +427,7 @@ async function scrapChapters(path, idxChapter) {
   // console.log("[scrapChapters] toWait", toWait);
 
   const allWait = [];
-  const chunkedIdxChapter = _.chunk(idxChapter, 24);
+  const chunkedIdxChapter = _.chunk(idxChapter, 16);
   // console.log(
   //   "[scrapChapters] chunkedIdxChapter.length",
   //   chunkedIdxChapter.length
@@ -516,22 +514,27 @@ exports.mangaChaptersGET = functions
     const dataDoc = snapshot.data();
     const { chapters: chaptersInDB } = dataDoc;
     const { lastScrapingDate: lastScrapingDateISOString } = dataDoc;
+
+    res.status(200).send(chaptersInDB);
+
     // console.log(
     //   "[mangaChaptersGET] lastScrapingDateISOString",
     //   lastScrapingDateISOString
     // );
-
-    res.status(200).send(chaptersInDB);
-
+    // console.log(
+    //   "[mangaChaptersGET] (lastScrapingDateISOString !== undefined)",
+    //   lastScrapingDateISOString !== undefined
+    // );
     const currentScrapingDate = new Date();
     if (lastScrapingDateISOString !== undefined) {
       const lastScrapingDate = new Date(lastScrapingDateISOString);
+      // console.log("[mangaChaptersGET] lastScrapingDate", lastScrapingDate);
       const diffTimeInMin = Math.floor(
         (currentScrapingDate.getTime() - lastScrapingDate.getTime()) /
           (1000 * 60)
       );
       // console.log("[mangaChaptersGET] diffTimeInMin", diffTimeInMin);
-      if (diffTimeInMin < 60) {
+      if (diffTimeInMin < 60 * 24) {
         return;
       }
     }
@@ -571,10 +574,17 @@ exports.mangaChaptersGET = functions
     if (
       !_.isEqual(chaptersInDBWithoutThumbnail, scrapedChaptersWithoutThumbnail)
     ) {
+      console.info("[mangaChaptersGET] scraping of update", queryPath);
+      const finalScrapingDate = new Date();
+      // console.log("[mangaChaptersGET] finalScrapingDate", finalScrapingDate);
+      // console.log(
+      //   "[mangaChaptersGET] finalScrapingDate.toISOString()",
+      //   finalScrapingDate.toISOString()
+      // );
       await docRef.set(
         {
           chapters: scrapedChapters,
-          lastScrapingDate: currentScrapingDate.toISOString(),
+          lastScrapingDate: finalScrapingDate.toISOString(),
         },
         { merge: true }
       );
