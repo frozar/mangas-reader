@@ -90,5 +90,5 @@ export async function getImagesURL(mangaPath, idxChapter) {
   }
   console.log("[getImagesURL] imagesURL", imagesURL);
 
-  return imagesURL;
+  return imagesURL.content;
 }

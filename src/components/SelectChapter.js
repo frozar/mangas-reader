@@ -1,21 +1,12 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import history from "../history";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Button from "@material-ui/core/Button";
 
-import {
-  getChapters,
-  CLOUD_FUNCTION_ROOT,
-  getIdxChapters,
-  getImagesURL,
-  getMangaChapters,
-} from "../db.js";
+import { getMangaChapters } from "../db.js";
 import GridCard from "./GridCard.js";
-
-const URL_MANGA_CHAPTERS_SET = CLOUD_FUNCTION_ROOT + "mangaChaptersSET";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -70,6 +61,7 @@ export default function SelectChapter(props) {
 
   const handleOnClick = (event, label) => {
     event.persist();
+    console.log("label", label);
     props.selectChapter(props.path, label);
   };
 
@@ -96,7 +88,6 @@ export default function SelectChapter(props) {
             onClick={() => {
               history.push("/manga");
             }}
-            // style={{ textDecoration: "none" }}
             startIcon={
               <img src="/img/arrowBack.svg" height="18px" alt="back arrow" />
             }

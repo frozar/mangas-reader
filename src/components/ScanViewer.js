@@ -86,11 +86,7 @@ class ScanViewer extends React.Component {
             variant="contained"
             color="primary"
           >
-            <Link
-              style={{ color: "white" }}
-              to="/select/manga"
-              className="item"
-            >
+            <Link style={{ color: "white" }} to="/manga" className="item">
               Select Manga
             </Link>
           </Button>

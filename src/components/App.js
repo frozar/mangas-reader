@@ -1,12 +1,10 @@
 import firebase from "../firebase";
-import "firebase/firestore";
 
 import React from "react";
 import { ThemeProvider } from "@material-ui/styles";
 import CssBaseline from "@material-ui/core/CssBaseline";
 import { Router, Route, Switch, Redirect } from "react-router-dom";
 import history from "../history";
-import axios from "axios";
 
 import theme from "../style/theme";
 
@@ -15,12 +13,9 @@ import "../App.css";
 import SelectManga from "./SelectManga";
 import SelectChapter from "./SelectChapter";
 import ScanViewer from "./ScanViewer";
-import { getImagesURL, getIdxChapters, CLOUD_FUNCTION_ROOT } from "../db.js";
+import { getImagesURL, getIdxChapters } from "../db.js";
 
 firebase.analytics();
-// const db = firebase.firestore();
-
-const URL_MANGA_TITLE_SET = CLOUD_FUNCTION_ROOT + "mangaTitleSET";
 
 class App extends React.Component {
   state = {
@@ -108,13 +103,17 @@ class App extends React.Component {
               <SelectChapter selectChapter={this.selectChapter} path={path} />
             </Route>
             <Route path="/reader" exact>
-              <ScanViewer
-                path={path}
-                idxChapter={idxChapter}
-                imagesURL={imagesURL}
-                nextChapter={this.nextChapter}
-                previousChapter={this.previousChapter}
-              />
+              {path === undefined || idxChapter === undefined ? (
+                <Redirect to="/manga" />
+              ) : (
+                <ScanViewer
+                  path={path}
+                  idxChapter={idxChapter}
+                  imagesURL={imagesURL}
+                  nextChapter={this.nextChapter}
+                  previousChapter={this.previousChapter}
+                />
+              )}
             </Route>
           </Switch>
         </ThemeProvider>

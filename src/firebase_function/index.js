@@ -328,7 +328,7 @@ exports.mangaTitleSET = functions
 
     res.status(200).send("mangaTitleSET: SUCCESS");
     // return mangaToAdd;
-    return true;
+    // return true;
   });
 
 /**
