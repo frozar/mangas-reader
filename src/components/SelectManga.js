@@ -1,41 +1,22 @@
 import React, { useState, useEffect } from "react";
+
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
-import Box from "@material-ui/core/Box";
+import Typography from "@material-ui/core/Typography";
 
 import { getMangas } from "../db.js";
+import GridCard from "./GridCard.js";
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-    alignItems: "center!important",
-    padding: "1rem",
-    justifyContent: "flex-start!important",
+  container: {
+    ...theme.container,
   },
-  backgroundImageThumb: {
-    backgroundPosition: "50%",
-    backgroundSize: "cover",
-    backgroundRepeat: "no-repeat",
-    margin: "7px 7px 0",
-    height: "100%",
-    borderRadius: "4px",
-    position: "relative",
-    overflow: "hidden",
-    boxShadow: "0 0 20px 0 rgba(34,35,41,.9)",
-    cursor: "pointer",
-
-    transition: theme.transitions.create(["z-index", "transform"], {
-      duration: theme.transitions.duration.shortest,
-    }),
-    "&:hover": {
-      transform: "scale(1.1)",
-      zIndex: theme.zIndex.mobileStepper,
-      // Reset on touch devices, it doesn't add specificity
-      "@media (hover: none)": {
-        transform: "scale(1.1)",
-        zIndex: theme.zIndex.mobileStepper,
-      },
-    },
+  title: {
+    marginTop: "20px",
+    textAlign: "center",
+  },
+  cardContainer: {
+    ...theme.cardContainer,
   },
 }));
 
@@ -46,45 +27,48 @@ export default function SelectManga(props) {
 
   useEffect(() => {
     async function fetchData() {
+      // console.log("IN fetchData");
       const tmpLObjManga = await getMangas();
-      setLObjManga(tmpLObjManga);
+      // console.log("tmpLObjManga", tmpLObjManga);
+      const mangas = Object.values(tmpLObjManga);
+      mangas.sort((obj1, obj2) => {
+        return obj1.title.localeCompare(obj2.title);
+      });
+      // console.log("mangas", mangas);
+      setLObjManga(mangas);
     }
     fetchData();
   }, []);
 
-  const handleOnClick = (event) => {
-    props.setPath(event.target.getAttribute("value"));
+  const cards = lObjManga
+    .map(({ title, thumb }) => {
+      return {
+        label: title,
+        picture: thumb,
+      };
+    })
+    .sort(function ({ label: labelA }, { label: labelB }) {
+      return labelA.localeCompare(labelB);
+    });
+
+  const handleOnClick = (event, title) => {
+    props.selectManga(title);
   };
 
   return (
-    <React.Fragment>
-      <Grid container className={classes.root} justify="center" spacing={2}>
-        {lObjManga.map(({ URL, title, thumb, path }) => (
-          <Box
-            style={{
-              flexGrow: "0",
-              flexShrink: "0",
-              flexBasis: "50%",
-              maxWidth: "100px",
-              height: "124px",
-              marginBottom: "3rem",
-              textAlign: "center",
-            }}
-            key={URL}
-          >
-            <Grid
-              item
-              className={classes.backgroundImageThumb}
-              style={{
-                backgroundImage: `url("${thumb}")`,
-              }}
-              value={path}
-              onClick={handleOnClick}
-            ></Grid>
-            <span>{title}</span>
-          </Box>
-        ))}
+    <div className={classes.container}>
+      <Typography variant="h1" className={classes.title}>
+        Choisis ton manga
+      </Typography>
+      <Grid
+        container
+        className={classes.cardContainer}
+        justify="center"
+        spacing={2}
+        wrap="wrap"
+      >
+        <GridCard cards={cards} handleOnClick={handleOnClick} />
       </Grid>
-    </React.Fragment>
+    </div>
   );
 }

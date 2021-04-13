@@ -1,41 +1,29 @@
 import React, { useState, useEffect } from "react";
+import history from "../history";
+
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
-import Box from "@material-ui/core/Box";
+import Button from "@material-ui/core/Button";
+import Typography from "@material-ui/core/Typography";
 
-import WaitingScreen from "./WaitingScreen";
-import { getIdxChapters, getImagesURL } from "../db.js";
+import { getMangaChapters } from "../db.js";
+import GridCard from "./GridCard.js";
 
 const useStyles = makeStyles((theme) => ({
-  root: {
-    flexGrow: 1,
-    alignItems: "center!important",
-    justifyContent: "flex-start!important",
+  container: {
+    ...theme.container,
   },
-  backgroundImageThumb: {
-    backgroundPosition: "50%",
-    backgroundSize: "cover",
-    backgroundRepeat: "no-repeat",
-    margin: "7px 7px 0",
-    height: "100%",
-    borderRadius: "8px",
-    position: "relative",
-    overflow: "hidden",
-    boxShadow: "0 0 20px 0 rgba(34,35,41,.9)",
-    cursor: "pointer",
-
-    transition: theme.transitions.create(["z-index", "transform"], {
-      duration: theme.transitions.duration.shortest,
-    }),
-    "&:hover": {
-      transform: "scale(1.1)",
-      zIndex: theme.zIndex.mobileStepper,
-      // Reset on touch devices, it doesn't add specificity
-      "@media (hover: none)": {
-        transform: "scale(1.1)",
-        zIndex: theme.zIndex.mobileStepper,
-      },
-    },
+  title: {
+    textAlign: "center",
+  },
+  subTitle: {
+    textAlign: "end",
+    textTransform: "uppercase",
+    fontWeight: "800",
+    color: theme.palette.grey[500],
+  },
+  cardContainer: {
+    ...theme.cardContainer,
   },
 }));
 
@@ -46,75 +34,100 @@ export default function SelectChapter(props) {
 
   useEffect(() => {
     async function fetchData() {
-      const tmpChaptersJacket = {};
-      const tmpListIdxChapters = await getIdxChapters(props.path);
-      await Promise.all(
-        tmpListIdxChapters.map(async (idxChapter) => {
-          const imagesURL = await getImagesURL(props.path, idxChapter);
-          tmpChaptersJacket[idxChapter] = imagesURL[0];
-        })
-      );
-      // console.log("tmpChaptersJacket", tmpChaptersJacket);
-      setChaptersJacket(tmpChaptersJacket);
+      const chapters = await getMangaChapters(props.path);
+      console.log("[useEffect] chapters", chapters);
+
+      const chaptersJacket = {};
+      for (const [idx, details] of Object.entries(chapters)) {
+        const { content: imagesURL } = details;
+        chaptersJacket[idx] = imagesURL[0];
+        // console.log("[SelectChapter] idx", idx);
+        // console.log("[SelectChapter] imagesURL", imagesURL);
+      }
+      // console.log("");
+      setChaptersJacket(chaptersJacket);
     }
-    fetchData();
+    if (props.path) {
+      fetchData();
+    }
   }, [props.path]);
 
-  const handleOnClick = (event) => {
+  const cards = Object.keys(chaptersJacket)
+    .map((idx) => {
+      return {
+        label: idx,
+        picture: chaptersJacket[idx]
+          ? chaptersJacket[idx]
+          : "/img/imagePlaceholder.png",
+      };
+    })
+    .sort(({ label: idxA }, { label: idxB }) => {
+      return Number(idxA) - Number(idxB);
+    })
+    .reverse();
+
+  const handleOnClick = (event, label) => {
     event.persist();
-    const idxChapter = event.target.getAttribute("value");
-    props.selectChapter(props.path, idxChapter);
+    console.log("label", label);
+    props.selectChapter(props.path, label);
   };
 
-  const renderChaptersJacket = () => {
-    return Object.keys(chaptersJacket)
-      .map(Number)
-      .sort(function (a, b) {
-        return a - b;
-      })
-      .reverse()
-      .map((idx) => {
-        if (!chaptersJacket[idx]) {
-          return null;
-        } else {
-          const url = chaptersJacket[idx];
-          return (
-            <Box
-              style={{
-                flexGrow: "0",
-                flexShrink: "0",
-                flexBasis: "50%",
-                maxWidth: "25%",
-                height: "400px",
-                marginBottom: "3rem",
-                textAlign: "center",
-              }}
-              key={idx}
-            >
-              <Grid
-                item
-                className={classes.backgroundImageThumb}
-                style={{
-                  backgroundImage: `url(${url})`,
-                }}
-                value={idx}
-                onClick={handleOnClick}
-              ></Grid>
-              <h3>{idx}</h3>
-            </Box>
-          );
-        }
-      });
-  };
+  // If the current path is undefined, get back to manga selection.
+  if (!props.path) {
+    console.log("[selectChapter] path", props.path);
+    history.push("/manga");
+  }
 
-  // console.log("chaptersJacket", Object.keys(chaptersJacket).length);
-  const loading = Object.keys(chaptersJacket).length === 0;
   return (
-    <React.Fragment>
-      <WaitingScreen open={loading} />
-      <Grid container className={classes.root} justify="center" spacing={0}>
-        {renderChaptersJacket()}
+    <div className={classes.container}>
+      <Grid
+        container
+        direction="row"
+        alignItems="center"
+        style={{
+          marginTop: "20px",
+        }}
+      >
+        <Grid item xs={3}>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => {
+              history.push("/manga");
+            }}
+            startIcon={
+              <img src="/img/arrowBack.svg" height="18px" alt="back arrow" />
+            }
+          >
+            Changer de manga
+          </Button>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography variant="h1" className={classes.title}>
+            Choisis ton chapitre
+          </Typography>
+        </Grid>
+        <Grid
+          item
+          xs={3}
+          style={{
+            marginTop: "auto",
+          }}
+        >
+          <Typography variant="h2" className={classes.subTitle}>
+            {props.title}
+          </Typography>
+        </Grid>
       </Grid>
-    </React.Fragment>
+      <Grid
+        container
+        className={classes.cardContainer}
+        justify="center"
+        spacing={2}
+        wrap="wrap"
+      >
+        <GridCard cards={cards} handleOnClick={handleOnClick} />
+      </Grid>
+    </div>
   );
 }
