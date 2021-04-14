@@ -75,10 +75,10 @@ export async function getIdxChapters(mangaPath) {
 }
 
 export async function getImagesURL(mangaPath, idxChapter) {
-  const doc = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
+  const snapshot = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
 
-  const { chapters } = doc.data();
-  let imagesURL = chapters[idxChapter];
+  const { chapters } = snapshot.data();
+  let imagesURL = chapters[idxChapter].content;
   if (imagesURL.length === 0) {
     const request = await axios.get(URL_MANGA_IMAGES_SET, {
       params: {
@@ -86,9 +86,10 @@ export async function getImagesURL(mangaPath, idxChapter) {
         idxChapter: idxChapter,
       },
     });
-    imagesURL = request.data;
+    console.log("[getImagesURL] request.data", request.data);
+    imagesURL = request.data.content;
   }
   console.log("[getImagesURL] imagesURL", imagesURL);
 
-  return imagesURL.content;
+  return imagesURL;
 }
