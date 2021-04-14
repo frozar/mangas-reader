@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 
 import { makeStyles } from "@material-ui/core/styles";
-import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 
 import { getMangas } from "../db.js";
@@ -14,9 +13,6 @@ const useStyles = makeStyles((theme) => ({
   title: {
     marginTop: "20px",
     textAlign: "center",
-  },
-  cardContainer: {
-    ...theme.cardContainer,
   },
 }));
 
@@ -60,15 +56,7 @@ export default function SelectManga(props) {
       <Typography variant="h1" className={classes.title}>
         Choisis ton manga
       </Typography>
-      <Grid
-        container
-        className={classes.cardContainer}
-        justify="center"
-        spacing={2}
-        wrap="wrap"
-      >
-        <GridCard cards={cards} handleOnClick={handleOnClick} />
-      </Grid>
+      <GridCard cards={cards} handleOnClick={handleOnClick} />
     </div>
   );
 }
