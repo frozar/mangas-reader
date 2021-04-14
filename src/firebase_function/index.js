@@ -94,7 +94,7 @@ async function scrapChapterImagesURL(path, idxChapter) {
       return response.data;
     })
     .catch((error) => {
-      console.error("getChapterImagesURL: Cannot get info from lelscans");
+      console.error("scrapChapterImagesURL: Cannot get info from lelscans");
       console.error("error.code:", error.code);
       return;
     });
@@ -513,82 +513,82 @@ exports.mangaChaptersGET = functions
     const snapshot = await docRef.get();
     const dataDoc = snapshot.data();
     const { chapters: chaptersInDB } = dataDoc;
-    const { lastScrapingDate: lastScrapingDateISOString } = dataDoc;
+    // const { lastScrapingDate: lastScrapingDateISOString } = dataDoc;
 
     res.status(200).send(chaptersInDB);
 
-    // console.log(
-    //   "[mangaChaptersGET] lastScrapingDateISOString",
-    //   lastScrapingDateISOString
-    // );
-    // console.log(
-    //   "[mangaChaptersGET] (lastScrapingDateISOString !== undefined)",
-    //   lastScrapingDateISOString !== undefined
-    // );
-    const currentScrapingDate = new Date();
-    if (lastScrapingDateISOString !== undefined) {
-      const lastScrapingDate = new Date(lastScrapingDateISOString);
-      // console.log("[mangaChaptersGET] lastScrapingDate", lastScrapingDate);
-      const diffTimeInMin = Math.floor(
-        (currentScrapingDate.getTime() - lastScrapingDate.getTime()) /
-          (1000 * 60)
-      );
-      // console.log("[mangaChaptersGET] diffTimeInMin", diffTimeInMin);
-      if (diffTimeInMin < 60 * 24) {
-        return;
-      }
-    }
+    // // console.log(
+    // //   "[mangaChaptersGET] lastScrapingDateISOString",
+    // //   lastScrapingDateISOString
+    // // );
+    // // console.log(
+    // //   "[mangaChaptersGET] (lastScrapingDateISOString !== undefined)",
+    // //   lastScrapingDateISOString !== undefined
+    // // );
+    // const currentScrapingDate = new Date();
+    // if (lastScrapingDateISOString !== undefined) {
+    //   const lastScrapingDate = new Date(lastScrapingDateISOString);
+    //   // console.log("[mangaChaptersGET] lastScrapingDate", lastScrapingDate);
+    //   const diffTimeInMin = Math.floor(
+    //     (currentScrapingDate.getTime() - lastScrapingDate.getTime()) /
+    //       (1000 * 60)
+    //   );
+    //   // console.log("[mangaChaptersGET] diffTimeInMin", diffTimeInMin);
+    //   if (diffTimeInMin < 60 * 24) {
+    //     return;
+    //   }
+    // }
 
-    // ***** 2 - Scrapping of chapter available
-    const idxChapter = Object.keys(chaptersInDB);
-    const scrapedChapters = await scrapChapters(queryPath, idxChapter);
-    // console.log("[mangaChaptersGET] scrapedChapters", scrapedChapters);
-    if (scrapedChapters === FAILED) {
-      console.error(
-        "[mangaChaptersGET]",
-        queryPath,
-        ": Cannot scrap chapters."
-      );
-      return;
-    }
+    // // ***** 2 - Scrapping of chapter available
+    // const idxChapter = Object.keys(chaptersInDB);
+    // const scrapedChapters = await scrapChapters(queryPath, idxChapter);
+    // // console.log("[mangaChaptersGET] scrapedChapters", scrapedChapters);
+    // if (scrapedChapters === FAILED) {
+    //   console.error(
+    //     "[mangaChaptersGET]",
+    //     queryPath,
+    //     ": Cannot scrap chapters."
+    //   );
+    //   return;
+    // }
 
-    // Filter the thumbnail field because it may change arbitrary
-    const filterChapters = (srcChapters) => {
-      let filteredChapters = {};
-      for (const [idx, obj] of Object.entries(srcChapters)) {
-        let filteredObj = {};
-        for (const [key, val] of Object.entries(obj)) {
-          if (key !== "thumbnail") {
-            filteredObj[key] = val;
-          }
-        }
-        filteredChapters[idx] = filteredObj;
-      }
-      return filteredChapters;
-    };
+    // // Filter the thumbnail field because it may change arbitrary
+    // const filterChapters = (srcChapters) => {
+    //   let filteredChapters = {};
+    //   for (const [idx, obj] of Object.entries(srcChapters)) {
+    //     let filteredObj = {};
+    //     for (const [key, val] of Object.entries(obj)) {
+    //       if (key !== "thumbnail") {
+    //         filteredObj[key] = val;
+    //       }
+    //     }
+    //     filteredChapters[idx] = filteredObj;
+    //   }
+    //   return filteredChapters;
+    // };
 
-    const chaptersInDBWithoutThumbnail = filterChapters(chaptersInDB);
-    const scrapedChaptersWithoutThumbnail = filterChapters(scrapedChapters);
+    // const chaptersInDBWithoutThumbnail = filterChapters(chaptersInDB);
+    // const scrapedChaptersWithoutThumbnail = filterChapters(scrapedChapters);
 
-    // ***** 3 - Compare scrapped chapters with the DB. If different, update DB.
-    if (
-      !_.isEqual(chaptersInDBWithoutThumbnail, scrapedChaptersWithoutThumbnail)
-    ) {
-      console.info("[mangaChaptersGET] scraping of update", queryPath);
-      const finalScrapingDate = new Date();
-      // console.log("[mangaChaptersGET] finalScrapingDate", finalScrapingDate);
-      // console.log(
-      //   "[mangaChaptersGET] finalScrapingDate.toISOString()",
-      //   finalScrapingDate.toISOString()
-      // );
-      await docRef.set(
-        {
-          chapters: scrapedChapters,
-          lastScrapingDate: finalScrapingDate.toISOString(),
-        },
-        { merge: true }
-      );
-    }
+    // // ***** 3 - Compare scrapped chapters with the DB. If different, update DB.
+    // if (
+    //   !_.isEqual(chaptersInDBWithoutThumbnail, scrapedChaptersWithoutThumbnail)
+    // ) {
+    //   console.info("[mangaChaptersGET] scraping of update", queryPath);
+    //   const finalScrapingDate = new Date();
+    //   // console.log("[mangaChaptersGET] finalScrapingDate", finalScrapingDate);
+    //   // console.log(
+    //   //   "[mangaChaptersGET] finalScrapingDate.toISOString()",
+    //   //   finalScrapingDate.toISOString()
+    //   // );
+    //   await docRef.set(
+    //     {
+    //       chapters: scrapedChapters,
+    //       lastScrapingDate: finalScrapingDate.toISOString(),
+    //     },
+    //     { merge: true }
+    //   );
+    // }
   });
 
 exports.mangaChaptersSET = functions
@@ -670,60 +670,68 @@ exports.mangaChaptersSET = functions
     // }
   });
 
-// exports.mangaImagesSET = functions
-//   .region("europe-west1")
-//   .runWith(runtimeOpts)
-//   .https.onRequest(async (req, res) => {
-//     res.setHeader(
-//       "Access-Control-Allow-Headers",
-//       "X-Requested-With,content-type"
-//     );
-//     res.setHeader("Access-Control-Allow-Origin", "*");
-//     res.setHeader(
-//       "Access-Control-Allow-Methods",
-//       "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-//     );
-//     res.setHeader("Access-Control-Allow-Credentials", true);
+exports.mangaImagesSET = functions
+  .region("europe-west1")
+  .runWith(runtimeOpts)
+  .https.onRequest(async (req, res) => {
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "X-Requested-With,content-type"
+    );
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+    );
+    res.setHeader("Access-Control-Allow-Credentials", true);
 
-//     const queryPath = req.query.path;
-//     const queryIdxChapter = req.query.idxChapter;
-//     // console.log("[mangaImagesSET] queryPath", queryPath);
-//     // console.log("[mangaImagesSET] queryIdxChapter", queryIdxChapter);
+    const queryPath = req.query.path;
+    const queryIdxChapter = req.query.idxChapter;
+    // console.log("[mangaImagesSET] queryPath", queryPath);
+    // console.log("[mangaImagesSET] queryIdxChapter", queryIdxChapter);
 
-//     const errors = [];
-//     if (!queryPath) {
-//       errors.push("[mangaImagesSET]: queryPath undefined.");
-//     }
-//     if (!queryIdxChapter) {
-//       errors.push("[mangaImagesSET]: queryIdxChapter undefined.");
-//     }
+    const errors = [];
+    if (!queryPath) {
+      errors.push("[mangaImagesSET]: queryPath undefined.");
+    }
+    if (!queryIdxChapter) {
+      errors.push("[mangaImagesSET]: queryIdxChapter undefined.");
+    }
 
-//     if (errors.length > 0) {
-//       res.send(errors.join("</br>"));
-//       return;
-//     }
+    if (errors.length > 0) {
+      res.status(400).send(errors.join("</br>"));
+      return;
+    }
 
-//     const queryURL = await getQueryURL(queryPath);
-//     if (queryURL) {
-//       const chapterImagesURL = await getChapterImagesURL(
-//         queryPath,
-//         queryIdxChapter
-//       );
+    // const chapterImagesURL = await getChapterImagesURL(
+    //   queryPath,
+    //   queryIdxChapter
+    // );
+    const scrapedChapterImagesURL = await scrapChapterImagesURL(
+      queryPath,
+      queryIdxChapter
+    );
 
-//       // console.log("[mangaImagesSET] chapterImagesURL", chapterImagesURL);
+    console.log(
+      "[mangaImagesSET] scrapedChapterImagesURL",
+      scrapedChapterImagesURL
+    );
+    if (scrapedChapterImagesURL === FAILED) {
+      res.status(400).send("mangaImagesSET: Cannot scrap images.");
+    } else {
+      const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
+      const snapshot = await docRef.get();
+      let { chapters } = snapshot.data();
 
-//       const snapshot = await db.collection(LELSCANS_ROOT).doc(queryPath).get();
-//       let { chapters } = snapshot.data();
+      // Update image URL
+      chapters[queryIdxChapter] = {
+        content: scrapedChapterImagesURL,
+        thumbnail: "",
+      };
 
-//       // Update image URL
-//       chapters[queryIdxChapter] = chapterImagesURL;
+      docRef.set({ chapters }, { merge: true });
 
-//       const doc = await db.collection(LELSCANS_ROOT).doc(queryPath);
-//       doc.set({ chapters }, { merge: true });
-
-//       // res.status(200).send(chapters);
-//       res.status(200).send(chapters[queryIdxChapter]);
-//     } else {
-//       res.status(400).send("mangaImagesSET: URL not found.");
-//     }
-//   });
+      // res.status(200).send(chapters);
+      res.status(200).send(chapters[queryIdxChapter]);
+    }
+  });
