@@ -27,8 +27,20 @@ export default createMuiTheme({
       fontFamily: "Lato",
       fontWeight: "800",
       fontStyle: "normal",
-      fontSize: "36px",
-      lineHeight: "40px",
+      fontSize: "26px",
+      lineHeight: "28px",
+      [defaultTheme.breakpoints.down("md")]: {
+        fontSize: "22px",
+        lineHeight: "24px",
+      },
+      [defaultTheme.breakpoints.down("sm")]: {
+        fontSize: "18px",
+        lineHeight: "20px",
+      },
+      [defaultTheme.breakpoints.down("xs")]: {
+        fontSize: "14px",
+        lineHeight: "15px",
+      },
       color: dark,
     },
     h2: {
@@ -37,13 +49,64 @@ export default createMuiTheme({
       fontStyle: "normal",
       fontSize: "18px",
       lineHeight: "20px",
+      [defaultTheme.breakpoints.down("md")]: {
+        fontSize: "16px",
+        lineHeight: "18px",
+      },
+      [defaultTheme.breakpoints.down("sm")]: {
+        fontSize: "13px",
+        lineHeight: "14px",
+      },
+      [defaultTheme.breakpoints.down("xs")]: {
+        fontSize: "10px",
+        lineHeight: "11px",
+      },
       color: dark,
+    },
+    button: {
+      fontFamily: "Lato",
+      fontWeight: "normal",
+      fontStyle: "normal",
+      fontSize: "16px",
+      lineHeight: "18px",
+      [defaultTheme.breakpoints.down("md")]: {
+        fontSize: "12px",
+        lineHeight: "14px",
+      },
+      [defaultTheme.breakpoints.down("sm")]: {
+        fontSize: "8px",
+        lineHeight: "9px",
+      },
+      [defaultTheme.breakpoints.down("xs")]: {
+        fontSize: "6px",
+        lineHeight: "6px",
+      },
     },
   },
   container: {
     margin: "30px 180px",
     paddingLeft: "30px",
     paddingRight: "30px",
+    [defaultTheme.breakpoints.down("lg")]: {
+      margin: "30px 60px",
+      paddingLeft: "20px",
+      paddingRight: "20px",
+    },
+    [defaultTheme.breakpoints.down("md")]: {
+      margin: "30px 30px",
+      paddingLeft: "10px",
+      paddingRight: "10px",
+    },
+    [defaultTheme.breakpoints.down("sm")]: {
+      margin: "20px 20px",
+      paddingLeft: "2px",
+      paddingRight: "2px",
+    },
+    [defaultTheme.breakpoints.down("xs")]: {
+      margin: "5px 5px",
+      paddingLeft: "2px",
+      paddingRight: "2px",
+    },
     background: defaultTheme.palette.containerBackground,
     borderRadius: 20,
     overflow: "hidden",
@@ -53,6 +116,15 @@ export default createMuiTheme({
     marginLeft: 0,
     marginRight: 0,
     marginTop: "30px",
+    [defaultTheme.breakpoints.down("md")]: {
+      marginTop: "20px",
+    },
+    [defaultTheme.breakpoints.down("sm")]: {
+      marginTop: "15px",
+    },
+    [defaultTheme.breakpoints.down("xs")]: {
+      marginTop: "10px",
+    },
     marginBottom: "-10px",
   },
 });
