@@ -12,9 +12,17 @@ if (window.location.hostname === "localhost") {
 }
 
 export const CLOUD_FUNCTION_ROOT =
-  window.location.hostname === "localhost"
-    ? "http://localhost:5001/manga-b8fb3/europe-west1/"
-    : "https://europe-west1-manga-b8fb3.cloudfunctions.net/";
+  window.location.hostname === "localhost" ||
+  /192\.168\.{1}.*/.test(window.location.hostname) // true
+    ? // "http://localhost:5001/manga-b8fb3/europe-west1/"
+      "http://192.168.8.100:5001/manga-b8fb3/europe-west1/"
+    : // "http://" + window.location.hostname + ":5001/manga-b8fb3/europe-west1/"
+      "https://europe-west1-manga-b8fb3.cloudfunctions.net/";
+// export const CLOUD_FUNCTION_ROOT =
+// window.location.hostname === "localhost" ||
+// /192\.168\.{1}.*/.test(window.location.hostname)
+//   ? "http://localhost:5001/manga-b8fb3/europe-west1/"
+//   : "https://europe-west1-manga-b8fb3.cloudfunctions.net/";
 
 const URL_MANGA_IMAGES_SET = CLOUD_FUNCTION_ROOT + "mangaImagesSET";
 const URL_MANGAS_GET = CLOUD_FUNCTION_ROOT + "mangasGET";
@@ -86,10 +94,10 @@ export async function getImagesURL(mangaPath, idxChapter) {
         idxChapter: idxChapter,
       },
     });
-    console.log("[getImagesURL] request.data", request.data);
+    // console.log("[getImagesURL] request.data", request.data);
     imagesURL = request.data.content;
   }
-  console.log("[getImagesURL] imagesURL", imagesURL);
+  // console.log("[getImagesURL] imagesURL", imagesURL);
 
   return imagesURL;
 }

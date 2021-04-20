@@ -9,6 +9,7 @@ import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 import { getMangaChapters } from "../db.js";
 import GridCard from "./GridCard.js";
+import WaitingComponent from "./WaitingComponent.js";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -33,6 +34,7 @@ export default function SelectChapter(props) {
   const matchesXS = useMediaQuery(theme.breakpoints.down("xs"));
 
   const [chaptersJacket, setChaptersJacket] = useState({});
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
@@ -48,8 +50,10 @@ export default function SelectChapter(props) {
       }
       // console.log("");
       setChaptersJacket(chaptersJacket);
+      setLoading(false);
     }
     if (props.path) {
+      setLoading(true);
       fetchData();
     }
   }, [props.path]);
@@ -70,13 +74,11 @@ export default function SelectChapter(props) {
 
   const handleOnClick = (event, label) => {
     event.persist();
-    console.log("label", label);
     props.selectChapter(props.path, label);
   };
 
   // If the current path is undefined, get back to manga selection.
   if (!props.path) {
-    console.log("[selectChapter] path", props.path);
     history.push("/manga");
   }
 
@@ -140,6 +142,7 @@ export default function SelectChapter(props) {
           </Typography>
         </Grid>
       </Grid>
+      <WaitingComponent loading={loading} />
       <GridCard cards={cards} handleOnClick={handleOnClick} />
     </div>
   );

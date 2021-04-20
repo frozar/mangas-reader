@@ -5,6 +5,7 @@ import Typography from "@material-ui/core/Typography";
 
 import { getMangas } from "../db.js";
 import GridCard from "./GridCard.js";
+import WaitingComponent from "./WaitingComponent.js";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -20,19 +21,19 @@ export default function SelectManga(props) {
   const classes = useStyles();
 
   const [lObjManga, setLObjManga] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
-      // console.log("IN fetchData");
       const tmpLObjManga = await getMangas();
-      // console.log("tmpLObjManga", tmpLObjManga);
       const mangas = Object.values(tmpLObjManga);
       mangas.sort((obj1, obj2) => {
         return obj1.title.localeCompare(obj2.title);
       });
-      // console.log("mangas", mangas);
       setLObjManga(mangas);
+      setLoading(false);
     }
+    setLoading(true);
     fetchData();
   }, []);
 
@@ -56,6 +57,7 @@ export default function SelectManga(props) {
       <Typography variant="h1" className={classes.title}>
         Choisis ton manga
       </Typography>
+      <WaitingComponent loading={loading} />
       <GridCard cards={cards} handleOnClick={handleOnClick} />
     </div>
   );
