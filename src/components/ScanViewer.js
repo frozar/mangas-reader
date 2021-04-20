@@ -9,8 +9,10 @@ import WaitingComponent from "./WaitingComponent.js";
 export default function ScanViewer(props) {
   const { path, idxChapter, imagesURL, previousChapter, nextChapter } = props;
 
-  const [state, setState] = useState({ idxImage: 0, errorMsg: "" });
-  const { idxImage } = state;
+  // const [state, setState] = useState({ idxImage: 0, errorMsg: "" });
+  // const { idxImage } = state;
+  const [idxImage, setIdxImage] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const getPreviousImage = useCallback(async () => {
     let previousIdxImage;
@@ -22,9 +24,11 @@ export default function ScanViewer(props) {
       previousIdxImage = await previousChapter();
     }
     if (previousIdxImage !== null) {
-      setState({ ...state, idxImage: previousIdxImage });
+      // setState({ ...state, idxImage: previousIdxImage });
+      setIdxImage(previousIdxImage);
     }
-  }, [idxImage, state, setState, previousChapter]);
+    setLoading(false);
+  }, [idxImage, setIdxImage, previousChapter]);
 
   const getNextImage = useCallback(async () => {
     const idxImageMax = imagesURL.length - 1;
@@ -37,15 +41,19 @@ export default function ScanViewer(props) {
       nextIdxImage = await nextChapter();
     }
     if (nextIdxImage !== null) {
-      setState({ ...state, idxImage: nextIdxImage });
+      // setState({ ...state, idxImage: nextIdxImage });
+      setIdxImage(nextIdxImage);
     }
-  }, [imagesURL, idxImage, state, setState, nextChapter]);
+    setLoading(false);
+  }, [imagesURL, idxImage, setIdxImage, nextChapter]);
 
   const handleKeyDown = useCallback(
     (evt) => {
       if (evt.key === "ArrowLeft") {
+        setLoading(true);
         getPreviousImage();
       } else if (evt.key === "ArrowRight") {
+        setLoading(true);
         getNextImage();
       }
     },
@@ -59,12 +67,10 @@ export default function ScanViewer(props) {
     };
   }, [handleKeyDown]);
 
-  // console.log("ScanViewer: idxImage", idxImage);
-
-  console.log(
-    "path !==  && idxChapter !== null && imagesURL.length !== 0",
-    path !== "" && idxChapter !== null && imagesURL.length !== 0
-  );
+  // console.log(
+  //   "path !==  && idxChapter !== null && imagesURL.length !== 0",
+  //   path !== "" && idxChapter !== null && imagesURL.length !== 0
+  // );
   const DisplayImageRended =
     path !== "" && idxChapter !== null && imagesURL.length !== 0 ? (
       <DisplayImage
@@ -72,42 +78,13 @@ export default function ScanViewer(props) {
         imageURL={imagesURL[idxImage]}
         getPreviousImage={getPreviousImage}
         getNextImage={getNextImage}
+        loading={loading}
+        setLoading={setLoading}
       />
     ) : (
-      <WaitingComponent loading={true} color="white" />
+      <WaitingComponent loading={loading} color="white" />
     );
 
-  // if (path !== "" && idxChapter !== null && imagesURL.length !== 0) {
-  //   const imageURL = imagesURL[idxImage];
-  //   return (
-  //     <>
-  //       <Helmet>
-  //         <style>{"body { background-color: black; }"}</style>
-  //       </Helmet>
-  //       <div>
-  //         <Button
-  //           style={{
-  //             color: "black",
-  //             textDecoration: "underline",
-  //           }}
-  //           variant="contained"
-  //           color="primary"
-  //           href="/manga"
-  //         >
-  //           Select Manga
-  //         </Button>
-  //       </div>
-  //       <DisplayImage
-  //         mangaInfo={{ idxChapter, idxImage }}
-  //         imageURL={imageURL}
-  //         getPreviousImage={getPreviousImage}
-  //         getNextImage={getNextImage}
-  //       />
-  //     </>
-  //   );
-  // } else {
-  //   return null;
-  // }
   return (
     <>
       <Helmet>
@@ -126,12 +103,6 @@ export default function ScanViewer(props) {
           Select Manga
         </Button>
       </div>
-      {/* <DisplayImage
-        mangaInfo={{ idxChapter, idxImage }}
-        imageURL={imageURL}
-        getPreviousImage={getPreviousImage}
-        getNextImage={getNextImage}
-      /> */}
       {DisplayImageRended}
     </>
   );

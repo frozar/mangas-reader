@@ -35,7 +35,7 @@ export default function WaitingComponent(props) {
           marginTop: marginTop ? marginTop : undefined,
         }}
       >
-        <div>Loading</div>
+        <div>Loading...</div>
         <br />
         <CircularProgress color="inherit" />
       </div>
