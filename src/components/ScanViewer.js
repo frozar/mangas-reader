@@ -9,8 +9,6 @@ import WaitingComponent from "./WaitingComponent.js";
 export default function ScanViewer(props) {
   const { path, idxChapter, imagesURL, previousChapter, nextChapter } = props;
 
-  // const [state, setState] = useState({ idxImage: 0, errorMsg: "" });
-  // const { idxImage } = state;
   const [idxImage, setIdxImage] = useState(0);
   const [loading, setLoading] = useState(true);
 
@@ -24,10 +22,8 @@ export default function ScanViewer(props) {
       previousIdxImage = await previousChapter();
     }
     if (previousIdxImage !== null) {
-      // setState({ ...state, idxImage: previousIdxImage });
       setIdxImage(previousIdxImage);
     }
-    setLoading(false);
   }, [idxImage, setIdxImage, previousChapter]);
 
   const getNextImage = useCallback(async () => {
@@ -41,10 +37,8 @@ export default function ScanViewer(props) {
       nextIdxImage = await nextChapter();
     }
     if (nextIdxImage !== null) {
-      // setState({ ...state, idxImage: nextIdxImage });
       setIdxImage(nextIdxImage);
     }
-    setLoading(false);
   }, [imagesURL, idxImage, setIdxImage, nextChapter]);
 
   const handleKeyDown = useCallback(
