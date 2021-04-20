@@ -15,7 +15,7 @@ const useStyles = makeStyles((theme) => {
   };
 });
 
-const WaitingScreen = (props) => {
+export default function WaitingScreen(props) {
   const classes = useStyles();
 
   return (
@@ -25,6 +25,4 @@ const WaitingScreen = (props) => {
       <CircularProgress color="inherit" />
     </Backdrop>
   );
-};
-
-export default WaitingScreen;
+}

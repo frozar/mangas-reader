@@ -94,10 +94,10 @@ export async function getImagesURL(mangaPath, idxChapter) {
         idxChapter: idxChapter,
       },
     });
-    console.log("[getImagesURL] request.data", request.data);
+    // console.log("[getImagesURL] request.data", request.data);
     imagesURL = request.data.content;
   }
-  console.log("[getImagesURL] imagesURL", imagesURL);
+  // console.log("[getImagesURL] imagesURL", imagesURL);
 
   return imagesURL;
 }

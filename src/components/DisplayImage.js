@@ -1,165 +1,262 @@
 import React, { useState, useEffect, useCallback } from "react";
-// import Tooltip from "@material-ui/core/Tooltip";
+import Tooltip from "@material-ui/core/Tooltip";
 import { useSpring, animated } from "react-spring";
 import { useDrag } from "react-use-gesture";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import { withStyles } from "@material-ui/core/styles";
+import Backdrop from "@material-ui/core/Backdrop";
 
-// import WaitingScreen from "./WaitingScreen";
+import WaitingScreen from "./WaitingScreen";
+import WaitingComponent from "./WaitingComponent";
+
+function MyBackdrop(props, ref) {
+  const {
+    children,
+    // classes,
+    // className,
+    // // invisible = false,
+    // open,
+    // transitionDuration,
+    // eslint-disable-next-line react/prop-types
+    // TransitionComponent = Fade,
+    // ...other
+  } = props;
+
+  return (
+    // <TransitionComponent in={open} timeout={transitionDuration} {...other}>
+    <div
+      data-mui-test="Backdrop"
+      // className={clsx(
+      //   classes.root,
+      //   {
+      //     [classes.invisible]: invisible,
+      //   },
+      //   className,
+      // )}
+      aria-hidden
+      // ref={ref}
+      style={{
+        // Improve scrollable dialog support.
+        zIndex: 10000,
+        position: "fixed",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        right: 0,
+        bottom: 0,
+        top: 0,
+        left: 0,
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        WebkitTapHighlightColor: "transparent",
+      }}
+    >
+      <div>Loading</div>
+      <br />
+      <CircularProgress color="inherit" />
+      {children}
+    </div>
+    // </TransitionComponent>
+  );
+}
+
+const LimitedBackdrop = withStyles({
+  root: {
+    // position: "absolute",
+    position: "relative",
+    zIndex: 1,
+  },
+})(Backdrop);
 
 export default function DisplayImage(props) {
-  const [state, setState] = useState({ loading: true });
-  // console.log("state", state);
+  const { mangaInfo, imageURL } = props;
 
-  // componentDidMount() {
-  //   this.updateLoadingState("componentDidMount");
-  // }
+  const [loading, setLoading] = useState(true);
+  const [openTooltip, setOpenTooltip] = React.useState(false);
 
-  const updateLoadingState = useCallback((callerName) => {
-    // console.log("callerName", callerName);
+  const handleTooltipClose = () => {
+    setOpenTooltip(false);
+  };
+
+  const handleTooltipOpen = () => {
+    setOpenTooltip(true);
+  };
+
+  const updateLoadingState = useCallback(() => {
     const scans = Array.from(document.querySelectorAll("#scan"));
     if (scans.length === 0) {
-      // this.setState({ loading: true });
-      setState({ loading: true });
-      // console.log("0 loading: true");
-      // console.log("");
+      setLoading(true);
     } else if (scans.length === 1) {
       const scan = scans[0];
       const isLoaded = scan.complete && scan.naturalHeight !== 0;
-      //this.setState({ loading: !isLoaded });
-      setState({ loading: !isLoaded });
-      // console.log("1 loading:", !isLoaded);
-      // console.log("");
+      setLoading(!isLoaded);
     } else {
       const someScanNotLoaded = scans
         .map((scan) => scan.complete && scan.naturalHeight !== 0)
         .some((bool) => bool === false);
-      // this.setState({ loading: someScanNotLoaded });
-      setState({ loading: someScanNotLoaded });
-      // console.log(
-      //   "1 map",
-      //   scans.map((scan) => scan.complete && scan.naturalHeight !== 0)
-      // );
-      // console.log(
-      //   "2 map",
-      //   scans
-      //     .map((scan) => scan.complete && scan.naturalHeight !== 0)
-      //     .some((bool) => bool === false)
-      // );
-      // console.log("2 loading:", someScanNotLoaded);
-      // console.log("");
+      setLoading(someScanNotLoaded);
       if (someScanNotLoaded) {
-        setTimeout(() => updateLoadingState("self"), 0);
+        setTimeout(() => updateLoadingState(), 0);
       }
     }
   }, []);
 
   useEffect(() => {
-    updateLoadingState("componentDidMount");
+    updateLoadingState();
   }, [updateLoadingState]);
 
-  // const imageLoaded = () => {
-  //   updateLoadingState("imageLoaded");
-  // };
+  const imageLoaded = () => {
+    updateLoadingState();
+  };
 
-  // const tooltipTitle = ({ idxChapter, idxImage }) => {
-  //   return `Chapter: ${idxChapter} - Scan: ${idxImage + 1}`;
-  // };
-
-  // const { mangaInfo, imageURL } = props;
-  const { imageURL } = props;
-  // const animatedTooltip = animated(Tooltip);
-
-  // const [idx, setIdx] = useState(0);
+  const tooltipTitle = ({ idxChapter, idxImage }) => {
+    return `Chapter: ${idxChapter} - Scan: ${idxImage + 1}`;
+  };
 
   const [{ x }, set] = useSpring(() => ({ x: 0 }));
   const bind = useDrag(
-    ({ movement: [x], swipe: [swipeX], down }) => {
-      // console.log("swipeX", swipeX);
-      set.start({ x: down ? x : 0 });
-      if (swipeX === 1) {
-        props.getPreviousImage();
-      } else if (swipeX === -1) {
-        props.getNextImage();
+    ({ movement: [mx], swipe: [swipeX], down, tap }) => {
+      if (tap) {
+        if (!openTooltip) {
+          handleTooltipOpen();
+        } else {
+          handleTooltipClose();
+        }
+      }
+
+      if (down) {
+        set.start({ x: mx });
+      } else {
+        if (swipeX === 1) {
+          props.getPreviousImage();
+          setLoading(true);
+        } else if (swipeX === -1) {
+          props.getNextImage();
+          setLoading(true);
+        } else {
+          set.start({ x: 0 });
+        }
       }
     },
-    { axis: "x" }
+    { axis: "x", filterTaps: true }
   );
+
+  useEffect(() => {
+    set.start({ x: 0 });
+  }, [imageURL, set]);
 
   return (
-    <div
-      style={{
-        marginTop: "1em",
-        marginBottom: "1em",
-      }}
-    >
-      <animated.img
-        id="scan"
+    <>
+      <div
         style={{
-          x,
-          touchAction: "pan-y",
-          marginLeft: "auto",
-          marginRight: "auto",
-          display: "block",
-          border: "4px solid white",
-          maxWidth: "98vw",
+          marginTop: "1em",
+          marginBottom: "1em",
+          position: "relative",
         }}
-        alt="manga"
-        src={imageURL}
-        onDragStart={(e) => {
-          e.preventDefault();
-        }}
-        {...bind()}
-      />
-    </div>
+      >
+        {/* <WaitingScreen open={loading} /> */}
+        {/* <Tooltip
+          PopperProps={{
+            disablePortal: true,
+          }}
+          onClose={handleTooltipClose}
+          open={openTooltip}
+          disableFocusListener
+          disableHoverListener
+          disableTouchListener
+          title={tooltipTitle(mangaInfo)}
+        > */}
+        {/* <LimitedBackdrop open={true}> */}
+        <div>
+          {/* <div
+             style={{
+               position: "relative",
+               // display: loading ? "flex" : "block",
+               display: "flex",
+               flexDirection: "column",
+               alignItems: "center",
+               justifyContent: "center",
+               right: 0,
+               bottom: 0,
+               top: 0,
+               left: 0,
+               backgroundColor: loading
+                 ? "rgba(0, 0, 0, 0.5)"
+                 : "rgba(0, 0, 0, 0)",
+               WebkitTapHighlightColor: "transparent",
+               color: "white",
+             }}
+          > */}
+          {loading && (
+            <div
+              style={{
+                position: "absolute",
+                // display: loading ? "flex" : "block",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                right: 0,
+                bottom: 0,
+                top: 0,
+                left: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                WebkitTapHighlightColor: "transparent",
+                color: "white",
+              }}
+            >
+              {/* <div style={{ fontSize: "18px" }}>Loading</div>
+              <br />
+              <CircularProgress color="inherit" /> */}
+              <WaitingComponent
+                loading={loading}
+                color={"white"}
+                marginTop={"0px"}
+              />
+            </div>
+          )}
+          {/* </div> */}
+          <animated.img
+            id="scan"
+            style={{
+              x,
+              touchAction: "pan-y",
+              marginLeft: "auto",
+              marginRight: "auto",
+              display: "block",
+              border: "4px solid white",
+              maxWidth: "98vw",
+            }}
+            alt="manga"
+            src={imageURL}
+            onDragStart={(e) => {
+              e.preventDefault();
+            }}
+            {...bind()}
+            onLoad={imageLoaded}
+          />
+        </div>
+        {/* </LimitedBackdrop> */}
+        {/* <animated.img
+          id="scan"
+          style={{
+            x,
+            touchAction: "pan-y",
+            marginLeft: "auto",
+            marginRight: "auto",
+            display: "block",
+            border: "4px solid white",
+            maxWidth: "98vw",
+          }}
+          alt="manga"
+          src={imageURL}
+          onDragStart={(e) => {
+            e.preventDefault();
+          }}
+          {...bind()}
+          onLoad={imageLoaded}
+        /> */}
+        {/* </Tooltip> */}
+      </div>
+    </>
   );
 }
-
-/* <Tooltip title={tooltipTitle(mangaInfo)}>
-</Tooltip> */
-
-/* <WaitingScreen open={state.loading} /> */
-/* <TransitionGroup>
-        <CSSTransition
-          key={imageURL}
-          timeout={600}
-          classNames="slide"
-          onEnter={(node) => {
-            updateLoadingState("onEnter");
-            if (node) {
-              const bodyRect = document.body.getBoundingClientRect();
-              const elemRect = node.getBoundingClientRect();
-              const offsetTop = elemRect.top - bodyRect.top;
-              // Weirdly have to put the scrolling animation in a setTimeout to get
-              // it work simultanously with the image transition animation
-              setTimeout(() => {
-                window.scrollTo({ top: offsetTop, behavior: "smooth" });
-              }, 0);
-            }
-          }}
-          onExit={() => updateLoadingState("onExit")}
-          onExited={() => updateLoadingState("onExited")}
-          onEntered={() => updateLoadingState("onEntered")}
-        >
-          <Tooltip title={tooltipTitle(mangaInfo)}>
-            <animated.img
-              id="scan"
-              {...bind()}
-              // style={{ x, y }}
-              style={{
-                x,
-                y,
-                // position: "absolute",
-                // left: "0",
-                // right: "0",
-                margin: "1em auto",
-                boxShadow:
-                  "0px 3px 5px -1px rgba(0,0,0,0.2), 0px 5px 8px 0px rgba(0,0,0,0.14), 0px 1px 14px 0px rgba(0,0,0,0.12)",
-                // maxWidth: "-webkit-fill-available",
-                border: "4px solid white",
-              }}
-              alt="manga"
-              src={imageURL}
-              onLoad={imageLoaded}
-            />
-          </Tooltip>
-        </CSSTransition>
-      </TransitionGroup> */
