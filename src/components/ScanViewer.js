@@ -93,15 +93,19 @@ export default function ScanViewer(props) {
   };
 
   let backArrowHeight = "18px";
+  let buttonWidth = "230px";
   if (matchesMD) {
     if (matchesSM) {
       if (matchesXS) {
         backArrowHeight = "10px";
+        buttonWidth = "100px";
       } else {
         backArrowHeight = "12px";
+        buttonWidth = "125px";
       }
     } else {
       backArrowHeight = "15px";
+      buttonWidth = "180px";
     }
   }
 
@@ -121,52 +125,64 @@ export default function ScanViewer(props) {
             marginLeft: "auto",
             marginRight: "auto",
             width: "98vw",
-            maxWidth: "800px",
+            maxWidth: "906px",
           }}
         >
           <Grid item style={{ width: "30%" }}>
-            <Button
-              style={{
-                color: "black",
-                width: "100px",
-                padding: "3px 4px",
-              }}
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                history.push("/manga");
-              }}
-              startIcon={
-                <img
-                  src="/img/arrowBack.svg"
-                  height={backArrowHeight}
-                  alt="back arrow"
-                />
-              }
+            <Grid
+              container
+              direction="column"
+              justify="space-between"
+              alignItems="flex-start"
+              spacing={1}
             >
-              <Typography variant="button">Changer de manga</Typography>
-            </Button>
-            <Button
-              style={{
-                color: "black",
-                width: "100px",
-                padding: "3px 4px",
-              }}
-              variant="contained"
-              color="primary"
-              onClick={() => {
-                history.push("/chapter");
-              }}
-              startIcon={
-                <img
-                  src="/img/arrowBack.svg"
-                  height={backArrowHeight}
-                  alt="back arrow"
-                />
-              }
-            >
-              <Typography variant="button">Changer de chapitre</Typography>
-            </Button>
+              <Grid item>
+                <Button
+                  style={{
+                    color: "black",
+                    width: buttonWidth,
+                    padding: "3px 4px",
+                  }}
+                  variant="contained"
+                  color="primary"
+                  onClick={() => {
+                    history.push("/manga");
+                  }}
+                  startIcon={
+                    <img
+                      src="/img/arrowBack.svg"
+                      height={backArrowHeight}
+                      alt="back arrow"
+                    />
+                  }
+                >
+                  <Typography variant="button">Changer de manga</Typography>
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button
+                  style={{
+                    color: "black",
+                    width: buttonWidth,
+                    padding: "3px 4px",
+                  }}
+                  variant="contained"
+                  color="primary"
+                  onClick={() => {
+                    history.push("/chapter");
+                  }}
+                  startIcon={
+                    <img
+                      src="/img/arrowBack.svg"
+                      height={backArrowHeight}
+                      alt="back arrow"
+                    />
+                  }
+                >
+                  <Typography variant="button">Changer de chapitre</Typography>
+                </Button>
+              </Grid>
+            </Grid>
           </Grid>
           <Grid
             item
