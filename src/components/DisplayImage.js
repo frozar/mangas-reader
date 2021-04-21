@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
-import Tooltip from "@material-ui/core/Tooltip";
-import { useSpring, animated } from "react-spring";
-import { useDrag } from "react-use-gesture";
+import { useSpring, animated, to } from "react-spring";
+import { useGesture } from "react-use-gesture";
 
 import WaitingComponent from "./WaitingComponent";
 
@@ -17,8 +16,9 @@ const isMobile = (function (a) {
 })(navigator.userAgent || navigator.vendor || window.opera);
 
 export default function DisplayImage(props) {
-  const { mangaInfo, imageURL, loading, setLoading } = props;
+  const { imageURL, loading, setLoading } = props;
   const [openTooltip, setOpenTooltip] = useState(false);
+  const domTarget = React.useRef(null);
 
   const handleTooltipClose = () => {
     setOpenTooltip(false);
@@ -69,36 +69,113 @@ export default function DisplayImage(props) {
     updateLoadingState();
   };
 
-  const tooltipTitle = ({ idxChapter, idxImage }) => {
-    return `Chapter: ${idxChapter} - Scan: ${idxImage + 1}`;
-  };
+  const [{ x, y, zoom, scale }, set] = useSpring(() => ({
+    x: 0,
+    y: 0,
+    zoom: 0,
+    scale: 1,
+    config: { mass: 5, tension: 1350, friction: 120 },
+  }));
+  // const bind = useDrag(
+  //   ({ movement: [mx], swipe: [swipeX], down, tap }) => {
+  //     if (tap) {
+  //       if (!openTooltip) {
+  //         handleTooltipOpen();
+  //       } else {
+  //         handleTooltipClose();
+  //       }
+  //     }
 
-  const [{ x }, set] = useSpring(() => ({ x: 0 }));
-  const bind = useDrag(
-    ({ movement: [mx], swipe: [swipeX], down, tap }) => {
-      if (tap) {
-        if (!openTooltip) {
-          handleTooltipOpen();
-        } else {
-          handleTooltipClose();
-        }
-      }
+  //     if (down) {
+  //       set.start({ x: mx });
+  //     } else {
+  //       if (swipeX === 1) {
+  //         props.getPreviousImage();
+  //         setLoading(true);
+  //       } else if (swipeX === -1) {
+  //         props.getNextImage();
+  //         setLoading(true);
+  //       } else {
+  //         set.start({ x: 0 });
+  //       }
+  //     }
+  //   },
+  //   { axis: "x", filterTaps: true }
+  // );
 
-      if (down) {
-        set.start({ x: mx });
-      } else {
-        if (swipeX === 1) {
-          props.getPreviousImage();
-          setLoading(true);
-        } else if (swipeX === -1) {
-          props.getNextImage();
-          setLoading(true);
-        } else {
-          set.start({ x: 0 });
+  useGesture(
+    {
+      // onDragStart: () => setDrag(true),
+      // onDrag: ({ offset: [x, y] }) => set({ x, y, rotateX: 0, rotateY: 0, scale: 1 }),
+      // onDragEnd: () => setDrag(false),
+      // onPinch: ({ offset: [d, a] }) => set({ zoom: d / 200, rotateZ: a }),
+      // onMove: ({ xy: [px, py], dragging }) => !dragging && set({ rotateX: calcX(py, y.get()), rotateY: calcY(px, x.get()), scale: 1.1 }),
+      // onHover: ({ hovering }) => !hovering && set({ rotateX: 0, rotateY: 0, scale: 1 }),
+      // onWheel: ({ offset: [, y] }) => setWheel({ wheelY: y })
+      onDrag: ({
+        offset: [mx, my],
+        // movement: [mx, my],
+        swipe: [swipeX],
+        down,
+        tap,
+        touches,
+        // dragging,
+        // pinching,
+      }) => {
+        // console.log("In onDrag");
+        // console.log("pinching", pinching);
+        // console.log("dragging", dragging);
+        if (touches === 1) {
+          // console.log("onDrag touches", touches);
+          if (tap) {
+            if (!openTooltip) {
+              handleTooltipOpen();
+            } else {
+              handleTooltipClose();
+            }
+          }
+
+          if (down) {
+            set.start({ x: mx, y: my });
+          } else {
+            console.log("swipeX", swipeX);
+            if (swipeX === 1) {
+              props.getPreviousImage();
+              setLoading(true);
+            } else if (swipeX === -1) {
+              props.getNextImage();
+              setLoading(true);
+            }
+            // else {
+            //   set.start({ x: 0 });
+            // }
+          }
         }
-      }
+      },
+      onPinch: ({ offset: [dist] }) => {
+        // console.log("In onPinch");
+        // console.log("onPinch dist", dist);
+        console.log("onPinch zoom", zoom);
+        set({ zoom: dist / 200 });
+      },
     },
-    { axis: "x", filterTaps: true }
+    {
+      // General option
+      domTarget,
+      eventOptions: { passive: false },
+      // Drag option
+      drag: {
+        // axis: "x",
+        // bounds: { left: -100, right: 100, top: -50, bottom: 50 },
+        swipeDistance: 20,
+        swipeVelocity: 0.01,
+        swipeDuration: 1000,
+        // filterTaps: true,
+      },
+      // rubberband: true,
+      // bounds: { left: -1, right: 1, top: -5, bottom: 5 },
+      // distanceBounds: { min: -100, max: 100 },
+    }
   );
 
   useEffect(() => {
@@ -113,7 +190,7 @@ export default function DisplayImage(props) {
         position: "relative",
       }}
     >
-      <Tooltip
+      {/* <Tooltip
         PopperProps={{
           disablePortal: true,
         }}
@@ -123,53 +200,65 @@ export default function DisplayImage(props) {
         disableHoverListener
         disableTouchListener
         title={tooltipTitle(mangaInfo)}
-      >
-        <div>
-          {loading && (
-            <div
-              style={{
-                position: "absolute",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                right: 0,
-                bottom: 0,
-                top: 0,
-                left: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                WebkitTapHighlightColor: "transparent",
-                color: "white",
-              }}
-            >
-              <WaitingComponent
-                loading={loading}
-                color={"white"}
-                marginTop={"0px"}
-              />
-            </div>
-          )}
-          <animated.img
-            id="scan"
+      > */}
+      <div>
+        {loading && (
+          <div
             style={{
-              x,
-              touchAction: "pan-y",
-              marginLeft: "auto",
-              marginRight: "auto",
-              display: "block",
-              border: "4px solid white",
-              maxWidth: "98vw",
+              position: "absolute",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              right: 0,
+              bottom: 0,
+              top: 0,
+              left: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              WebkitTapHighlightColor: "transparent",
+              color: "white",
             }}
-            alt="manga"
-            src={imageURL}
-            onDragStart={(e) => {
-              e.preventDefault();
-            }}
-            {...bind()}
-            onLoad={imageLoaded}
-          />
-        </div>
-      </Tooltip>
+          >
+            <WaitingComponent
+              loading={loading}
+              color={"white"}
+              marginTop={"0px"}
+            />
+          </div>
+        )}
+        <animated.img
+          ref={domTarget}
+          id="scan"
+          style={{
+            x,
+            y,
+            // touchAction: "pan-y",
+            touchAction: "none",
+            marginLeft: "auto",
+            marginRight: "auto",
+            display: "block",
+            border: "4px solid white",
+            maxWidth: "98vw",
+            // transform: "perspective(600px)",
+            scale: to([scale, zoom], (s, z) => s + z),
+          }}
+          // style={{
+          //   x,
+          //   y,
+          //   rotateX,
+          //   rotateY,
+          //   rotateZ,
+          // }}
+          alt="manga"
+          src={imageURL}
+          onDragStart={(e) => {
+            e.preventDefault();
+          }}
+          // {...bind()}
+          onLoad={imageLoaded}
+        />
+      </div>
+      {/* </Tooltip> */}
     </div>
   );
 }
