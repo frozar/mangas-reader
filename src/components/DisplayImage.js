@@ -1,7 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
-import Tooltip from "@material-ui/core/Tooltip";
-import { useSpring, animated } from "react-spring";
-import { useDrag } from "react-use-gesture";
+import React, { useEffect, useCallback } from "react";
+import { useSpring, animated, to } from "react-spring";
+import { useGesture } from "react-use-gesture";
+
+import IconButton from "@material-ui/core/IconButton";
+import Grid from "@material-ui/core/Grid";
+import ArrowBackIosIcon from "@material-ui/icons/ArrowBackIos";
+import ArrowForwardIosIcon from "@material-ui/icons/ArrowForwardIos";
 
 import WaitingComponent from "./WaitingComponent";
 
@@ -17,16 +21,8 @@ const isMobile = (function (a) {
 })(navigator.userAgent || navigator.vendor || window.opera);
 
 export default function DisplayImage(props) {
-  const { mangaInfo, imageURL, loading, setLoading } = props;
-  const [openTooltip, setOpenTooltip] = useState(false);
-
-  const handleTooltipClose = () => {
-    setOpenTooltip(false);
-  };
-
-  const handleTooltipOpen = () => {
-    setOpenTooltip(true);
-  };
+  const { imageURL, loading, setLoading } = props;
+  const domTarget = React.useRef(null);
 
   const updateLoadingState = useCallback(() => {
     const scans = Array.from(document.querySelectorAll("#scan"));
@@ -69,107 +65,187 @@ export default function DisplayImage(props) {
     updateLoadingState();
   };
 
-  const tooltipTitle = ({ idxChapter, idxImage }) => {
-    return `Chapter: ${idxChapter} - Scan: ${idxImage + 1}`;
-  };
+  const [{ x, y, zoom, scale }, set] = useSpring(() => ({
+    x: 0,
+    y: 0,
+    zoom: 0,
+    scale: 1,
+    config: { mass: 5, tension: 1350, friction: 150 },
+  }));
 
-  const [{ x }, set] = useSpring(() => ({ x: 0 }));
-  const bind = useDrag(
-    ({ movement: [mx], swipe: [swipeX], down, tap }) => {
-      if (tap) {
-        if (!openTooltip) {
-          handleTooltipOpen();
-        } else {
-          handleTooltipClose();
+  useGesture(
+    {
+      onDrag: ({ movement: [mx, my], down }) => {
+        if (down) {
+          set.start({ x: mx, y: my });
         }
-      }
-
-      if (down) {
-        set.start({ x: mx });
-      } else {
-        if (swipeX === 1) {
-          props.getPreviousImage();
-          setLoading(true);
-        } else if (swipeX === -1) {
-          props.getNextImage();
-          setLoading(true);
-        } else {
-          set.start({ x: 0 });
-        }
-      }
+      },
+      onPinch: ({ offset: [dist] }) => {
+        set({ zoom: dist / 200 });
+      },
     },
-    { axis: "x", filterTaps: true }
+    {
+      // General option
+      domTarget,
+      eventOptions: { passive: false },
+      // Drag option
+      drag: {
+        initial: () => [x.get(), y.get()],
+        // initial: () => [0, 0],
+        // axis: "x",
+        // bounds: { left: -300, right: 300, top: -150, bottom: 150 },
+        // rubberband: true,
+        // swipeDistance: 20,
+        // swipeVelocity: 0.01,
+        // swipeDuration: 1000,
+        // filterTaps: true,
+      },
+    }
   );
 
+  // console.log("resUseGesture 2", resUseGesture);
+
   useEffect(() => {
-    set.start({ x: 0 });
+    set.start({ x: 0, y: 0, zoom: 0, scale: 1 });
   }, [imageURL, set]);
 
   return (
     <div
       style={{
         marginTop: "1em",
-        marginBottom: "5em",
+        marginBottom: "10em",
         position: "relative",
       }}
     >
-      <Tooltip
-        PopperProps={{
-          disablePortal: true,
+      <div
+        style={{
+          overflow: "hidden",
+          // height: "85vh"
+          height: "fit-content",
         }}
-        onClose={handleTooltipClose}
-        open={openTooltip}
-        disableFocusListener
-        disableHoverListener
-        disableTouchListener
-        title={tooltipTitle(mangaInfo)}
       >
-        <div>
-          {loading && (
-            <div
+        {loading && (
+          <div
+            style={{
+              position: "absolute",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              right: 0,
+              bottom: 0,
+              top: 0,
+              left: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              WebkitTapHighlightColor: "transparent",
+              color: "white",
+            }}
+          >
+            <WaitingComponent
+              loading={loading}
+              color={"white"}
+              marginTop={"0px"}
+            />
+          </div>
+        )}
+        <animated.img
+          ref={domTarget}
+          id="scan"
+          style={{
+            x,
+            y,
+            // touchAction: "pan-y",
+            touchAction: "none",
+            marginLeft: "auto",
+            marginRight: "auto",
+            display: "block",
+            border: "4px solid white",
+            maxWidth: "98vw",
+            // transform: "perspective(600px)",
+            scale: to([scale, zoom], (s, z) => s + z),
+            objectFit: "contain",
+          }}
+          // style={{
+          //   x,
+          //   y,
+          //   rotateX,
+          //   rotateY,
+          //   rotateZ,
+          // }}
+          alt="manga"
+          src={imageURL}
+          onDragStart={(e) => {
+            e.preventDefault();
+          }}
+          onContextMenu={(e) => {
+            e.preventDefault();
+          }}
+          // {...bind()}
+          onLoad={imageLoaded}
+        />
+        <Grid
+          container
+          direction="row"
+          alignItems="flex-end"
+          justify="space-around"
+          style={{
+            position: "fixed",
+            // top: 0,
+            right: 0,
+            bottom: 30,
+            left: 0,
+            WebkitTapHighlightColor: "transparent",
+            color: "black",
+            pointerEvents: "none",
+          }}
+        >
+          <Grid item>
+            <IconButton
+              color="primary"
+              aria-label="previous scan"
+              component="span"
               style={{
-                position: "absolute",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                right: 0,
-                bottom: 0,
-                top: 0,
-                left: 0,
+                // backgroundColor: "rgba(255, 255, 255, 0.5)",
                 backgroundColor: "rgba(0, 0, 0, 0.5)",
-                WebkitTapHighlightColor: "transparent",
-                color: "white",
+                borderRadius: "100px",
+                borderColor: "rgb(255, 255, 255)",
+                borderWidth: "1px",
+                borderStyle: "groove",
+                pointerEvents: "all",
+              }}
+              onClick={(_) => {
+                setLoading(true);
+                // console.log("loading", true);
+                props.getPreviousImage();
               }}
             >
-              <WaitingComponent
-                loading={loading}
-                color={"white"}
-                marginTop={"0px"}
-              />
-            </div>
-          )}
-          <animated.img
-            id="scan"
-            style={{
-              x,
-              touchAction: "pan-y",
-              marginLeft: "auto",
-              marginRight: "auto",
-              display: "block",
-              border: "4px solid white",
-              maxWidth: "98vw",
-            }}
-            alt="manga"
-            src={imageURL}
-            onDragStart={(e) => {
-              e.preventDefault();
-            }}
-            {...bind()}
-            onLoad={imageLoaded}
-          />
-        </div>
-      </Tooltip>
+              <ArrowBackIosIcon viewBox="0 0 14 24" />
+            </IconButton>
+          </Grid>
+          <Grid item>
+            <IconButton
+              color="primary"
+              aria-label="next scan"
+              component="span"
+              style={{
+                // backgroundColor: "rgba(255, 255, 255, 0.5)",
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                borderRadius: "100px",
+                borderColor: "rgb(255, 255, 255)",
+                borderWidth: "1px",
+                borderStyle: "groove",
+                pointerEvents: "all",
+              }}
+              onClick={(_) => {
+                setLoading(true);
+                props.getNextImage();
+              }}
+            >
+              <ArrowForwardIosIcon viewBox="4 0 14 24" />
+            </IconButton>
+          </Grid>
+        </Grid>
+      </div>
     </div>
   );
 }
