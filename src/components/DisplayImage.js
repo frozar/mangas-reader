@@ -1,6 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useSpring, animated, to } from "react-spring";
-import { useGesture } from "react-use-gesture";
+import { useGesture, useDrag } from "react-use-gesture";
+
+import IconButton from "@material-ui/core/IconButton";
+import Grid from "@material-ui/core/Grid";
+import ArrowBackIosIcon from "@material-ui/icons/ArrowBackIos";
+import ArrowForwardIosIcon from "@material-ui/icons/ArrowForwardIos";
 
 import WaitingComponent from "./WaitingComponent";
 
@@ -17,16 +22,16 @@ const isMobile = (function (a) {
 
 export default function DisplayImage(props) {
   const { imageURL, loading, setLoading } = props;
-  const [openTooltip, setOpenTooltip] = useState(false);
+  // const [openTooltip, setOpenTooltip] = useState(false);
   const domTarget = React.useRef(null);
 
-  const handleTooltipClose = () => {
-    setOpenTooltip(false);
-  };
+  // const handleTooltipClose = () => {
+  //   setOpenTooltip(false);
+  // };
 
-  const handleTooltipOpen = () => {
-    setOpenTooltip(true);
-  };
+  // const handleTooltipOpen = () => {
+  //   setOpenTooltip(true);
+  // };
 
   const updateLoadingState = useCallback(() => {
     const scans = Array.from(document.querySelectorAll("#scan"));
@@ -74,7 +79,7 @@ export default function DisplayImage(props) {
     y: 0,
     zoom: 0,
     scale: 1,
-    config: { mass: 5, tension: 1350, friction: 120 },
+    config: { mass: 5, tension: 1350, friction: 150 },
   }));
   // const bind = useDrag(
   //   ({ movement: [mx], swipe: [swipeX], down, tap }) => {
@@ -103,6 +108,17 @@ export default function DisplayImage(props) {
   //   { axis: "x", filterTaps: true }
   // );
 
+  const [displayControl, setDisplayControl] = useState(false);
+
+  const bind = useDrag(({ tap }) => {
+    // console.log("useDrag tap", tap);
+    if (tap) {
+      setDisplayControl(!displayControl);
+    }
+  });
+
+  // console.log("displayControl", displayControl);
+
   useGesture(
     {
       // onDragStart: () => setDrag(true),
@@ -117,7 +133,7 @@ export default function DisplayImage(props) {
         // movement: [mx, my],
         swipe: [swipeX],
         down,
-        tap,
+        // tap,
         touches,
         // dragging,
         // pinching,
@@ -125,37 +141,36 @@ export default function DisplayImage(props) {
         // console.log("In onDrag");
         // console.log("pinching", pinching);
         // console.log("dragging", dragging);
-        if (touches === 1) {
-          // console.log("onDrag touches", touches);
-          if (tap) {
-            if (!openTooltip) {
-              handleTooltipOpen();
-            } else {
-              handleTooltipClose();
-            }
+        // if (touches === 1) {
+        // console.log("onDrag touches", touches);
+        // if (tap) {
+        //   if (!openTooltip) {
+        //     handleTooltipOpen();
+        //   } else {
+        //     handleTooltipClose();
+        //   }
+        // }
+        if (down) {
+          set.start({ x: mx, y: my });
+        } else {
+          console.log("swipeX", swipeX);
+          if (swipeX === 1) {
+            props.getPreviousImage();
+            setLoading(true);
+          } else if (swipeX === -1) {
+            props.getNextImage();
+            setLoading(true);
           }
-
-          if (down) {
-            set.start({ x: mx, y: my });
-          } else {
-            console.log("swipeX", swipeX);
-            if (swipeX === 1) {
-              props.getPreviousImage();
-              setLoading(true);
-            } else if (swipeX === -1) {
-              props.getNextImage();
-              setLoading(true);
-            }
-            // else {
-            //   set.start({ x: 0 });
-            // }
-          }
+          // else {
+          //   set.start({ x: 0 });
+          // }
         }
+        // }
       },
       onPinch: ({ offset: [dist] }) => {
         // console.log("In onPinch");
         // console.log("onPinch dist", dist);
-        console.log("onPinch zoom", zoom);
+        // console.log("onPinch zoom", zoom);
         set({ zoom: dist / 200 });
       },
     },
@@ -166,10 +181,11 @@ export default function DisplayImage(props) {
       // Drag option
       drag: {
         // axis: "x",
-        // bounds: { left: -100, right: 100, top: -50, bottom: 50 },
-        swipeDistance: 20,
-        swipeVelocity: 0.01,
-        swipeDuration: 1000,
+        // bounds: { left: -300, right: 300, top: -150, bottom: 150 },
+        // rubberband: true,
+        // swipeDistance: 20,
+        // swipeVelocity: 0.01,
+        // swipeDuration: 1000,
         // filterTaps: true,
       },
       // rubberband: true,
@@ -186,22 +202,11 @@ export default function DisplayImage(props) {
     <div
       style={{
         marginTop: "1em",
-        marginBottom: "5em",
+        marginBottom: "1em",
         position: "relative",
       }}
     >
-      {/* <Tooltip
-        PopperProps={{
-          disablePortal: true,
-        }}
-        onClose={handleTooltipClose}
-        open={openTooltip}
-        disableFocusListener
-        disableHoverListener
-        disableTouchListener
-        title={tooltipTitle(mangaInfo)}
-      > */}
-      <div>
+      <div style={{ overflow: "hidden", height: "80vh" }} {...bind()}>
         {loading && (
           <div
             style={{
@@ -241,6 +246,7 @@ export default function DisplayImage(props) {
             maxWidth: "98vw",
             // transform: "perspective(600px)",
             scale: to([scale, zoom], (s, z) => s + z),
+            objectFit: "contain",
           }}
           // style={{
           //   x,
@@ -257,8 +263,68 @@ export default function DisplayImage(props) {
           // {...bind()}
           onLoad={imageLoaded}
         />
+        <Grid
+          container
+          direction="row"
+          alignItems="flex-end"
+          justify="space-around"
+          style={{
+            position: "absolute",
+            right: 0,
+            bottom: 0,
+            top: 0,
+            left: 0,
+            // backgroundColor: "rgba(255, 255, 255, 0.2)",
+            // backgroundColor: "rgba(0, 0, 0, 0.8)",
+            WebkitTapHighlightColor: "transparent",
+            color: "black",
+            pointerEvents: "none",
+          }}
+        >
+          <Grid item>
+            <IconButton
+              color="primary"
+              aria-label="previous scan"
+              component="span"
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.5)",
+                borderRadius: "100px",
+                borderColor: "rgb(255, 255, 255)",
+                borderWidth: "1px",
+                borderStyle: "groove",
+                pointerEvents: "all",
+              }}
+              onClick={(evt) => {
+                props.getPreviousImage();
+                setLoading(true);
+              }}
+            >
+              <ArrowBackIosIcon viewBox="0 0 14 24" />
+            </IconButton>
+          </Grid>
+          <Grid item>
+            <IconButton
+              color="primary"
+              aria-label="next scan"
+              component="span"
+              style={{
+                backgroundColor: "rgba(255, 255, 255, 0.5)",
+                borderRadius: "100px",
+                borderColor: "rgb(255, 255, 255)",
+                borderWidth: "1px",
+                borderStyle: "groove",
+                pointerEvents: "all",
+              }}
+              onClick={(evt) => {
+                props.getNextImage();
+                setLoading(true);
+              }}
+            >
+              <ArrowForwardIosIcon viewBox="4 0 14 24" />
+            </IconButton>
+          </Grid>
+        </Grid>
       </div>
-      {/* </Tooltip> */}
     </div>
   );
 }
