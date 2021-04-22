@@ -146,6 +146,7 @@ export default function ScanViewer(props) {
                   variant="contained"
                   color="primary"
                   onClick={() => {
+                    setLoading(true);
                     history.push("/manga");
                   }}
                   startIcon={
@@ -169,6 +170,7 @@ export default function ScanViewer(props) {
                   variant="contained"
                   color="primary"
                   onClick={() => {
+                    setLoading(true);
                     history.push("/chapter");
                   }}
                   startIcon={
@@ -208,7 +210,9 @@ export default function ScanViewer(props) {
               variant="body1"
               style={{ color: "white", textAlign: "end" }}
             >
-              {`${idxImage + 1} / ${imagesURL.length}`}
+              {`${idxImage + 1} / ${
+                imagesURL.length === 0 ? "N.A." : imagesURL.length
+              }`}
             </Typography>
           </Grid>
         </Grid>

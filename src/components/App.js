@@ -33,7 +33,7 @@ class App extends React.Component {
   };
 
   selectChapter = async (path, idxChapter) => {
-    this.setState({ path, idxChapter });
+    this.setState({ path, idxChapter, imagesURL: [] });
     history.push("/reader");
     const imagesURL = await getImagesURL(path, idxChapter);
     // console.log("[selectChapter] imagesURL", imagesURL);
