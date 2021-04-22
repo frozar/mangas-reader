@@ -117,135 +117,142 @@ export default function DisplayImage(props) {
         position: "relative",
       }}
     >
-      <div
+      <Grid
+        container
+        justify="center"
+        alignItems="center"
         style={{
           overflow: "hidden",
-          // height: "85vh"
           height: "fit-content",
+          minHeight: "80vh",
         }}
       >
-        {loading && (
-          <div
+        <Grid item>
+          {loading && (
+            <div
+              style={{
+                position: "absolute",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                right: 0,
+                bottom: 0,
+                top: 0,
+                left: 0,
+                backgroundColor: "rgba(0, 0, 0, 0.5)",
+                WebkitTapHighlightColor: "transparent",
+                color: "white",
+              }}
+            >
+              <WaitingComponent
+                loading={loading}
+                color={"white"}
+                marginTop={"0px"}
+              />
+            </div>
+          )}
+          <animated.img
+            ref={domTarget}
+            id="scan"
             style={{
-              position: "absolute",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
+              x,
+              y,
+              // touchAction: "pan-y",
+              touchAction: "none",
+              marginLeft: "auto",
+              marginRight: "auto",
+              display: "block",
+              border: "4px solid white",
+              maxWidth: "98vw",
+              // transform: "perspective(600px)",
+              scale: to([scale, zoom], (s, z) => s + z),
+              objectFit: "contain",
+            }}
+            // style={{
+            //   x,
+            //   y,
+            //   rotateX,
+            //   rotateY,
+            //   rotateZ,
+            // }}
+            alt="manga"
+            src={imageURL}
+            onDragStart={(e) => {
+              e.preventDefault();
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+            }}
+            // {...bind()}
+            onLoad={imageLoaded}
+          />
+        </Grid>
+        <Grid item>
+          <Grid
+            container
+            direction="row"
+            alignItems="flex-end"
+            justify="space-around"
+            style={{
+              position: "fixed",
+              // top: 0,
               right: 0,
-              bottom: 0,
-              top: 0,
+              bottom: 30,
               left: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
               WebkitTapHighlightColor: "transparent",
-              color: "white",
+              color: "black",
+              pointerEvents: "none",
             }}
           >
-            <WaitingComponent
-              loading={loading}
-              color={"white"}
-              marginTop={"0px"}
-            />
-          </div>
-        )}
-        <animated.img
-          ref={domTarget}
-          id="scan"
-          style={{
-            x,
-            y,
-            // touchAction: "pan-y",
-            touchAction: "none",
-            marginLeft: "auto",
-            marginRight: "auto",
-            display: "block",
-            border: "4px solid white",
-            maxWidth: "98vw",
-            // transform: "perspective(600px)",
-            scale: to([scale, zoom], (s, z) => s + z),
-            objectFit: "contain",
-          }}
-          // style={{
-          //   x,
-          //   y,
-          //   rotateX,
-          //   rotateY,
-          //   rotateZ,
-          // }}
-          alt="manga"
-          src={imageURL}
-          onDragStart={(e) => {
-            e.preventDefault();
-          }}
-          onContextMenu={(e) => {
-            e.preventDefault();
-          }}
-          // {...bind()}
-          onLoad={imageLoaded}
-        />
-        <Grid
-          container
-          direction="row"
-          alignItems="flex-end"
-          justify="space-around"
-          style={{
-            position: "fixed",
-            // top: 0,
-            right: 0,
-            bottom: 30,
-            left: 0,
-            WebkitTapHighlightColor: "transparent",
-            color: "black",
-            pointerEvents: "none",
-          }}
-        >
-          <Grid item>
-            <IconButton
-              color="primary"
-              aria-label="previous scan"
-              component="span"
-              style={{
-                // backgroundColor: "rgba(255, 255, 255, 0.5)",
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                borderRadius: "100px",
-                borderColor: "rgb(255, 255, 255)",
-                borderWidth: "1px",
-                borderStyle: "groove",
-                pointerEvents: "all",
-              }}
-              onClick={(_) => {
-                setLoading(true);
-                // console.log("loading", true);
-                props.getPreviousImage();
-              }}
-            >
-              <ArrowBackIosIcon viewBox="0 0 14 24" />
-            </IconButton>
-          </Grid>
-          <Grid item>
-            <IconButton
-              color="primary"
-              aria-label="next scan"
-              component="span"
-              style={{
-                // backgroundColor: "rgba(255, 255, 255, 0.5)",
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                borderRadius: "100px",
-                borderColor: "rgb(255, 255, 255)",
-                borderWidth: "1px",
-                borderStyle: "groove",
-                pointerEvents: "all",
-              }}
-              onClick={(_) => {
-                setLoading(true);
-                props.getNextImage();
-              }}
-            >
-              <ArrowForwardIosIcon viewBox="4 0 14 24" />
-            </IconButton>
+            <Grid item>
+              <IconButton
+                color="primary"
+                aria-label="previous scan"
+                component="span"
+                style={{
+                  // backgroundColor: "rgba(255, 255, 255, 0.5)",
+                  backgroundColor: "rgba(0, 0, 0, 0.5)",
+                  borderRadius: "100px",
+                  borderColor: "rgb(255, 255, 255)",
+                  borderWidth: "1px",
+                  borderStyle: "groove",
+                  pointerEvents: "all",
+                }}
+                onClick={(_) => {
+                  setLoading(true);
+                  // console.log("loading", true);
+                  props.getPreviousImage();
+                }}
+              >
+                <ArrowBackIosIcon viewBox="0 0 14 24" />
+              </IconButton>
+            </Grid>
+            <Grid item>
+              <IconButton
+                color="primary"
+                aria-label="next scan"
+                component="span"
+                style={{
+                  // backgroundColor: "rgba(255, 255, 255, 0.5)",
+                  backgroundColor: "rgba(0, 0, 0, 0.5)",
+                  borderRadius: "100px",
+                  borderColor: "rgb(255, 255, 255)",
+                  borderWidth: "1px",
+                  borderStyle: "groove",
+                  pointerEvents: "all",
+                }}
+                onClick={(_) => {
+                  setLoading(true);
+                  props.getNextImage();
+                }}
+              >
+                <ArrowForwardIosIcon viewBox="4 0 14 24" />
+              </IconButton>
+            </Grid>
           </Grid>
         </Grid>
-      </div>
+      </Grid>
     </div>
   );
 }

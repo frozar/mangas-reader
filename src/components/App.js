@@ -29,13 +29,11 @@ class App extends React.Component {
   selectManga = (title) => {
     const path = dashify(title);
     this.setState({ path, title });
-    console.log("[selectManga] path", path);
     history.push("/chapter");
   };
 
   selectChapter = async (path, idxChapter) => {
-    this.setState({ path, idxChapter });
-    console.log("[selectChapter] state", this.state);
+    this.setState({ path, idxChapter, imagesURL: [] });
     history.push("/reader");
     const imagesURL = await getImagesURL(path, idxChapter);
     // console.log("[selectChapter] imagesURL", imagesURL);
@@ -86,7 +84,7 @@ class App extends React.Component {
 
   render() {
     const { path, title, idxChapter, imagesURL } = this.state;
-    console.log("App: state:", { path, title, idxChapter, imagesURL });
+    // console.log("App: state:", { path, title, idxChapter, imagesURL });
     return (
       <Router history={history}>
         <ThemeProvider theme={theme}>
