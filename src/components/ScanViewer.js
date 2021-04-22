@@ -89,7 +89,7 @@ export default function ScanViewer(props) {
     );
 
   const undashify = (string) => {
-    return string.replace("-", " ");
+    return string.replaceAll("-", " ");
   };
 
   let backArrowHeight = "18px";
@@ -192,13 +192,16 @@ export default function ScanViewer(props) {
               textTransform: "capitalize",
             }}
           >
-            <Typography variant="h1" style={{ color: "white" }}>
+            <Typography
+              variant="h1"
+              style={{ color: "rgba(255, 255, 255, 0.7)" }}
+            >
               {undashify(path)}
             </Typography>
             <Typography
               variant="h2"
               style={{ color: "white" }}
-            >{`Chapitre ${idxChapter}`}</Typography>
+            >{`Chap. ${idxChapter}`}</Typography>
           </Grid>
           <Grid item style={{ width: "30%" }}>
             <Typography

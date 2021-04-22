@@ -1,6 +1,5 @@
 import { createMuiTheme } from "@material-ui/core/styles";
 
-// const lightBlue = "#ABDAFF";
 const dark = "#25313C";
 const lightGrey = "#BBC8D4";
 
@@ -126,5 +125,19 @@ export default createMuiTheme({
       marginTop: "10px",
     },
     marginBottom: "-10px",
+  },
+  overrides: {
+    MuiCssBaseline: {
+      "@global": {
+        body: {
+          fontSize: "unset",
+          // fontFamily: "unset",
+          fontWeight: "unset",
+          lineHeight: "unset",
+          letterSpacing: "unset",
+          // WebkitFontSmoothing: 'auto',
+        },
+      },
+    },
   },
 });

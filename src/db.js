@@ -4,20 +4,20 @@ import "firebase/firestore";
 import axios from "axios";
 
 const db = firebase.firestore();
-// console.log("process.env.FIREBASE_CONFIG", process.env.FIREBASE_CONFIG);
 
-console.log("window.location.hostname", window.location.hostname);
-if (window.location.hostname === "localhost") {
+const isLocalDev =
+  window.location.hostname === "localhost" ||
+  /192\.168\.{1}.*/.test(window.location.hostname);
+
+if (isLocalDev) {
   db.useEmulator("localhost", 8080);
 }
 
-export const CLOUD_FUNCTION_ROOT =
-  window.location.hostname === "localhost" ||
-  /192\.168\.{1}.*/.test(window.location.hostname) // true
-    ? // "http://localhost:5001/manga-b8fb3/europe-west1/"
-      "http://192.168.8.100:5001/manga-b8fb3/europe-west1/"
-    : // "http://" + window.location.hostname + ":5001/manga-b8fb3/europe-west1/"
-      "https://europe-west1-manga-b8fb3.cloudfunctions.net/";
+export const CLOUD_FUNCTION_ROOT = isLocalDev
+  ? // "http://localhost:5001/manga-b8fb3/europe-west1/"
+    "http://192.168.8.100:5001/manga-b8fb3/europe-west1/"
+  : // "http://" + window.location.hostname + ":5001/manga-b8fb3/europe-west1/"
+    "https://europe-west1-manga-b8fb3.cloudfunctions.net/";
 // export const CLOUD_FUNCTION_ROOT =
 // window.location.hostname === "localhost" ||
 // /192\.168\.{1}.*/.test(window.location.hostname)
@@ -50,28 +50,28 @@ export async function getMangaChapters(mangaPath) {
   return chapters;
 }
 
-export async function getChapters(mangaPath) {
-  const snapshot = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
+// export async function getChapters(mangaPath) {
+//   const snapshot = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
 
-  const data = snapshot.data();
-  const { chapters } = data;
-  console.log("[getChapters] chapters", chapters);
+//   const data = snapshot.data();
+//   const { chapters } = data;
+//   // console.log("[getChapters] chapters", chapters);
 
-  return chapters;
-}
+//   return chapters;
+// }
 
 export async function getIdxChapters(mangaPath) {
   const snapshot = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
 
   const data = snapshot.data();
-  const getChapters = await snapshot.get("chapters");
-  console.log("[getIdxChapters] snapshot", snapshot);
-  console.log("[getIdxChapters] mangaPath", mangaPath);
-  console.log("[getIdxChapters] getChapters", getChapters);
-  console.log("[getIdxChapters] data", data);
-  const { chapters, title } = data;
-  console.log("[getIdxChapters] chapters", chapters);
-  console.log("[getIdxChapters] title", title);
+  // const getChapters = await snapshot.get("chapters");
+  // console.log("[getIdxChapters] snapshot", snapshot);
+  // console.log("[getIdxChapters] mangaPath", mangaPath);
+  // console.log("[getIdxChapters] getChapters", getChapters);
+  // console.log("[getIdxChapters] data", data);
+  const { chapters } = data;
+  // console.log("[getIdxChapters] chapters", chapters);
+  // console.log("[getIdxChapters] title", title);
 
   let idxChapters = Object.keys(chapters);
   // snapshot.forEach((doc) => {
@@ -79,7 +79,6 @@ export async function getIdxChapters(mangaPath) {
   // });
 
   return idxChapters.sort((a, b) => Number(a) - Number(b));
-  // return [];
 }
 
 export async function getImagesURL(mangaPath, idxChapter) {

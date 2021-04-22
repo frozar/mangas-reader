@@ -39,7 +39,6 @@ export default function SelectChapter(props) {
   useEffect(() => {
     async function fetchData() {
       const chapters = await getMangaChapters(props.path);
-      console.log("[useEffect] chapters", chapters);
 
       const chaptersJacket = {};
       for (const [idx, details] of Object.entries(chapters)) {
