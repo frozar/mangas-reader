@@ -44,6 +44,7 @@ export default function ControlBar(props) {
       container
       direction="row"
       justify="space-around"
+      alignItems="center"
       style={{
         position: "fixed",
         right: 0,

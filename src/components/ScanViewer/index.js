@@ -6,6 +6,7 @@ import WaitingComponent from "../WaitingComponent.js";
 import DisplayImage from "./DisplayImage";
 import TopBar from "./TopBar";
 import ControlBar from "./ControlBar";
+import ImageCaption from "./ImageCaption";
 
 export default function ScanViewer(props) {
   const { path, idxChapter, imagesURL, previousChapter, nextChapter } = props;
@@ -81,13 +82,7 @@ export default function ScanViewer(props) {
       <Helmet>
         <style>{"body { background-color: black; }"}</style>
       </Helmet>
-      <TopBar
-        path={path}
-        idxChapter={idxChapter}
-        imagesURL={imagesURL}
-        idxImage={idxImage}
-        setLoading={setLoading}
-      />
+      <TopBar path={path} idxChapter={idxChapter} setLoading={setLoading} />
       {path !== "" && idxChapter !== null && imagesURL.length !== 0 ? (
         <>
           <DisplayImage
@@ -99,6 +94,7 @@ export default function ScanViewer(props) {
             set={set}
             springDict={{ x, y, zoom, scale }}
           />
+          <ImageCaption idxImage={idxImage} imagesURL={imagesURL} />
           <ControlBar
             setLoading={setLoading}
             getPreviousImage={getPreviousImage}

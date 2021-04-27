@@ -6,7 +6,7 @@ import Typography from "@material-ui/core/Typography";
 import NavigationButton from "../NavigationButton";
 
 export default function TopBar(props) {
-  const { path, idxChapter, imagesURL, idxImage, setLoading } = props;
+  const { path, idxChapter, setLoading } = props;
 
   const undashify = (string) => {
     return string.replaceAll("-", " ");
@@ -76,16 +76,16 @@ export default function TopBar(props) {
           </Grid>
         </Grid>
       </Grid>
-      <Grid item style={{ width: "30%" }}>
-        <Typography
+      <Grid item style={{ width: "30%" }} />
+      {/* <Typography
           variant="body1"
           style={{ color: "white", textAlign: "end" }}
         >
           {`${idxImage + 1} / ${
-            imagesURL.length === 0 ? "N.A." : imagesURL.length
+            imagesURL.length === 0 ? "??" : imagesURL.length
           }`}
         </Typography>
-      </Grid>
+      </Grid> */}
     </Grid>
   );
 }
