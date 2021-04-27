@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useSpring, animated, to } from "react-spring";
 import { useGesture } from "react-use-gesture";
 
@@ -39,14 +39,19 @@ function ControlButton(props) {
       }}
       onClick={onClick}
     >
-      {/* <ArrowForwardIosIcon viewBox="4 0 14 24" /> */}
       {props.children}
     </IconButton>
   );
 }
 
 function ControlBar(props) {
-  const { setLoading, getPreviousImage, getNextImage, resetPanAndZoom } = props;
+  const {
+    setLoading,
+    getPreviousImage,
+    getNextImage,
+    resetPanAndZoom,
+    displayResetButton,
+  } = props;
 
   return (
     <Grid
@@ -73,7 +78,10 @@ function ControlBar(props) {
           <ArrowBackIosIcon viewBox="0 0 14 24" />
         </ControlButton>
       </Grid>
-      <Grid item>
+      <Grid
+        item
+        style={{ visibility: displayResetButton ? "inherit" : "hidden" }}
+      >
         <ControlButton
           onClick={(_) => {
             resetPanAndZoom();
@@ -155,8 +163,11 @@ export default function DisplayImage(props) {
     config: { mass: 5, tension: 1350, friction: 150 },
   }));
 
+  const [displayResetButton, setDisplayResetButton] = useState(false);
+
   const resetPanAndZoom = useCallback(() => {
     set.start({ x: 0, y: 0, zoom: 0, scale: 1 });
+    setDisplayResetButton(false);
   }, [set]);
 
   useGesture(
@@ -164,10 +175,12 @@ export default function DisplayImage(props) {
       onDrag: ({ movement: [mx, my], down }) => {
         if (down) {
           set.start({ x: mx, y: my });
+          setDisplayResetButton(true);
         }
       },
       onPinch: ({ offset: [dist] }) => {
         set({ zoom: dist / 200 });
+        setDisplayResetButton(true);
       },
     },
     {
@@ -241,14 +254,12 @@ export default function DisplayImage(props) {
             style={{
               x,
               y,
-              // touchAction: "pan-y",
               touchAction: "none",
               marginLeft: "auto",
               marginRight: "auto",
               display: "block",
               border: "4px solid white",
               maxWidth: "98vw",
-              // transform: "perspective(600px)",
               scale: to([scale, zoom], (s, z) => s + z),
               objectFit: "contain",
             }}
@@ -278,6 +289,7 @@ export default function DisplayImage(props) {
         getPreviousImage={getPreviousImage}
         getNextImage={getNextImage}
         resetPanAndZoom={resetPanAndZoom}
+        displayResetButton={displayResetButton}
       />
     </>
   );
