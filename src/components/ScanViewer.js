@@ -11,16 +11,63 @@ import DisplayImage from "./DisplayImage";
 import WaitingComponent from "./WaitingComponent.js";
 import history from "../history";
 
-export default function ScanViewer(props) {
+function NavigationButton(props) {
   const theme = useTheme();
-  const { path, idxChapter, imagesURL, previousChapter, nextChapter } = props;
-
-  const [idxImage, setIdxImage] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const { setLoading, label } = props;
 
   const matchesMD = useMediaQuery(theme.breakpoints.down("md"));
   const matchesSM = useMediaQuery(theme.breakpoints.down("sm"));
   const matchesXS = useMediaQuery(theme.breakpoints.down("xs"));
+
+  let backArrowHeight = "18px";
+  let buttonWidth = "240px";
+
+  if (matchesMD) {
+    if (matchesSM) {
+      if (matchesXS) {
+        backArrowHeight = "10px";
+        buttonWidth = "110px";
+      } else {
+        backArrowHeight = "11px";
+        buttonWidth = "135px";
+      }
+    } else {
+      backArrowHeight = "15px";
+      buttonWidth = "190px";
+    }
+  }
+
+  return (
+    <Button
+      style={{
+        color: "black",
+        width: buttonWidth,
+        padding: "3px 4px",
+      }}
+      variant="contained"
+      color="primary"
+      onClick={() => {
+        setLoading(true);
+        history.push("/manga");
+      }}
+      startIcon={
+        <img
+          src="/img/arrowBack.svg"
+          height={backArrowHeight}
+          alt="back arrow"
+        />
+      }
+    >
+      <Typography variant="button">{label}</Typography>
+    </Button>
+  );
+}
+
+export default function ScanViewer(props) {
+  const { path, idxChapter, imagesURL, previousChapter, nextChapter } = props;
+
+  const [idxImage, setIdxImage] = useState(0);
+  const [loading, setLoading] = useState(true);
 
   const getPreviousImage = useCallback(async () => {
     let previousIdxImage;
@@ -71,10 +118,6 @@ export default function ScanViewer(props) {
     };
   }, [handleKeyDown]);
 
-  // console.log(
-  //   "path !==  && idxChapter !== null && imagesURL.length !== 0",
-  //   path !== "" && idxChapter !== null && imagesURL.length !== 0
-  // );
   const DisplayImageRended =
     path !== "" && idxChapter !== null && imagesURL.length !== 0 ? (
       <DisplayImage
@@ -91,23 +134,6 @@ export default function ScanViewer(props) {
   const undashify = (string) => {
     return string.replaceAll("-", " ");
   };
-
-  let backArrowHeight = "18px";
-  let buttonWidth = "230px";
-  if (matchesMD) {
-    if (matchesSM) {
-      if (matchesXS) {
-        backArrowHeight = "10px";
-        buttonWidth = "100px";
-      } else {
-        backArrowHeight = "12px";
-        buttonWidth = "125px";
-      }
-    } else {
-      backArrowHeight = "15px";
-      buttonWidth = "180px";
-    }
-  }
 
   return (
     <>
@@ -137,52 +163,16 @@ export default function ScanViewer(props) {
               spacing={1}
             >
               <Grid item>
-                <Button
-                  style={{
-                    color: "black",
-                    width: buttonWidth,
-                    padding: "3px 4px",
-                  }}
-                  variant="contained"
-                  color="primary"
-                  onClick={() => {
-                    setLoading(true);
-                    history.push("/manga");
-                  }}
-                  startIcon={
-                    <img
-                      src="/img/arrowBack.svg"
-                      height={backArrowHeight}
-                      alt="back arrow"
-                    />
-                  }
-                >
-                  <Typography variant="button">Changer de manga</Typography>
-                </Button>
+                <NavigationButton
+                  setLoading={setLoading}
+                  label="Retour aux mangas"
+                />
               </Grid>
               <Grid item>
-                <Button
-                  style={{
-                    color: "black",
-                    width: buttonWidth,
-                    padding: "3px 4px",
-                  }}
-                  variant="contained"
-                  color="primary"
-                  onClick={() => {
-                    setLoading(true);
-                    history.push("/chapter");
-                  }}
-                  startIcon={
-                    <img
-                      src="/img/arrowBack.svg"
-                      height={backArrowHeight}
-                      alt="back arrow"
-                    />
-                  }
-                >
-                  <Typography variant="button">Changer de chapitre</Typography>
-                </Button>
+                <NavigationButton
+                  setLoading={setLoading}
+                  label="Retour aux chapitres"
+                />
               </Grid>
             </Grid>
           </Grid>

@@ -23,8 +23,6 @@ const useStyles = makeStyles((theme) => {
 export default function WaitingComponent(props) {
   const classes = useStyles();
   const { loading, color, marginTop } = props;
-  // console.log("WaitingComponent props", props);
-  // console.log("WaitingComponent color", color);
 
   if (loading) {
     return (
