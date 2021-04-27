@@ -2,12 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSpring, animated, to } from "react-spring";
 import { useGesture } from "react-use-gesture";
 
-// import IconButton from "@material-ui/core/IconButton";
 import Grid from "@material-ui/core/Grid";
-
-// import KeyboardArrowLeftRoundedIcon from "@material-ui/icons/KeyboardArrowLeftRounded";
-// import KeyboardArrowRightRoundedIcon from "@material-ui/icons/KeyboardArrowRightRounded";
-// import RotateLeftRoundedIcon from "@material-ui/icons/RotateLeftRounded";
 
 import WaitingComponent from "../WaitingComponent";
 import ControlBar from "./ControlBar";
@@ -180,13 +175,6 @@ export default function DisplayImage(props) {
               scale: to([scale, zoom], (s, z) => s + z),
               objectFit: "contain",
             }}
-            // style={{
-            //   x,
-            //   y,
-            //   rotateX,
-            //   rotateY,
-            //   rotateZ,
-            // }}
             alt="manga"
             src={imageURL}
             onDragStart={(e) => {
@@ -195,7 +183,6 @@ export default function DisplayImage(props) {
             onContextMenu={(e) => {
               e.preventDefault();
             }}
-            // {...bind()}
             onLoad={imageLoaded}
           />
         </Grid>
