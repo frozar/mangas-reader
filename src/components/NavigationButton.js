@@ -34,6 +34,8 @@ export default function NavigationButton(props) {
     <Button
       style={{
         color,
+        paddingLeft: "10px",
+        paddingRight: "10px",
       }}
       variant="contained"
       color="primary"

@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { useSpring, animated, to } from "react-spring";
+import React, { useEffect, useCallback } from "react";
+import { animated, to } from "react-spring";
 import { useGesture } from "react-use-gesture";
 
 import Grid from "@material-ui/core/Grid";
 
 import WaitingComponent from "../WaitingComponent";
-import ControlBar from "./ControlBar";
 
 const isMobile = (function (a) {
   const res =
@@ -19,13 +18,7 @@ const isMobile = (function (a) {
 })(navigator.userAgent || navigator.vendor || window.opera);
 
 export default function DisplayImage(props) {
-  const {
-    imageURL,
-    loading,
-    setLoading,
-    getPreviousImage,
-    getNextImage,
-  } = props;
+  const { imageURL, loading, setLoading } = props;
   const domTarget = React.useRef(null);
 
   const updateLoadingState = useCallback(() => {
@@ -69,20 +62,8 @@ export default function DisplayImage(props) {
     updateLoadingState();
   };
 
-  const [{ x, y, zoom, scale }, set] = useSpring(() => ({
-    x: 0,
-    y: 0,
-    zoom: 0,
-    scale: 1,
-    config: { mass: 5, tension: 1350, friction: 150 },
-  }));
-
-  const [displayResetButton, setDisplayResetButton] = useState(false);
-
-  const resetPanAndZoom = useCallback(() => {
-    set.start({ x: 0, y: 0, zoom: 0, scale: 1 });
-    setDisplayResetButton(false);
-  }, [set]);
+  const { set, setDisplayResetButton, resetPanAndZoom } = props;
+  const { x, y, zoom, scale } = props.springDict;
 
   useGesture(
     {
@@ -121,80 +102,70 @@ export default function DisplayImage(props) {
   }, [imageURL, resetPanAndZoom]);
 
   return (
-    <>
-      <Grid
-        container
-        justify="center"
-        alignItems="center"
-        style={{
-          marginTop: "1em",
-          marginBottom: "10em",
-          position: "relative",
-          overflow: "hidden",
-          height: "fit-content",
-          minHeight: "80vh",
-        }}
-      >
-        <Grid item>
-          {loading && (
-            <div
-              style={{
-                position: "absolute",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                right: 0,
-                bottom: 0,
-                top: 0,
-                left: 0,
-                backgroundColor: "rgba(0, 0, 0, 0.5)",
-                WebkitTapHighlightColor: "transparent",
-                color: "white",
-              }}
-            >
-              <WaitingComponent
-                loading={loading}
-                color={"white"}
-                marginTop={"0px"}
-              />
-            </div>
-          )}
-          <animated.img
-            ref={domTarget}
-            id="scan"
+    <Grid
+      container
+      justify="center"
+      alignItems="center"
+      style={{
+        marginTop: "1em",
+        marginBottom: "10em",
+        position: "relative",
+        overflow: "hidden",
+        height: "fit-content",
+        minHeight: "80vh",
+      }}
+    >
+      <Grid item>
+        {loading && (
+          <div
             style={{
-              x,
-              y,
-              touchAction: "none",
-              marginLeft: "auto",
-              marginRight: "auto",
-              display: "block",
-              border: "4px solid white",
-              maxWidth: "98vw",
-              scale: to([scale, zoom], (s, z) => s + z),
-              objectFit: "contain",
+              position: "absolute",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              right: 0,
+              bottom: 0,
+              top: 0,
+              left: 0,
+              backgroundColor: "rgba(0, 0, 0, 0.5)",
+              WebkitTapHighlightColor: "transparent",
+              color: "white",
             }}
-            alt="manga"
-            src={imageURL}
-            onDragStart={(e) => {
-              e.preventDefault();
-            }}
-            onContextMenu={(e) => {
-              e.preventDefault();
-            }}
-            onLoad={imageLoaded}
-          />
-        </Grid>
+          >
+            <WaitingComponent
+              loading={loading}
+              color={"white"}
+              marginTop={"0px"}
+            />
+          </div>
+        )}
+        <animated.img
+          ref={domTarget}
+          id="scan"
+          style={{
+            x,
+            y,
+            touchAction: "none",
+            marginLeft: "auto",
+            marginRight: "auto",
+            display: "block",
+            border: "4px solid white",
+            maxWidth: "98vw",
+            scale: to([scale, zoom], (s, z) => s + z),
+            objectFit: "contain",
+          }}
+          alt="manga"
+          src={imageURL}
+          onDragStart={(e) => {
+            e.preventDefault();
+          }}
+          onContextMenu={(e) => {
+            e.preventDefault();
+          }}
+          onLoad={imageLoaded}
+        />
       </Grid>
-
-      <ControlBar
-        setLoading={setLoading}
-        getPreviousImage={getPreviousImage}
-        getNextImage={getNextImage}
-        resetPanAndZoom={resetPanAndZoom}
-        displayResetButton={displayResetButton}
-      />
-    </>
+    </Grid>
   );
 }

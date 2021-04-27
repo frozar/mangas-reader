@@ -1,15 +1,31 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useSpring } from "react-spring";
 import { Helmet } from "react-helmet";
 
 import WaitingComponent from "../WaitingComponent.js";
 import DisplayImage from "./DisplayImage";
 import TopBar from "./TopBar";
+import ControlBar from "./ControlBar";
 
 export default function ScanViewer(props) {
   const { path, idxChapter, imagesURL, previousChapter, nextChapter } = props;
 
   const [idxImage, setIdxImage] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [displayResetButton, setDisplayResetButton] = useState(false);
+
+  const [{ x, y, zoom, scale }, set] = useSpring(() => ({
+    x: 0,
+    y: 0,
+    zoom: 0,
+    scale: 1,
+    config: { mass: 5, tension: 1350, friction: 150 },
+  }));
+
+  const resetPanAndZoom = useCallback(() => {
+    set.start({ x: 0, y: 0, zoom: 0, scale: 1 });
+    setDisplayResetButton(false);
+  }, [set]);
 
   const getPreviousImage = useCallback(async () => {
     let previousIdxImage;
@@ -73,13 +89,24 @@ export default function ScanViewer(props) {
         setLoading={setLoading}
       />
       {path !== "" && idxChapter !== null && imagesURL.length !== 0 ? (
-        <DisplayImage
-          imageURL={imagesURL[idxImage]}
-          getPreviousImage={getPreviousImage}
-          getNextImage={getNextImage}
-          loading={loading}
-          setLoading={setLoading}
-        />
+        <>
+          <DisplayImage
+            imageURL={imagesURL[idxImage]}
+            loading={loading}
+            setLoading={setLoading}
+            setDisplayResetButton={setDisplayResetButton}
+            resetPanAndZoom={resetPanAndZoom}
+            set={set}
+            springDict={{ x, y, zoom, scale }}
+          />
+          <ControlBar
+            setLoading={setLoading}
+            getPreviousImage={getPreviousImage}
+            getNextImage={getNextImage}
+            resetPanAndZoom={resetPanAndZoom}
+            displayResetButton={displayResetButton}
+          />
+        </>
       ) : (
         <WaitingComponent loading={loading} color="white" />
       )}
