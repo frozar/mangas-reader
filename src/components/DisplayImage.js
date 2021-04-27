@@ -6,6 +6,7 @@ import IconButton from "@material-ui/core/IconButton";
 import Grid from "@material-ui/core/Grid";
 import ArrowBackIosIcon from "@material-ui/icons/ArrowBackIos";
 import ArrowForwardIosIcon from "@material-ui/icons/ArrowForwardIos";
+import RotateLeftIcon from "@material-ui/icons/RotateLeft";
 
 import WaitingComponent from "./WaitingComponent";
 
@@ -20,8 +21,89 @@ const isMobile = (function (a) {
   return res;
 })(navigator.userAgent || navigator.vendor || window.opera);
 
+function ControlButton(props) {
+  const { onClick } = props;
+
+  return (
+    <IconButton
+      color="primary"
+      aria-label="next scan"
+      component="span"
+      style={{
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        borderRadius: "100px",
+        borderColor: "rgb(255, 255, 255)",
+        borderWidth: "1px",
+        borderStyle: "groove",
+        pointerEvents: "all",
+      }}
+      onClick={onClick}
+    >
+      {/* <ArrowForwardIosIcon viewBox="4 0 14 24" /> */}
+      {props.children}
+    </IconButton>
+  );
+}
+
+function ControlBar(props) {
+  const { setLoading, getPreviousImage, getNextImage, resetPanAndZoom } = props;
+
+  return (
+    <Grid
+      container
+      direction="row"
+      justify="space-around"
+      style={{
+        position: "fixed",
+        right: 0,
+        bottom: 30,
+        left: 0,
+        WebkitTapHighlightColor: "transparent",
+        color: "black",
+        pointerEvents: "none",
+      }}
+    >
+      <Grid item>
+        <ControlButton
+          onClick={(_) => {
+            setLoading(true);
+            getPreviousImage();
+          }}
+        >
+          <ArrowBackIosIcon viewBox="0 0 14 24" />
+        </ControlButton>
+      </Grid>
+      <Grid item>
+        <ControlButton
+          onClick={(_) => {
+            resetPanAndZoom();
+          }}
+        >
+          <RotateLeftIcon />
+        </ControlButton>
+      </Grid>
+      <Grid item>
+        <ControlButton
+          onClick={(_) => {
+            setLoading(true);
+            getNextImage();
+          }}
+        >
+          <ArrowForwardIosIcon viewBox="4 0 14 24" />
+        </ControlButton>
+      </Grid>
+    </Grid>
+  );
+}
+
 export default function DisplayImage(props) {
-  const { imageURL, loading, setLoading } = props;
+  const {
+    imageURL,
+    loading,
+    setLoading,
+    getPreviousImage,
+    getNextImage,
+  } = props;
   const domTarget = React.useRef(null);
 
   const updateLoadingState = useCallback(() => {
@@ -73,6 +155,10 @@ export default function DisplayImage(props) {
     config: { mass: 5, tension: 1350, friction: 150 },
   }));
 
+  const resetPanAndZoom = useCallback(() => {
+    set.start({ x: 0, y: 0, zoom: 0, scale: 1 });
+  }, [set]);
+
   useGesture(
     {
       onDrag: ({ movement: [mx, my], down }) => {
@@ -106,22 +192,19 @@ export default function DisplayImage(props) {
   // console.log("resUseGesture 2", resUseGesture);
 
   useEffect(() => {
-    set.start({ x: 0, y: 0, zoom: 0, scale: 1 });
-  }, [imageURL, set]);
+    resetPanAndZoom();
+  }, [imageURL, resetPanAndZoom]);
 
   return (
-    <div
-      style={{
-        marginTop: "1em",
-        marginBottom: "10em",
-        position: "relative",
-      }}
-    >
+    <>
       <Grid
         container
         justify="center"
         alignItems="center"
         style={{
+          marginTop: "1em",
+          marginBottom: "10em",
+          position: "relative",
           overflow: "hidden",
           height: "fit-content",
           minHeight: "80vh",
@@ -188,71 +271,14 @@ export default function DisplayImage(props) {
             onLoad={imageLoaded}
           />
         </Grid>
-        <Grid item>
-          <Grid
-            container
-            direction="row"
-            alignItems="flex-end"
-            justify="space-around"
-            style={{
-              position: "fixed",
-              // top: 0,
-              right: 0,
-              bottom: 30,
-              left: 0,
-              WebkitTapHighlightColor: "transparent",
-              color: "black",
-              pointerEvents: "none",
-            }}
-          >
-            <Grid item>
-              <IconButton
-                color="primary"
-                aria-label="previous scan"
-                component="span"
-                style={{
-                  // backgroundColor: "rgba(255, 255, 255, 0.5)",
-                  backgroundColor: "rgba(0, 0, 0, 0.5)",
-                  borderRadius: "100px",
-                  borderColor: "rgb(255, 255, 255)",
-                  borderWidth: "1px",
-                  borderStyle: "groove",
-                  pointerEvents: "all",
-                }}
-                onClick={(_) => {
-                  setLoading(true);
-                  // console.log("loading", true);
-                  props.getPreviousImage();
-                }}
-              >
-                <ArrowBackIosIcon viewBox="0 0 14 24" />
-              </IconButton>
-            </Grid>
-            <Grid item>
-              <IconButton
-                color="primary"
-                aria-label="next scan"
-                component="span"
-                style={{
-                  // backgroundColor: "rgba(255, 255, 255, 0.5)",
-                  backgroundColor: "rgba(0, 0, 0, 0.5)",
-                  borderRadius: "100px",
-                  borderColor: "rgb(255, 255, 255)",
-                  borderWidth: "1px",
-                  borderStyle: "groove",
-                  pointerEvents: "all",
-                }}
-                onClick={(_) => {
-                  setLoading(true);
-                  props.getNextImage();
-                }}
-              >
-                <ArrowForwardIosIcon viewBox="4 0 14 24" />
-              </IconButton>
-            </Grid>
-          </Grid>
-        </Grid>
       </Grid>
-    </div>
+
+      <ControlBar
+        setLoading={setLoading}
+        getPreviousImage={getPreviousImage}
+        getNextImage={getNextImage}
+        resetPanAndZoom={resetPanAndZoom}
+      />
+    </>
   );
 }
