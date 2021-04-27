@@ -54,10 +54,11 @@ export default function TopBar(props) {
       >
         <Grid
           container
-          directory="column"
+          direction="column"
           justify="center"
           style={{
             textTransform: "capitalize",
+            textAlign: "center",
           }}
         >
           <Grid item>
