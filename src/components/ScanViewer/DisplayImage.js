@@ -2,13 +2,15 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useSpring, animated, to } from "react-spring";
 import { useGesture } from "react-use-gesture";
 
-import IconButton from "@material-ui/core/IconButton";
+// import IconButton from "@material-ui/core/IconButton";
 import Grid from "@material-ui/core/Grid";
-import ArrowBackIosIcon from "@material-ui/icons/ArrowBackIos";
-import ArrowForwardIosIcon from "@material-ui/icons/ArrowForwardIos";
-import RotateLeftIcon from "@material-ui/icons/RotateLeft";
 
-import WaitingComponent from "./WaitingComponent";
+// import KeyboardArrowLeftRoundedIcon from "@material-ui/icons/KeyboardArrowLeftRounded";
+// import KeyboardArrowRightRoundedIcon from "@material-ui/icons/KeyboardArrowRightRounded";
+// import RotateLeftRoundedIcon from "@material-ui/icons/RotateLeftRounded";
+
+import WaitingComponent from "../WaitingComponent";
+import ControlBar from "./ControlBar";
 
 const isMobile = (function (a) {
   const res =
@@ -20,89 +22,6 @@ const isMobile = (function (a) {
     );
   return res;
 })(navigator.userAgent || navigator.vendor || window.opera);
-
-function ControlButton(props) {
-  const { onClick } = props;
-
-  return (
-    <IconButton
-      color="primary"
-      aria-label="next scan"
-      component="span"
-      style={{
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
-        borderRadius: "100px",
-        borderColor: "rgb(255, 255, 255)",
-        borderWidth: "1px",
-        borderStyle: "groove",
-        pointerEvents: "all",
-      }}
-      onClick={onClick}
-    >
-      {props.children}
-    </IconButton>
-  );
-}
-
-function ControlBar(props) {
-  const {
-    setLoading,
-    getPreviousImage,
-    getNextImage,
-    resetPanAndZoom,
-    displayResetButton,
-  } = props;
-
-  return (
-    <Grid
-      container
-      direction="row"
-      justify="space-around"
-      style={{
-        position: "fixed",
-        right: 0,
-        bottom: 30,
-        left: 0,
-        WebkitTapHighlightColor: "transparent",
-        color: "black",
-        pointerEvents: "none",
-      }}
-    >
-      <Grid item>
-        <ControlButton
-          onClick={(_) => {
-            setLoading(true);
-            getPreviousImage();
-          }}
-        >
-          <ArrowBackIosIcon viewBox="0 0 14 24" />
-        </ControlButton>
-      </Grid>
-      <Grid
-        item
-        style={{ visibility: displayResetButton ? "inherit" : "hidden" }}
-      >
-        <ControlButton
-          onClick={(_) => {
-            resetPanAndZoom();
-          }}
-        >
-          <RotateLeftIcon />
-        </ControlButton>
-      </Grid>
-      <Grid item>
-        <ControlButton
-          onClick={(_) => {
-            setLoading(true);
-            getNextImage();
-          }}
-        >
-          <ArrowForwardIosIcon viewBox="4 0 14 24" />
-        </ControlButton>
-      </Grid>
-    </Grid>
-  );
-}
 
 export default function DisplayImage(props) {
   const {
@@ -201,8 +120,6 @@ export default function DisplayImage(props) {
       },
     }
   );
-
-  // console.log("resUseGesture 2", resUseGesture);
 
   useEffect(() => {
     resetPanAndZoom();

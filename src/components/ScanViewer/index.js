@@ -8,8 +8,8 @@ import { useTheme } from "@material-ui/core/styles";
 import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 import DisplayImage from "./DisplayImage";
-import WaitingComponent from "./WaitingComponent.js";
-import history from "../history";
+import WaitingComponent from "../WaitingComponent.js";
+import history from "../../history";
 
 function NavigationButton(props) {
   const theme = useTheme();
