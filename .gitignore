@@ -26,3 +26,5 @@ yarn-error.log*
 # firebase cloud function
 **/*.log
 
+# vscode
+.vscode/

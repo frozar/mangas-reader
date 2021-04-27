@@ -1,15 +1,14 @@
 import React, { useState, useEffect } from "react";
 import history from "../history";
 
-import { makeStyles, useTheme } from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
-import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
-import useMediaQuery from "@material-ui/core/useMediaQuery";
 
 import { getMangaChapters } from "../db.js";
 import GridCard from "./GridCard.js";
 import WaitingComponent from "./WaitingComponent.js";
+import NavigationButton from "./NavigationButton";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -28,10 +27,6 @@ const useStyles = makeStyles((theme) => ({
 
 export default function SelectChapter(props) {
   const classes = useStyles();
-  const theme = useTheme();
-  const matchesMD = useMediaQuery(theme.breakpoints.down("md"));
-  const matchesSM = useMediaQuery(theme.breakpoints.down("sm"));
-  const matchesXS = useMediaQuery(theme.breakpoints.down("xs"));
 
   const [chaptersJacket, setChaptersJacket] = useState({});
   const [loading, setLoading] = useState(true);
@@ -81,19 +76,6 @@ export default function SelectChapter(props) {
     history.push("/manga");
   }
 
-  let backArrowHeight = "18px";
-  if (matchesMD) {
-    if (matchesSM) {
-      if (matchesXS) {
-        backArrowHeight = "10px";
-      } else {
-        backArrowHeight = "12px";
-      }
-    } else {
-      backArrowHeight = "15px";
-    }
-  }
-
   return (
     <div className={classes.container}>
       <Grid
@@ -107,22 +89,11 @@ export default function SelectChapter(props) {
         }}
       >
         <Grid item xs={3}>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={() => {
-              history.push("/manga");
-            }}
-            startIcon={
-              <img
-                src="/img/arrowBack.svg"
-                height={backArrowHeight}
-                alt="back arrow"
-              />
-            }
-          >
-            <Typography variant="button">Changer de manga</Typography>
-          </Button>
+          <NavigationButton
+            setLoading={setLoading}
+            label="Changer de manga"
+            route="/manga"
+          />
         </Grid>
         <Grid item xs={6}>
           <Typography variant="h1" className={classes.title}>
