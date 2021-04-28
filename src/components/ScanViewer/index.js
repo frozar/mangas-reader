@@ -82,7 +82,14 @@ export default function ScanViewer(props) {
       <Helmet>
         <style>{"body { background-color: black; }"}</style>
       </Helmet>
-      <TopBar path={path} idxChapter={idxChapter} setLoading={setLoading} />
+      <TopBar
+        path={path}
+        idxChapter={idxChapter}
+        setLoading={setLoading}
+        imagesURL={imagesURL}
+        idxImage={idxImage}
+        setIdxImage={setIdxImage}
+      />
       {path !== "" && idxChapter !== null && imagesURL.length !== 0 ? (
         <>
           <DisplayImage
@@ -94,7 +101,11 @@ export default function ScanViewer(props) {
             set={set}
             springDict={{ x, y, zoom, scale }}
           />
-          <ImageCaption idxImage={idxImage} imagesURL={imagesURL} />
+          <ImageCaption
+            idxImage={idxImage}
+            imagesURL={imagesURL}
+            displayResetButton={displayResetButton}
+          />
           <ControlBar
             setLoading={setLoading}
             getPreviousImage={getPreviousImage}

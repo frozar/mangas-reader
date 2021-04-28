@@ -54,7 +54,7 @@ const useStyles = makeStyles((theme) => ({
     cursor: "pointer",
 
     transition: theme.transitions.create(["z-index", "transform"], {
-      duration: theme.transitions.duration.shortest,
+      duration: theme.transitions.duration.short,
     }),
     "&:hover": {
       transform: "scale(1.02)",
