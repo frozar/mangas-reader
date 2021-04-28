@@ -107,7 +107,6 @@ export default function DisplayImage(props) {
       justify="center"
       alignItems="center"
       style={{
-        marginTop: "1em",
         marginBottom: "0.5em",
         position: "relative",
         overflow: "hidden",

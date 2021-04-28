@@ -66,7 +66,7 @@ export default createMuiTheme({
       fontFamily: "Lato",
       fontWeight: "normal",
       fontStyle: "normal",
-      lineHeight: "1",
+      lineHeight: "1.05",
       fontSize: "15px",
       [defaultTheme.breakpoints.down("md")]: {
         fontSize: "12px",

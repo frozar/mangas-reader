@@ -4,7 +4,7 @@ import Typography from "@material-ui/core/Typography";
 import Grid from "@material-ui/core/Grid";
 
 export default function ImageCaption(props) {
-  const { idxImage, imagesURL } = props;
+  const { idxImage, imagesURL, displayResetButton } = props;
 
   return (
     <Grid
@@ -23,9 +23,10 @@ export default function ImageCaption(props) {
           borderColor: "rgb(255, 255, 255)",
           borderWidth: "1px",
           borderStyle: "groove",
-          fontSize: "1.1rem",
+          fontSize: "0.7rem",
           lineHeight: "1",
-          padding: "0.25rem 1rem",
+          padding: "0.2rem 0.75rem",
+          visibility: displayResetButton ? "hidden" : "visible",
         }}
       >
         {`${idxImage + 1} / ${
