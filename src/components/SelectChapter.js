@@ -89,11 +89,7 @@ export default function SelectChapter(props) {
         }}
       >
         <Grid item xs={3}>
-          <NavigationButton
-            setLoading={setLoading}
-            label="Changer de manga"
-            route="/manga"
-          />
+          <NavigationButton setLoading={setLoading} route="/manga" />
         </Grid>
         <Grid item xs={6}>
           <Typography variant="h1" className={classes.title}>

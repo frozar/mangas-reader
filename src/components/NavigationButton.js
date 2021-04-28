@@ -1,57 +1,43 @@
 import React from "react";
 
-import Button from "@material-ui/core/Button";
-import Typography from "@material-ui/core/Typography";
-import { useTheme } from "@material-ui/core/styles";
-import useMediaQuery from "@material-ui/core/useMediaQuery";
+import IconButton from "@material-ui/core/IconButton";
+import SvgIcon from "@material-ui/core/SvgIcon";
+import ArrowBackRoundedIcon from "@material-ui/icons/ArrowBackRounded";
 
+import { makeStyles } from "@material-ui/core/styles";
 import history from "../history";
 
+const useStyles = makeStyles((theme) => ({
+  label: {
+    padding: "5px",
+    borderRadius: "50%",
+    borderWidth: "thin",
+    borderStyle: "groove",
+  },
+}));
+
 export default function NavigationButton(props) {
-  const theme = useTheme();
-  const { setLoading, label, route } = props;
+  const classes = useStyles();
 
-  const matchesMD = useMediaQuery(theme.breakpoints.down("md"));
-  const matchesSM = useMediaQuery(theme.breakpoints.down("sm"));
-  const matchesXS = useMediaQuery(theme.breakpoints.down("xs"));
+  const { setLoading, route } = props;
 
-  let backArrowHeight = "18px";
-  if (matchesMD) {
-    if (matchesSM) {
-      if (matchesXS) {
-        backArrowHeight = "10px";
-      } else {
-        backArrowHeight = "12px";
-      }
-    } else {
-      backArrowHeight = "15px";
-    }
-  }
-
-  const color = props.color ? props.color : "inherit";
+  const color = props.color ? props.color : "black";
 
   return (
-    <Button
+    <IconButton
+      size="medium"
       style={{
         color,
-        paddingLeft: "10px",
-        paddingRight: "10px",
       }}
-      variant="contained"
-      color="primary"
       onClick={() => {
         setLoading(true);
         history.push(route);
       }}
-      startIcon={
-        <img
-          src="/img/arrowBack.svg"
-          height={backArrowHeight}
-          alt="back arrow"
-        />
-      }
+      classes={{
+        label: classes.label,
+      }}
     >
-      <Typography variant="button">{label}</Typography>
-    </Button>
+      <SvgIcon component={ArrowBackRoundedIcon} />
+    </IconButton>
   );
 }

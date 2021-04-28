@@ -17,7 +17,7 @@ function ControlButton(props) {
       component="span"
       style={{
         backgroundColor: "rgba(0, 0, 0, 0.5)",
-        borderRadius: "100px",
+        borderRadius: "50%",
         borderColor: "rgb(255, 255, 255)",
         borderWidth: "1px",
         borderStyle: "groove",

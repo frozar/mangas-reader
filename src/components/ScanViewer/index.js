@@ -8,6 +8,30 @@ import TopBar from "./TopBar";
 import ControlBar from "./ControlBar";
 import ImageCaption from "./ImageCaption";
 
+// Documentation link (inspiration)
+// https://jack72828383883.medium.com/how-to-preload-images-into-cache-in-react-js-ff1642708240
+// https://css-tricks.com/pre-caching-image-with-react-suspense/
+const imagesCache = {
+  __cache: {},
+  async readAll(imagesURLarg) {
+    const imagesURL = [...imagesURLarg];
+    const missingImages = imagesURL.some((imageURL) => !this.__cache[imageURL]);
+
+    if (missingImages) {
+      const promises = imagesURL.map((imageURL) => {
+        return new Promise(function (resolve, reject) {
+          const img = new Image();
+          img.src = imageURL;
+          img.onload = resolve();
+          img.onerror = reject();
+        });
+      });
+      await Promise.all(promises);
+      imagesURL.map((imageURL) => (this.__cache[imageURL] = true));
+    }
+  },
+};
+
 export default function ScanViewer(props) {
   const { path, idxChapter, imagesURL, previousChapter, nextChapter } = props;
 
@@ -76,6 +100,12 @@ export default function ScanViewer(props) {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [handleKeyDown]);
+
+  useEffect(() => {
+    if (imagesURL.length !== 0) {
+      imagesCache.readAll(imagesURL);
+    }
+  }, [imagesURL]);
 
   return (
     <>

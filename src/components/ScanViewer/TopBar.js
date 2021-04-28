@@ -55,8 +55,7 @@ export default function TopBar(props) {
             <Grid item>
               <NavigationButton
                 setLoading={setLoading}
-                label="Retour aux chapitres"
-                color="black"
+                color="white"
                 route="/chapter"
               />
             </Grid>
