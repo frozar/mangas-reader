@@ -59,7 +59,7 @@ export default function ControlBar(props) {
         <ControlButton
           onClick={(_) => {
             setLoading(true);
-            getPreviousImage();
+            setTimeout(() => getPreviousImage(), 0);
           }}
         >
           <KeyboardArrowLeftRoundedIcon fontSize="large" />
@@ -81,7 +81,7 @@ export default function ControlBar(props) {
         <ControlButton
           onClick={(_) => {
             setLoading(true);
-            getNextImage();
+            setTimeout(() => getNextImage(), 0);
           }}
         >
           <KeyboardArrowRightRoundedIcon fontSize="large" />

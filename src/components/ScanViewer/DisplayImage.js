@@ -18,7 +18,8 @@ const isMobile = (function (a) {
 })(navigator.userAgent || navigator.vendor || window.opera);
 
 export default function DisplayImage(props) {
-  const { imageURL, loading, setLoading } = props;
+  const { imageURL, loading, setLoading, set, setDisplayResetButton } = props;
+  const { x, y, zoom, scale } = props.springDict;
   const domTarget = React.useRef(null);
 
   const updateLoadingState = useCallback(() => {
@@ -62,9 +63,6 @@ export default function DisplayImage(props) {
     updateLoadingState();
   };
 
-  const { set, setDisplayResetButton, resetPanAndZoom } = props;
-  const { x, y, zoom, scale } = props.springDict;
-
   useGesture(
     {
       onDrag: ({ movement: [mx, my], down }) => {
@@ -96,10 +94,6 @@ export default function DisplayImage(props) {
       },
     }
   );
-
-  useEffect(() => {
-    resetPanAndZoom();
-  }, [imageURL, resetPanAndZoom]);
 
   return (
     <Grid
