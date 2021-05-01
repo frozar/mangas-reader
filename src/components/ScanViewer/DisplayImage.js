@@ -145,6 +145,7 @@ export default function DisplayImage(props) {
             display: "block",
             border: "4px solid white",
             maxWidth: "98vw",
+            maxHeight: "96vh",
             scale: to([scale, zoom], (s, z) => s + z),
             objectFit: "contain",
           }}

@@ -91,6 +91,12 @@ export default function ScanViewer(props) {
       } else if (evt.key === "ArrowRight") {
         setLoading(true);
         getNextImage();
+      } else if (evt.key === "f") {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
       }
     },
     [getPreviousImage, getNextImage]
