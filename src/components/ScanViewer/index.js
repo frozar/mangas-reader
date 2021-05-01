@@ -53,6 +53,7 @@ export default function ScanViewer(props) {
   }, [set]);
 
   const getPreviousImage = useCallback(async () => {
+    resetPanAndZoom();
     let previousIdxImage;
     if (0 < idxImage) {
       // Go to the previous image
@@ -64,9 +65,10 @@ export default function ScanViewer(props) {
     if (previousIdxImage !== null) {
       setIdxImage(previousIdxImage);
     }
-  }, [idxImage, setIdxImage, previousChapter]);
+  }, [idxImage, setIdxImage, previousChapter, resetPanAndZoom]);
 
   const getNextImage = useCallback(async () => {
+    resetPanAndZoom();
     const idxImageMax = imagesURL.length - 1;
     let nextIdxImage;
     if (idxImage < idxImageMax) {
@@ -79,7 +81,7 @@ export default function ScanViewer(props) {
     if (nextIdxImage !== null) {
       setIdxImage(nextIdxImage);
     }
-  }, [imagesURL, idxImage, setIdxImage, nextChapter]);
+  }, [imagesURL, idxImage, setIdxImage, nextChapter, resetPanAndZoom]);
 
   const handleKeyDown = useCallback(
     (evt) => {
