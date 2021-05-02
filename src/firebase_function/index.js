@@ -241,8 +241,9 @@ async function scrapMangas() {
       "https://lelscans.net/lecture-en-ligne-",
       ""
     ).split(".")[0];
-    const thumb = "https://lelscans.net/mangas/" + path + "/thumb_cover.jpg";
-    scrapedMangas[path] = { title, URL, path, thumb };
+    const thumbnail =
+      "https://lelscans.net/mangas/" + path + "/thumb_cover.jpg";
+    scrapedMangas[path] = { title, URL, path, thumbnail };
   }
 
   return scrapedMangas;
@@ -309,13 +310,13 @@ exports.mangaTitleSET = functions
     // Add manga to add
     let toWait = [];
     for (const [path, manga] of Object.entries(scrapedMangas)) {
-      const { title, URL, thumb } = manga;
+      const { title, URL, thumbnail } = manga;
 
       const docRef = collRef.doc(path);
 
       let objToWrite = {};
       if (mangaToAdd.includes(path)) {
-        objToWrite = { title, URL, path, thumb };
+        objToWrite = { title, URL, path, thumbnail };
       }
 
       if (scrapedMangasPath.includes(path)) {
@@ -384,13 +385,13 @@ exports.mangasGET = functions
     // Add manga to add
     let toWait = [];
     for (const [path, manga] of Object.entries(scrapedMangas)) {
-      const { title, URL, thumb } = manga;
+      const { title, URL, thumbnail } = manga;
 
       const docRef = collRef.doc(path);
 
       let objToWrite = {};
       if (mangaToAdd.includes(path)) {
-        objToWrite = { title, URL, path, thumb };
+        objToWrite = { title, URL, path, thumbnail };
       }
 
       const chapters = await updateChaptersCollection(docRef, URL);
@@ -404,86 +405,6 @@ exports.mangasGET = functions
     }
     await Promise.all(toWait);
   });
-
-async function scrapChapters(path, idxChapter) {
-  // const toWait = [];
-  // for (const idx of idxChapter) {
-  //   // console.log("[mangaChaptersGET] path", path);
-  //   // console.log("[mangaChaptersGET] idx", idx);
-  //   // const promise = scrapChapterImagesURL(path, idx);
-  //   // toWait.push(promise);
-  //   toWait.push(scrapChapterImagesURL(path, idx));
-  //   // console.log("");
-  //   // const chapterURLs = await scrapChapterImagesURL(path, idx);
-  //   // toWait.push(chapterURLs);
-  // }
-  // await Promise.all(toWait);
-
-  // console.log("[scrapChapters] BEFORE Promise.all");
-  // const toWait = await Promise.all(
-  //   idxChapter.map(async (idx) => await scrapChapterImagesURL(path, idx))
-  // );
-  // console.log("[scrapChapters] AFTER Promise.all");
-  // console.log("[scrapChapters] toWait", toWait);
-
-  const allWait = [];
-  const chunkedIdxChapter = _.chunk(idxChapter, 16);
-  // console.log(
-  //   "[scrapChapters] chunkedIdxChapter.length",
-  //   chunkedIdxChapter.length
-  // );
-  // console.log(
-  //   "[scrapChapters] _.flatten(chunkedIdxChapter)",
-  //   _.flatten(chunkedIdxChapter)
-  // );
-  for (let i = 0; i < chunkedIdxChapter.length; ++i) {
-    console.info(
-      "[scrapChapters]",
-      path,
-      Math.floor((i / chunkedIdxChapter.length) * 100),
-      "%"
-    );
-    const oneIdxChapter = chunkedIdxChapter[i];
-    allWait.push(
-      await Promise.all(
-        oneIdxChapter.map(async (idx) => await scrapChapterImagesURL(path, idx))
-      )
-    );
-  }
-  console.info("[scrapChapters]", path, "100 %");
-  const toWait = _.flatten(allWait);
-  // console.log("[scrapChapters] toWait", toWait);
-
-  // toWait.map(async (promise) => {
-  //   return await promise;
-  // });
-  // const toWaitValue = [];
-  // for (let i = 0; i < toWait.length; ++i) {
-  //   toWaitValue.push(await toWait[i]);
-  // }
-  // console.log("[scrapChapters] toWaitValue", toWaitValue);
-
-  // console.log(
-  //   "[scrapChapters] toWait.some((res) => res === FAILED)",
-  //   toWait.some((res) => res === FAILED)
-  // );
-
-  if (toWait.some((res) => res === FAILED)) {
-    console.error("[scrapChapters] return FAILED");
-    return FAILED;
-  } else {
-    const scrapedChapters = {};
-    // console.log("[mangaChaptersGET] PASS 2");
-    for (let i = 0; i < idxChapter.length; ++i) {
-      const idx = idxChapter[i];
-      const imagesURL = toWait[i];
-      scrapedChapters[idx] = { content: imagesURL, thumbnail: "" };
-    }
-    // console.log("[scrapChapters] scrapedChapters", scrapedChapters);
-    // console.log("[scrapChapters] END");
-    return scrapedChapters;
-  }
-}
 
 exports.mangaChaptersGET = functions
   .region("europe-west1")
@@ -513,82 +434,8 @@ exports.mangaChaptersGET = functions
     const snapshot = await docRef.get();
     const dataDoc = snapshot.data();
     const { chapters: chaptersInDB } = dataDoc;
-    // const { lastScrapingDate: lastScrapingDateISOString } = dataDoc;
 
     res.status(200).send(chaptersInDB);
-
-    // // console.log(
-    // //   "[mangaChaptersGET] lastScrapingDateISOString",
-    // //   lastScrapingDateISOString
-    // // );
-    // // console.log(
-    // //   "[mangaChaptersGET] (lastScrapingDateISOString !== undefined)",
-    // //   lastScrapingDateISOString !== undefined
-    // // );
-    // const currentScrapingDate = new Date();
-    // if (lastScrapingDateISOString !== undefined) {
-    //   const lastScrapingDate = new Date(lastScrapingDateISOString);
-    //   // console.log("[mangaChaptersGET] lastScrapingDate", lastScrapingDate);
-    //   const diffTimeInMin = Math.floor(
-    //     (currentScrapingDate.getTime() - lastScrapingDate.getTime()) /
-    //       (1000 * 60)
-    //   );
-    //   // console.log("[mangaChaptersGET] diffTimeInMin", diffTimeInMin);
-    //   if (diffTimeInMin < 60 * 24) {
-    //     return;
-    //   }
-    // }
-
-    // // ***** 2 - Scrapping of chapter available
-    // const idxChapter = Object.keys(chaptersInDB);
-    // const scrapedChapters = await scrapChapters(queryPath, idxChapter);
-    // // console.log("[mangaChaptersGET] scrapedChapters", scrapedChapters);
-    // if (scrapedChapters === FAILED) {
-    //   console.error(
-    //     "[mangaChaptersGET]",
-    //     queryPath,
-    //     ": Cannot scrap chapters."
-    //   );
-    //   return;
-    // }
-
-    // // Filter the thumbnail field because it may change arbitrary
-    // const filterChapters = (srcChapters) => {
-    //   let filteredChapters = {};
-    //   for (const [idx, obj] of Object.entries(srcChapters)) {
-    //     let filteredObj = {};
-    //     for (const [key, val] of Object.entries(obj)) {
-    //       if (key !== "thumbnail") {
-    //         filteredObj[key] = val;
-    //       }
-    //     }
-    //     filteredChapters[idx] = filteredObj;
-    //   }
-    //   return filteredChapters;
-    // };
-
-    // const chaptersInDBWithoutThumbnail = filterChapters(chaptersInDB);
-    // const scrapedChaptersWithoutThumbnail = filterChapters(scrapedChapters);
-
-    // // ***** 3 - Compare scrapped chapters with the DB. If different, update DB.
-    // if (
-    //   !_.isEqual(chaptersInDBWithoutThumbnail, scrapedChaptersWithoutThumbnail)
-    // ) {
-    //   console.info("[mangaChaptersGET] scraping of update", queryPath);
-    //   const finalScrapingDate = new Date();
-    //   // console.log("[mangaChaptersGET] finalScrapingDate", finalScrapingDate);
-    //   // console.log(
-    //   //   "[mangaChaptersGET] finalScrapingDate.toISOString()",
-    //   //   finalScrapingDate.toISOString()
-    //   // );
-    //   await docRef.set(
-    //     {
-    //       chapters: scrapedChapters,
-    //       lastScrapingDate: finalScrapingDate.toISOString(),
-    //     },
-    //     { merge: true }
-    //   );
-    // }
   });
 
 exports.mangaChaptersSET = functions

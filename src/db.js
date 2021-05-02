@@ -33,35 +33,22 @@ const URL_MANGA_CHAPTERS_GET = CLOUD_FUNCTION_ROOT + "mangaChaptersGET";
 export const LELSCANS_ROOT = "lelscans";
 
 export async function getMangas() {
-  const request = await axios.get(URL_MANGAS_GET);
-  // console.log("[getMangas] request", request);
-  const mangas = request.data;
+  const response = await axios.get(URL_MANGAS_GET);
+  const mangas = response.data;
 
   return mangas;
 }
 
 export async function getMangaChapters(mangaPath) {
-  const request = await axios.get(URL_MANGA_CHAPTERS_GET, {
+  const response = await axios.get(URL_MANGA_CHAPTERS_GET, {
     params: {
       path: mangaPath,
     },
   });
-  const chapters = request.data;
-  // console.log("[getMangaChapters] request", request);
-  // console.log("[getMangaChapters] chapters", chapters);
+  const chapters = response.data;
 
   return chapters;
 }
-
-// export async function getChapters(mangaPath) {
-//   const snapshot = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
-
-//   const data = snapshot.data();
-//   const { chapters } = data;
-//   // console.log("[getChapters] chapters", chapters);
-
-//   return chapters;
-// }
 
 export async function getIdxChapters(mangaPath) {
   const snapshot = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();

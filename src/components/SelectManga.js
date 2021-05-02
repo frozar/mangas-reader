@@ -38,10 +38,10 @@ export default function SelectManga(props) {
   }, []);
 
   const cards = lObjManga
-    .map(({ title, thumb }) => {
+    .map(({ title, thumbnail }) => {
       return {
         label: title,
-        picture: thumb,
+        picture: thumbnail,
       };
     })
     .sort(function ({ label: labelA }, { label: labelB }) {
