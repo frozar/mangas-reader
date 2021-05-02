@@ -8,7 +8,7 @@ import dashify from "dashify";
 
 import history from "../history";
 import theme from "../style/theme";
-import { getImagesURL, getIdxChapters } from "../db.js"; // getMangas
+import { getImagesURL, getIdxChapters, getMangas } from "../db.js";
 import SelectManga from "./SelectManga";
 import SelectChapter from "./SelectChapter";
 import ScanViewer from "./ScanViewer";
@@ -17,41 +17,41 @@ import "../App.css";
 
 firebase.analytics();
 
-// function getRandomInt(min, max) {
-//   min = Math.ceil(min);
-//   max = Math.floor(max);
-//   return Math.floor(Math.random() * (max - min) + min); //The maximum is exclusive and the minimum is inclusive
-// }
+function getRandomInt(min, max) {
+  min = Math.ceil(min);
+  max = Math.floor(max);
+  return Math.floor(Math.random() * (max - min) + min);
+}
 
-// async function scrapRandomChapter() {
-//   const db = await getMangas();
+async function scrapRandomChapter() {
+  const db = await getMangas();
 
-//   const filterDb = {};
-//   for (const [mangaPath, detail] of Object.entries(db)) {
-//     const emptyChapters = [];
-//     for (const [idx, chapterDetail] of Object.entries(detail.chapters)) {
-//       if (chapterDetail.content.length === 0) {
-//         emptyChapters.push(idx);
-//       }
-//     }
-//     if (emptyChapters.length !== 0) {
-//       filterDb[mangaPath] = emptyChapters;
-//     }
-//   }
-//   const keys = Object.keys(filterDb);
-//   const idxManga = getRandomInt(0, keys.length);
-//   const electedMangaPath = keys[idxManga];
-//   const idxChapter = getRandomInt(0, filterDb[electedMangaPath].length);
-//   const electedIdxChapter = filterDb[electedMangaPath][idxChapter];
+  const filterDb = {};
+  for (const [mangaPath, detail] of Object.entries(db)) {
+    const emptyChapters = [];
+    for (const [idx, chapterDetail] of Object.entries(detail.chapters)) {
+      if (chapterDetail.content.length === 0) {
+        emptyChapters.push(idx);
+      }
+    }
+    if (emptyChapters.length !== 0) {
+      filterDb[mangaPath] = emptyChapters;
+    }
+  }
+  const keys = Object.keys(filterDb);
+  const idxManga = getRandomInt(0, keys.length);
+  const electedMangaPath = keys[idxManga];
+  const idxChapter = getRandomInt(0, filterDb[electedMangaPath].length);
+  const electedIdxChapter = filterDb[electedMangaPath][idxChapter];
 
-//   // console.log("scrapRandomChapter electedMangaPath", electedMangaPath);
-//   // console.log("scrapRandomChapter electedIdxChapter", electedIdxChapter);
-//   getImagesURL(electedMangaPath, electedIdxChapter);
-// }
+  // console.log("scrapRandomChapter electedMangaPath", electedMangaPath);
+  // console.log("scrapRandomChapter electedIdxChapter", electedIdxChapter);
+  getImagesURL(electedMangaPath, electedIdxChapter);
+}
 
-// setInterval(() => {
-//   scrapRandomChapter();
-// }, 1000 * 60 * 3);
+setInterval(() => {
+  scrapRandomChapter();
+}, 1000 * 60 * 3);
 
 export default class App extends React.Component {
   state = {
