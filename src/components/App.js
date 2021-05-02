@@ -44,8 +44,12 @@ async function scrapRandomChapter() {
   const idxChapter = getRandomInt(0, filterDb[electedMangaPath].length);
   const electedIdxChapter = filterDb[electedMangaPath][idxChapter];
 
-  // console.log("scrapRandomChapter electedMangaPath", electedMangaPath);
-  // console.log("scrapRandomChapter electedIdxChapter", electedIdxChapter);
+  console.debug(
+    "[scrapRandomChapter] Trigger scrap of",
+    electedMangaPath,
+    "chapter",
+    electedIdxChapter
+  );
   getImagesURL(electedMangaPath, electedIdxChapter);
 }
 
