@@ -39,6 +39,10 @@ async function scrapRandomChapter() {
     }
   }
   const keys = Object.keys(filterDb);
+  // If there's no more chapter to scrap, skip.
+  if (keys.length === 0) {
+    return;
+  }
   const idxManga = getRandomInt(0, keys.length);
   const electedMangaPath = keys[idxManga];
   const idxChapter = getRandomInt(0, filterDb[electedMangaPath].length);
