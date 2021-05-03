@@ -24,42 +24,46 @@ function getRandomInt(min, max) {
 }
 
 async function scrapRandomChapter() {
-  const db = await getMangas();
-
-  const filterDb = {};
-  for (const [mangaPath, detail] of Object.entries(db)) {
-    const emptyChapters = [];
-    for (const [idx, chapterDetail] of Object.entries(detail.chapters)) {
-      if (chapterDetail.content.length === 0) {
-        emptyChapters.push(idx);
+  getMangas()
+    .then((db) => {
+      const filterDb = {};
+      for (const [mangaPath, detail] of Object.entries(db)) {
+        const emptyChapters = [];
+        for (const [idx, chapterDetail] of Object.entries(detail.chapters)) {
+          if (chapterDetail.content.length === 0) {
+            emptyChapters.push(idx);
+          }
+        }
+        if (emptyChapters.length !== 0) {
+          filterDb[mangaPath] = emptyChapters;
+        }
       }
-    }
-    if (emptyChapters.length !== 0) {
-      filterDb[mangaPath] = emptyChapters;
-    }
-  }
-  const keys = Object.keys(filterDb);
-  // If there's no more chapter to scrap, skip.
-  if (keys.length === 0) {
-    return;
-  }
-  const idxManga = getRandomInt(0, keys.length);
-  const electedMangaPath = keys[idxManga];
-  const idxChapter = getRandomInt(0, filterDb[electedMangaPath].length);
-  const electedIdxChapter = filterDb[electedMangaPath][idxChapter];
+      const keys = Object.keys(filterDb);
+      // If there's no more chapter to scrap, skip.
+      if (keys.length === 0) {
+        return;
+      }
+      const idxManga = getRandomInt(0, keys.length);
+      const electedMangaPath = keys[idxManga];
+      const idxChapter = getRandomInt(0, filterDb[electedMangaPath].length);
+      const electedIdxChapter = filterDb[electedMangaPath][idxChapter];
 
-  console.debug(
-    "[scrapRandomChapter] Trigger scrap of",
-    electedMangaPath,
-    "chapter",
-    electedIdxChapter
-  );
-  getImagesURL(electedMangaPath, electedIdxChapter);
+      console.debug(
+        "[scrapRandomChapter] Trigger scrap of",
+        electedMangaPath,
+        "chapter",
+        electedIdxChapter
+      );
+      getImagesURL(electedMangaPath, electedIdxChapter);
+    })
+    .catch((err) => {
+      console.debug("[scrapRandomChapter] getMangas failed", err);
+    });
 }
 
 setInterval(() => {
   scrapRandomChapter();
-}, 1000 * 60 * 3);
+}, 1000 * 60 * 2);
 
 export default class App extends React.Component {
   state = {
