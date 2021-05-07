@@ -348,62 +348,66 @@ exports.mangasGET = functions
     );
     res.setHeader("Access-Control-Allow-Credentials", true);
 
-    // ***** 0 - Read mangas in DB and returns the result the client
-    const collRef = db.collection(LELSCANS_ROOT);
-    const snapshot = await collRef.get();
+    try {
+      // ***** 0 - Read mangas in DB and returns the result the client
+      const collRef = db.collection(LELSCANS_ROOT);
+      const snapshot = await collRef.get();
 
-    const mangas = {};
-    snapshot.forEach((doc) => {
-      mangas[doc.id] = doc.data();
-    });
+      const mangas = {};
+      snapshot.forEach((doc) => {
+        mangas[doc.id] = doc.data();
+      });
 
-    // console.log("[mangasGET] mangas", mangas);
-    res.status(200).send(mangas);
+      // console.log("[mangasGET] mangas", mangas);
+      res.status(200).send(mangas);
 
-    // ***** 1 - Scrapping of manga available
-    const scrapedMangas = await scrapMangas();
-    if (scrapedMangas === null) {
-      const errorMsg = "[mangasGET] scrapedMangas() failed.";
-      console.error(errorMsg);
-      return;
-    }
-
-    const scrapedMangasPath = Object.keys(scrapedMangas);
-    const mangasPathInDB = Object.keys(mangas);
-
-    // ***** 2 - Compare scrapped data with the DB. If different, update DB.
-    const [mangaToRemove, mangaToAdd] = diffScrapedVsDB(
-      scrapedMangasPath,
-      mangasPathInDB
-    );
-
-    // Delete manga to remove
-    for (const mangaPath in mangaToRemove) {
-      deletePathDB(LELSCANS_ROOT + "/" + mangaPath);
-    }
-
-    // Add manga to add
-    let toWait = [];
-    for (const [path, manga] of Object.entries(scrapedMangas)) {
-      const { title, URL, thumbnail } = manga;
-
-      const docRef = collRef.doc(path);
-
-      let objToWrite = {};
-      if (mangaToAdd.includes(path)) {
-        objToWrite = { title, URL, path, thumbnail };
+      // ***** 1 - Scrapping of manga available
+      const scrapedMangas = await scrapMangas();
+      if (scrapedMangas === null) {
+        const errorMsg = "[mangasGET] scrapedMangas() failed.";
+        console.error(errorMsg);
+        return;
       }
 
-      const chapters = await updateChaptersCollection(docRef, URL);
-      if (chapters !== null) {
-        objToWrite = { ...objToWrite, ...chapters };
+      const scrapedMangasPath = Object.keys(scrapedMangas);
+      const mangasPathInDB = Object.keys(mangas);
+
+      // ***** 2 - Compare scrapped data with the DB. If different, update DB.
+      const [mangaToRemove, mangaToAdd] = diffScrapedVsDB(
+        scrapedMangasPath,
+        mangasPathInDB
+      );
+
+      // Delete manga to remove
+      for (const mangaPath in mangaToRemove) {
+        deletePathDB(LELSCANS_ROOT + "/" + mangaPath);
       }
 
-      if (!_.isEmpty(objToWrite)) {
-        toWait.push(docRef.set(objToWrite, { merge: true }));
+      // Add manga to add
+      let toWait = [];
+      for (const [path, manga] of Object.entries(scrapedMangas)) {
+        const { title, URL, thumbnail } = manga;
+
+        const docRef = collRef.doc(path);
+
+        let objToWrite = {};
+        if (mangaToAdd.includes(path)) {
+          objToWrite = { title, URL, path, thumbnail };
+        }
+
+        const chapters = await updateChaptersCollection(docRef, URL);
+        if (chapters !== null) {
+          objToWrite = { ...objToWrite, ...chapters };
+        }
+
+        if (!_.isEmpty(objToWrite)) {
+          toWait.push(docRef.set(objToWrite, { merge: true }));
+        }
       }
+      await Promise.all(toWait);
+    } catch (error) {
+      res.status(400).send(error);
     }
-    await Promise.all(toWait);
   });
 
 exports.mangaChaptersGET = functions
