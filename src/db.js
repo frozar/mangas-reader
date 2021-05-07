@@ -33,10 +33,17 @@ const URL_MANGA_CHAPTERS_GET = CLOUD_FUNCTION_ROOT + "mangaChaptersGET";
 export const LELSCANS_ROOT = "lelscans";
 
 export async function getMangas() {
-  const response = await axios.get(URL_MANGAS_GET);
-  const mangas = response.data;
+  try {
+    const response = await axios.get(URL_MANGAS_GET);
+    if (response.status === 400) {
+      throw response.statusText;
+    }
+    const mangas = response.data;
 
-  return mangas;
+    return mangas;
+  } catch (error) {
+    throw error;
+  }
 }
 
 export async function getMangaChapters(mangaPath) {
