@@ -22,58 +22,52 @@ const FAILED = 42;
  * @param {String} mangaURL URL of a manga
  */
 async function scrapIdxChapters(mangaURL) {
-  const data = await axios
-    .get(mangaURL)
-    .then((response) => {
-      return response.data;
-    })
-    .catch((error) => {
-      console.error("getIdxChapters: Cannot get info from lelscans");
-      console.error("mangaURL:", mangaURL);
-      console.error("error.code:", error.code);
-      return null;
-    });
+  try {
+    const response = await axios.get(mangaURL);
 
-  if (data) {
-    const root = parse(data);
-    const selectChapters = root
-      .querySelector("#header-image")
-      .querySelectorAll("select")[0];
-    const chapters = selectChapters.querySelectorAll("option");
-    const idxChapters = chapters.map((opt) => opt.childNodes[0].rawText);
-    return idxChapters;
-  } else {
-    return null;
+    const data = response.data;
+    if (data) {
+      const root = parse(data);
+      const selectChapters = root
+        .querySelector("#header-image")
+        .querySelectorAll("select")[0];
+      const chapters = selectChapters.querySelectorAll("option");
+      const idxChapters = chapters.map((opt) => opt.childNodes[0].rawText);
+      return idxChapters;
+    } else {
+      console.error("[scrapIdxChapters] data: " + data);
+      return FAILED;
+    }
+  } catch (error) {
+    console.error("[scrapIdxChapters] " + error);
+    return FAILED;
   }
 }
 
 async function getImageURL(URL) {
-  const data = await axios
-    .get(URL)
-    .then((response) => {
-      return response.data;
-    })
-    .catch((error) => {
-      console.error("[getImageURL] Cannot get info from lelscans");
-      console.error("URL:", URL);
-      console.error("error.code:", error.code);
-      return null;
-    });
+  try {
+    const response = await axios.get(URL);
 
-  if (data) {
-    const root = parse(data);
-    const imageURL =
-      "https://lelscans.net" +
-      root
-        .querySelector("#image")
-        .querySelector("img")
-        .rawAttrs.split(" ")[0]
-        .split("=")[1]
-        .split("?")[0]
-        .replace(/['"]+/g, "");
+    const data = response.data;
+    if (data) {
+      const root = parse(data);
+      const imageURL =
+        "https://lelscans.net" +
+        root
+          .querySelector("#image")
+          .querySelector("img")
+          .rawAttrs.split(" ")[0]
+          .split("=")[1]
+          .split("?")[0]
+          .replace(/['"]+/g, "");
 
-    return imageURL;
-  } else {
+      return imageURL;
+    } else {
+      console.error("[getImageURL] data:", data);
+      return FAILED;
+    }
+  } catch (error) {
+    console.error("[getImageURL] ", error);
     return FAILED;
   }
 }
@@ -85,69 +79,41 @@ async function getImageURL(URL) {
  * @param {Integer} idxChapter index of the chapter to retrieve the number of scan
  */
 async function scrapChapterImagesURL(path, idxChapter) {
-  // console.log("[scrapChapterImagesURL] path", path);
-  // console.log("[scrapChapterImagesURL] idxChapter", idxChapter);
-  const URL = "https://lelscans.net/scan-" + path + "/" + idxChapter;
-  const data = await axios
-    .get(URL)
-    .then((response) => {
-      return response.data;
-    })
-    .catch((error) => {
-      console.error("scrapChapterImagesURL: Cannot get info from lelscans");
-      console.error("error.code:", error.code);
-      return;
-    });
+  try {
+    const URL = "https://lelscans.net/scan-" + path + "/" + idxChapter;
+    const response = await axios.get(URL);
 
-  if (data) {
-    // console.log("[scrapChapterImagesURL] in if");
-    const root = parse(data);
-    // Every link which is not a number is filter out
-    // const chapterURLs = await Promise.all(
-    //   root
-    //     .querySelector("#navigation")
-    //     .querySelectorAll("a")
-    //     .filter((link) => {
-    //       const reg = /^\d+$/;
-    //       return reg.test(link.childNodes[0].rawText);
-    //     })
-    //     // Retrieve the URL link of each image of the chapter
-    //     .map((link) =>
-    //       link.rawAttrs.split(" ")[0].split("=")[1].replace(/['"]+/g, "")
-    //     )
-    //     .map((link) => getImageURL(link))
-    // );
+    const data = response.data;
+    if (data) {
+      // console.log("[scrapChapterImagesURL] in if");
+      const root = parse(data);
 
-    const chapterURLsPromise = root
-      .querySelector("#navigation")
-      .querySelectorAll("a")
-      .filter((link) => {
-        const reg = /^\d+$/;
-        return reg.test(link.childNodes[0].rawText);
-      })
-      // Retrieve the URL link of each image of the chapter
-      .map((link) =>
-        link.rawAttrs.split(" ")[0].split("=")[1].replace(/['"]+/g, "")
-      )
-      .map(async (link) => await getImageURL(link));
+      const chapterURLsPromise = root
+        .querySelector("#navigation")
+        .querySelectorAll("a")
+        .filter((link) => {
+          const reg = /^\d+$/;
+          return reg.test(link.childNodes[0].rawText);
+        })
+        // Retrieve the URL link of each image of the chapter
+        .map((link) =>
+          link.rawAttrs.split(" ")[0].split("=")[1].replace(/['"]+/g, "")
+        )
+        .map(async (link) => await getImageURL(link));
 
-    const chapterURLs = await Promise.all(chapterURLsPromise);
+      const chapterURLs = await Promise.all(chapterURLsPromise);
 
-    // console.log(
-    //   "[scrapChapterImagesURL] chapterURLs.some((res) => res === FAILED)",
-    //   chapterURLs.some((res) => res === FAILED)
-    // );
-
-    // console.log("[scrapChapterImagesURL] URL", URL);
-    if (chapterURLs.some((res) => res === FAILED)) {
-      // console.error("[scrapChapterImagesURL] 0 return FAILED");
-      return FAILED;
+      if (chapterURLs.some((res) => res === FAILED)) {
+        return FAILED;
+      } else {
+        return chapterURLs;
+      }
     } else {
-      // console.log("[scrapChapterImagesURL] chapterURLs", chapterURLs);
-      return chapterURLs;
+      console.error("[scrapChapterImagesURL] Data:", data);
+      return FAILED;
     }
-  } else {
-    // console.error("[scrapChapterImagesURL] 1 return FAILED");
+  } catch (error) {
+    console.error("[scrapChapterImagesURL] ", error);
     return FAILED;
   }
 }
@@ -174,79 +140,79 @@ function diffScrapedVsDB(scrapedData, DBData) {
 }
 
 async function updateChaptersCollection(docRef, URL) {
-  const scrapedIdx = await scrapIdxChapters(URL);
-  if (scrapedIdx === FAILED) {
-    return null;
-  }
-
-  const snapshot = await docRef.get();
-  const docData = snapshot.data();
-
-  // Initialise the 'chapters' var depending if the document is found
-  // in the DB are not
-  let chapters;
-  if (!docData) {
-    chapters = {};
-  } else {
-    chapters = docData.chapters;
-  }
-
-  const idxInDB = Object.keys(chapters);
-  const [idxToRemove, idxToAdd] = diffScrapedVsDB(scrapedIdx, idxInDB);
-
-  if (idxToRemove.length === 0 && idxToAdd.length === 0) {
-    return null;
-  } else {
-    // Remove the unavailable chapters
-    for (const idx of idxToRemove) {
-      delete chapters[idx];
+  try {
+    const scrapedIdx = await scrapIdxChapters(URL);
+    if (scrapedIdx === FAILED) {
+      return FAILED;
     }
 
-    // Add the unavailable chapters
-    for (const idx of idxToAdd) {
-      chapters[idx] = { content: [], thumbnail: "" };
+    const snapshot = await docRef.get();
+    const docData = snapshot.data();
+
+    // Initialise the 'chapters' var depending if the document is found
+    // in the DB are not
+    let chapters;
+    if (!docData) {
+      chapters = {};
+    } else {
+      chapters = docData.chapters;
     }
 
-    return { chapters };
+    const idxInDB = Object.keys(chapters);
+    const [idxToRemove, idxToAdd] = diffScrapedVsDB(scrapedIdx, idxInDB);
+
+    if (idxToRemove.length === 0 && idxToAdd.length === 0) {
+      return FAILED;
+    } else {
+      // Remove the unavailable chapters
+      for (const idx of idxToRemove) {
+        delete chapters[idx];
+      }
+
+      // Add the unavailable chapters
+      for (const idx of idxToAdd) {
+        chapters[idx] = { content: [], thumbnail: "" };
+      }
+
+      return { chapters };
+    }
+  } catch (error) {
+    console.error("[updateChaptersCollection] " + error);
+    return FAILED;
   }
 }
 
 async function scrapMangas() {
-  const data = await axios
-    .get("https://lelscans.net")
-    .then((response) => {
-      return response.data;
-    })
-    .catch((error) => {
-      console.error("scrapMangaTitle: Cannot get info from lelscans");
-      console.error(error);
-      return null;
-    });
+  try {
+    const response = await axios.get("https://lelscans.net");
 
-  if (data === null) {
-    return null;
+    const data = response.data;
+
+    const root = parse(data);
+    const selectMangas = root
+      .querySelector("#header-image")
+      .querySelectorAll("select")[1]
+      .querySelectorAll("option");
+
+    const scrapedMangas = {};
+    for (const opt of selectMangas) {
+      const title = opt.childNodes[0].rawText;
+      const URL = opt.rawAttrs.split("=")[1].split("'")[1];
+      const path = URL.replace(
+        "https://lelscans.net/lecture-en-ligne-",
+        ""
+      ).split(".")[0];
+      const thumbnail =
+        "https://lelscans.net/mangas/" + path + "/thumb_cover.jpg";
+      scrapedMangas[path] = { title, URL, path, thumbnail };
+    }
+
+    return scrapedMangas;
+  } catch (error) {
+    console.error("[scrapMangas]: Cannot get info from lelscans");
+    console.error(error.code);
+    return FAILED;
   }
-
-  const root = parse(data);
-  const selectMangas = root
-    .querySelector("#header-image")
-    .querySelectorAll("select")[1]
-    .querySelectorAll("option");
-
-  const scrapedMangas = {};
-  for (const opt of selectMangas) {
-    const title = opt.childNodes[0].rawText;
-    const URL = opt.rawAttrs.split("=")[1].split("'")[1];
-    const path = URL.replace(
-      "https://lelscans.net/lecture-en-ligne-",
-      ""
-    ).split(".")[0];
-    const thumbnail =
-      "https://lelscans.net/mangas/" + path + "/thumb_cover.jpg";
-    scrapedMangas[path] = { title, URL, path, thumbnail };
-  }
-
-  return scrapedMangas;
 }
 
 async function getMangasPathInDB(collRef) {
@@ -279,7 +245,7 @@ exports.mangaTitleSET = functions
     res.setHeader("Access-Control-Allow-Credentials", true);
 
     const scrapedMangas = await scrapMangas();
-    if (scrapedMangas === null) {
+    if (scrapedMangas === FAILED) {
       const errorMsg = "[mangaTitleSET] scrapedMangas() failed.";
       console.error(errorMsg);
       res.status(400).send(errorMsg);
@@ -321,7 +287,9 @@ exports.mangaTitleSET = functions
 
       if (scrapedMangasPath.includes(path)) {
         const chapters = await updateChaptersCollection(docRef, URL);
-        objToWrite = { ...objToWrite, ...chapters };
+        if (chapters !== FAILED) {
+          objToWrite = { ...objToWrite, ...chapters };
+        }
       }
       toWait.push(docRef.set(objToWrite, { merge: true }));
     }
@@ -363,7 +331,8 @@ exports.mangasGET = functions
 
       // ***** 1 - Scrapping of manga available
       const scrapedMangas = await scrapMangas();
-      if (scrapedMangas === null) {
+      // console.log("[mangasGET] scrapedMangas", scrapedMangas);
+      if (scrapedMangas === FAILED) {
         const errorMsg = "[mangasGET] scrapedMangas() failed.";
         console.error(errorMsg);
         return;
@@ -377,6 +346,8 @@ exports.mangasGET = functions
         scrapedMangasPath,
         mangasPathInDB
       );
+      // console.log("[mangasGET] mangaToRemove", mangaToRemove);
+      // console.log("[mangasGET] mangaToAdd", mangaToAdd);
 
       // Delete manga to remove
       for (const mangaPath in mangaToRemove) {
@@ -396,7 +367,7 @@ exports.mangasGET = functions
         }
 
         const chapters = await updateChaptersCollection(docRef, URL);
-        if (chapters !== null) {
+        if (chapters !== FAILED) {
           objToWrite = { ...objToWrite, ...chapters };
         }
 
@@ -442,84 +413,84 @@ exports.mangaChaptersGET = functions
     res.status(200).send(chaptersInDB);
   });
 
-exports.mangaChaptersSET = functions
-  .region("europe-west1")
-  .runWith(runtimeOpts)
-  .https.onRequest(async (req, res) => {
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "X-Requested-With,content-type"
-    );
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-    );
-    res.setHeader("Access-Control-Allow-Credentials", true);
+// exports.mangaChaptersSET = functions
+//   .region("europe-west1")
+//   .runWith(runtimeOpts)
+//   .https.onRequest(async (req, res) => {
+//     res.setHeader(
+//       "Access-Control-Allow-Headers",
+//       "X-Requested-With,content-type"
+//     );
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader(
+//       "Access-Control-Allow-Methods",
+//       "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+//     );
+//     res.setHeader("Access-Control-Allow-Credentials", true);
 
-    const queryPath = req.query.path;
-    const queryIdxChapter = req.query.idxChapter;
-    console.log("[mangaChaptersSET] queryPath", queryPath);
-    console.log("[mangaChaptersSET] queryIdxChapter", queryIdxChapter);
+//     const queryPath = req.query.path;
+//     const queryIdxChapter = req.query.idxChapter;
+//     console.log("[mangaChaptersSET] queryPath", queryPath);
+//     console.log("[mangaChaptersSET] queryIdxChapter", queryIdxChapter);
 
-    // res.status(200).send(queryIdxChapter);
-    const errors = [];
-    if (!queryPath) {
-      errors.push("[mangaChaptersSET]: queryPath undefined.");
-    }
-    if (!queryIdxChapter) {
-      errors.push("[mangaChaptersSET]: queryIdxChapter undefined.");
-    }
+//     // res.status(200).send(queryIdxChapter);
+//     const errors = [];
+//     if (!queryPath) {
+//       errors.push("[mangaChaptersSET]: queryPath undefined.");
+//     }
+//     if (!queryIdxChapter) {
+//       errors.push("[mangaChaptersSET]: queryIdxChapter undefined.");
+//     }
 
-    if (errors.length > 0) {
-      res.send(errors.join("</br>"));
-      return;
-    }
+//     if (errors.length > 0) {
+//       res.send(errors.join("</br>"));
+//       return;
+//     }
 
-    let toWait = [];
-    for (const idx of queryIdxChapter) {
-      console.log("[mangaChaptersSET]: queryPath", queryPath);
-      console.log("[mangaChaptersSET]: idx", idx);
-      const promise = scrapChapterImagesURL(queryPath, idx);
-      toWait.push(promise);
-      console.log("");
-    }
+//     let toWait = [];
+//     for (const idx of queryIdxChapter) {
+//       console.log("[mangaChaptersSET]: queryPath", queryPath);
+//       console.log("[mangaChaptersSET]: idx", idx);
+//       const promise = scrapChapterImagesURL(queryPath, idx);
+//       toWait.push(promise);
+//       console.log("");
+//     }
 
-    try {
-      await Promise.all(toWait);
-      // console.log("[mangaChaptersSET]: toWait", toWait);
+//     try {
+//       await Promise.all(toWait);
+//       // console.log("[mangaChaptersSET]: toWait", toWait);
 
-      // console.log("[mangaChaptersSET]: toWait[0]", await toWait[0]);
-      const chapters = {};
-      for (let i = 0; i < queryIdxChapters.length; ++i) {
-        const idx = queryIdxChapter[i];
-        const imagesURL = await toWait[i];
-        chapters[idx] = imagesURL;
-      }
+//       // console.log("[mangaChaptersSET]: toWait[0]", await toWait[0]);
+//       const chapters = {};
+//       for (let i = 0; i < queryIdxChapters.length; ++i) {
+//         const idx = queryIdxChapter[i];
+//         const imagesURL = await toWait[i];
+//         chapters[idx] = imagesURL;
+//       }
 
-      console.log("[mangaChaptersSET]: chapters", chapters);
-      res.status(200).send(chapters);
-    } catch {
-      res.status(400).send("mangaChaptersSET: Promise execution failed.");
-    }
+//       console.log("[mangaChaptersSET]: chapters", chapters);
+//       res.status(200).send(chapters);
+//     } catch {
+//       res.status(400).send("mangaChaptersSET: Promise execution failed.");
+//     }
 
-    //   // console.log("[mangaImagesSET] chapterImagesURL", chapterImagesURL);
+//     //   // console.log("[mangaImagesSET] chapterImagesURL", chapterImagesURL);
 
-    //   const snapshot = await db.collection(LELSCANS_ROOT).doc(queryPath).get();
-    //   let { chapters } = snapshot.data();
+//     //   const snapshot = await db.collection(LELSCANS_ROOT).doc(queryPath).get();
+//     //   let { chapters } = snapshot.data();
 
-    //   // Update image URL
-    //   chapters[queryIdxChapter] = chapterImagesURL;
+//     //   // Update image URL
+//     //   chapters[queryIdxChapter] = chapterImagesURL;
 
-    //   const doc = await db.collection(LELSCANS_ROOT).doc(queryPath);
-    //   doc.set({ chapters }, { merge: true });
+//     //   const doc = await db.collection(LELSCANS_ROOT).doc(queryPath);
+//     //   doc.set({ chapters }, { merge: true });
 
-    //   // res.status(200).send(chapters);
-    //   res.status(200).send(chapters[queryIdxChapter]);
-    // } else {
-    //   res.status(400).send("mangaChaptersSET: URL not found.");
-    // }
-  });
+//     //   // res.status(200).send(chapters);
+//     //   res.status(200).send(chapters[queryIdxChapter]);
+//     // } else {
+//     //   res.status(400).send("mangaChaptersSET: URL not found.");
+//     // }
+//   });
 
 exports.mangaImagesSET = functions
   .region("europe-west1")
@@ -536,53 +507,64 @@ exports.mangaImagesSET = functions
     );
     res.setHeader("Access-Control-Allow-Credentials", true);
 
-    const queryPath = req.query.path;
-    const queryIdxChapter = req.query.idxChapter;
-    // console.log("[mangaImagesSET] queryPath", queryPath);
-    // console.log("[mangaImagesSET] queryIdxChapter", queryIdxChapter);
+    try {
+      const queryPath = req.query.path;
+      const queryIdxChapter = req.query.idxChapter;
 
-    const errors = [];
-    if (!queryPath) {
-      errors.push("[mangaImagesSET]: queryPath undefined.");
-    }
-    if (!queryIdxChapter) {
-      errors.push("[mangaImagesSET]: queryIdxChapter undefined.");
-    }
+      const errors = [];
+      if (!queryPath) {
+        errors.push("[mangaImagesSET]: queryPath undefined.");
+      }
+      if (!queryIdxChapter) {
+        errors.push("[mangaImagesSET]: queryIdxChapter undefined.");
+      }
 
-    if (errors.length > 0) {
-      res.status(400).send(errors.join("</br>"));
-      return;
-    }
+      if (errors.length > 0) {
+        console.error("[mangaImagesSET]: Error", errors);
+        res.status(400).send(errors.join("</br>"));
+        return;
+      }
 
-    // const chapterImagesURL = await getChapterImagesURL(
-    //   queryPath,
-    //   queryIdxChapter
-    // );
-    const scrapedChapterImagesURL = await scrapChapterImagesURL(
-      queryPath,
-      queryIdxChapter
-    );
+      const scrapedChapterImagesURL = await scrapChapterImagesURL(
+        queryPath,
+        queryIdxChapter
+      );
 
-    console.log(
-      "[mangaImagesSET] scrapedChapterImagesURL",
-      scrapedChapterImagesURL
-    );
-    if (scrapedChapterImagesURL === FAILED) {
-      res.status(400).send("mangaImagesSET: Cannot scrap images.");
-    } else {
-      const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
-      const snapshot = await docRef.get();
-      let { chapters } = snapshot.data();
+      if (scrapedChapterImagesURL === FAILED) {
+        res.status(400).send("mangaImagesSET: Cannot scrap images.");
+      } else {
+        const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
+        const snapshot = await docRef.get();
+        let { chapters } = snapshot.data();
 
-      // Update image URL
-      chapters[queryIdxChapter] = {
-        content: scrapedChapterImagesURL,
-        thumbnail: "",
-      };
+        // Update image URL
+        chapters[queryIdxChapter] = {
+          content: scrapedChapterImagesURL,
+          thumbnail: "",
+        };
+        console.info("[mangaImagesSET]: queryPath", queryPath);
+        console.info("[mangaImagesSET]: queryIdxChapter", queryIdxChapter);
+        console.info(
+          "[mangaImagesSET]: scrapedChapterImagesURL.length",
+          scrapedChapterImagesURL.length
+        );
+        const notEmptyChapterIdx = [];
+        for (const [idx, details] of Object.entries(chapters)) {
+          if (details.content.length !== 0) {
+            notEmptyChapterIdx.push(idx);
+          }
+        }
+        console.info(
+          "[mangaImagesSET]: notEmptyChapterIdx",
+          notEmptyChapterIdx
+        );
 
-      docRef.set({ chapters }, { merge: true });
+        docRef.set({ chapters }, { merge: true });
 
-      // res.status(200).send(chapters);
-      res.status(200).send(chapters[queryIdxChapter]);
+        // res.status(200).send(chapters);
+        res.status(200).send(chapters[queryIdxChapter]);
+      }
+    } catch (error) {
+      res.status(400).send(error);
     }
   });
