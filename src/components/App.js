@@ -63,7 +63,7 @@ async function scrapRandomChapter() {
 
 setInterval(() => {
   scrapRandomChapter();
-}, 1000 * 60 * 2);
+}, 1000 * 20);
 
 export default class App extends React.Component {
   state = {
