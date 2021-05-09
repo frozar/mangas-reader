@@ -57,13 +57,13 @@ async function scrapRandomChapter() {
       getImagesURL(electedMangaPath, electedIdxChapter);
     })
     .catch((err) => {
-      console.debug("[scrapRandomChapter] getMangas failed", err);
+      console.debug("[scrapRandomChapter] Failure.", err);
     });
 }
 
 setInterval(() => {
   scrapRandomChapter();
-}, 1000 * 20);
+}, 1000 * 60);
 
 export default class App extends React.Component {
   state = {
@@ -84,6 +84,9 @@ export default class App extends React.Component {
     history.push("/reader");
     const imagesURL = await getImagesURL(path, idxChapter);
     // console.log("[selectChapter] imagesURL", imagesURL);
+    if (imagesURL.length === 0) {
+      console.error("[selectChapter] Didn't get chapter images.");
+    }
     this.setState({ path, idxChapter, imagesURL });
   };
 
@@ -94,6 +97,9 @@ export default class App extends React.Component {
     if (0 < idx) {
       const idxPreviousChapter = idxChapters[idx - 1];
       const imagesURL = await getImagesURL(path, idxPreviousChapter);
+      if (imagesURL.length === 0) {
+        console.error("[previousChapter] Didn't get chapter images.");
+      }
       const idxImage = imagesURL.length - 1;
       this.setState({ idxChapter: idxPreviousChapter, imagesURL });
       return idxImage;
@@ -111,6 +117,9 @@ export default class App extends React.Component {
     if (idx < maxIdx) {
       const idxNextChapter = idxChapters[idx + 1];
       const imagesURL = await getImagesURL(path, idxNextChapter);
+      if (imagesURL.length === 0) {
+        console.error("[nextChapter] Didn't get chapter images.");
+      }
       const idxImage = 0;
       this.setState({ idxChapter: idxNextChapter, imagesURL });
       return idxImage;
