@@ -413,85 +413,6 @@ exports.mangaChaptersGET = functions
     res.status(200).send(chaptersInDB);
   });
 
-// exports.mangaChaptersSET = functions
-//   .region("europe-west1")
-//   .runWith(runtimeOpts)
-//   .https.onRequest(async (req, res) => {
-//     res.setHeader(
-//       "Access-Control-Allow-Headers",
-//       "X-Requested-With,content-type"
-//     );
-//     res.setHeader("Access-Control-Allow-Origin", "*");
-//     res.setHeader(
-//       "Access-Control-Allow-Methods",
-//       "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-//     );
-//     res.setHeader("Access-Control-Allow-Credentials", true);
-
-//     const queryPath = req.query.path;
-//     const queryIdxChapter = req.query.idxChapter;
-//     console.log("[mangaChaptersSET] queryPath", queryPath);
-//     console.log("[mangaChaptersSET] queryIdxChapter", queryIdxChapter);
-
-//     // res.status(200).send(queryIdxChapter);
-//     const errors = [];
-//     if (!queryPath) {
-//       errors.push("[mangaChaptersSET]: queryPath undefined.");
-//     }
-//     if (!queryIdxChapter) {
-//       errors.push("[mangaChaptersSET]: queryIdxChapter undefined.");
-//     }
-
-//     if (errors.length > 0) {
-//       res.send(errors.join("</br>"));
-//       return;
-//     }
-
-//     let toWait = [];
-//     for (const idx of queryIdxChapter) {
-//       console.log("[mangaChaptersSET]: queryPath", queryPath);
-//       console.log("[mangaChaptersSET]: idx", idx);
-//       const promise = scrapChapterImagesURL(queryPath, idx);
-//       toWait.push(promise);
-//       console.log("");
-//     }
-
-//     try {
-//       await Promise.all(toWait);
-//       // console.log("[mangaChaptersSET]: toWait", toWait);
-
-//       // console.log("[mangaChaptersSET]: toWait[0]", await toWait[0]);
-//       const chapters = {};
-//       for (let i = 0; i < queryIdxChapters.length; ++i) {
-//         const idx = queryIdxChapter[i];
-//         const imagesURL = await toWait[i];
-//         chapters[idx] = imagesURL;
-//       }
-
-//       console.log("[mangaChaptersSET]: chapters", chapters);
-//       res.status(200).send(chapters);
-//     } catch {
-//       res.status(400).send("mangaChaptersSET: Promise execution failed.");
-//     }
-
-//     //   // console.log("[mangaImagesSET] chapterImagesURL", chapterImagesURL);
-
-//     //   const snapshot = await db.collection(LELSCANS_ROOT).doc(queryPath).get();
-//     //   let { chapters } = snapshot.data();
-
-//     //   // Update image URL
-//     //   chapters[queryIdxChapter] = chapterImagesURL;
-
-//     //   const doc = await db.collection(LELSCANS_ROOT).doc(queryPath);
-//     //   doc.set({ chapters }, { merge: true });
-
-//     //   // res.status(200).send(chapters);
-//     //   res.status(200).send(chapters[queryIdxChapter]);
-//     // } else {
-//     //   res.status(400).send("mangaChaptersSET: URL not found.");
-//     // }
-//   });
-
 exports.mangaImagesSET = functions
   .region("europe-west1")
   .runWith(runtimeOpts)
@@ -542,22 +463,22 @@ exports.mangaImagesSET = functions
           content: scrapedChapterImagesURL,
           thumbnail: "",
         };
-        console.info("[mangaImagesSET]: queryPath", queryPath);
-        console.info("[mangaImagesSET]: queryIdxChapter", queryIdxChapter);
-        console.info(
-          "[mangaImagesSET]: scrapedChapterImagesURL.length",
-          scrapedChapterImagesURL.length
-        );
-        const notEmptyChapterIdx = [];
-        for (const [idx, details] of Object.entries(chapters)) {
-          if (details.content.length !== 0) {
-            notEmptyChapterIdx.push(idx);
-          }
-        }
-        console.info(
-          "[mangaImagesSET]: notEmptyChapterIdx",
-          notEmptyChapterIdx
-        );
+        // console.info("[mangaImagesSET]: queryPath", queryPath);
+        // console.info("[mangaImagesSET]: queryIdxChapter", queryIdxChapter);
+        // console.info(
+        //   "[mangaImagesSET]: scrapedChapterImagesURL.length",
+        //   scrapedChapterImagesURL.length
+        // );
+        // const notEmptyChapterIdx = [];
+        // for (const [idx, details] of Object.entries(chapters)) {
+        //   if (details.content.length !== 0) {
+        //     notEmptyChapterIdx.push(idx);
+        //   }
+        // }
+        // console.info(
+        //   "[mangaImagesSET]: notEmptyChapterIdx",
+        //   notEmptyChapterIdx
+        // );
 
         docRef.set({ chapters }, { merge: true });
 
