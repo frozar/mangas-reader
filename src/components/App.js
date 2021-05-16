@@ -23,53 +23,84 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
-const intervalId = setInterval(() => {
+const SECOND = 1000;
+const INTERVAL_MIN = SECOND * 30;
+const INTERVAL_MAX = SECOND * 60 * 15;
+const SCRAP_FACTOR = 1.5;
+let scrapInterval = INTERVAL_MIN;
+
+let intervalId = setInterval(() => {
   scrapRandomChapter();
-}, 1000 * 30);
+}, scrapInterval);
 
 async function scrapRandomChapter() {
-  getMangas()
-    .then((db) => {
-      const filterDb = {};
-      for (const [mangaPath, detail] of Object.entries(db)) {
-        const emptyChapters = [];
-        for (const [idx, chapterDetail] of Object.entries(detail.chapters)) {
-          if (chapterDetail.content.length === 0) {
-            emptyChapters.push(idx);
-          }
-        }
-        if (emptyChapters.length !== 0) {
-          filterDb[mangaPath] = emptyChapters;
+  try {
+    const db = await getMangas();
+    const filterDb = {};
+    for (const [mangaPath, detail] of Object.entries(db)) {
+      const emptyChapters = [];
+      for (const [idx, chapterDetail] of Object.entries(detail.chapters)) {
+        if (chapterDetail.content.length === 0) {
+          emptyChapters.push(idx);
         }
       }
+      if (emptyChapters.length !== 0) {
+        filterDb[mangaPath] = emptyChapters;
+      }
+    }
 
-      // If there's no more chapters to scrap, stop the auto scrap
-      if (Object.keys(filterDb) !== 0) {
+    // If there's no more chapters to scrap, stop the auto scrap
+    if (Object.keys(filterDb).length === 0) {
+      if (INTERVAL_MAX <= scrapInterval) {
         clearInterval(intervalId);
+        scrapInterval = INTERVAL_MAX;
         console.debug("[scrapRandomChapter] Stop auto scrap");
+      } else {
+        scrapInterval *= SCRAP_FACTOR;
+        clearInterval(intervalId);
+        intervalId = setInterval(() => {
+          scrapRandomChapter();
+        }, scrapInterval);
+        console.debug("[scrapRandomChapter] Increase interval", scrapInterval);
       }
-
-      const keys = Object.keys(filterDb);
-      // If there's no more chapter to scrap, skip.
-      if (keys.length === 0) {
-        return;
+    } else {
+      if (INTERVAL_MIN < scrapInterval) {
+        scrapInterval /= SCRAP_FACTOR;
+        clearInterval(intervalId);
+        intervalId = setInterval(() => {
+          scrapRandomChapter();
+        }, scrapInterval);
+        console.debug("[scrapRandomChapter] Decrease interval", scrapInterval);
+      } else {
+        clearInterval(intervalId);
+        scrapInterval = INTERVAL_MIN;
+        intervalId = setInterval(() => {
+          scrapRandomChapter();
+        }, scrapInterval);
+        console.debug("[scrapRandomChapter] Sustain interval", scrapInterval);
       }
-      const idxManga = getRandomInt(0, keys.length);
-      const electedMangaPath = keys[idxManga];
-      const idxChapter = getRandomInt(0, filterDb[electedMangaPath].length);
-      const electedIdxChapter = filterDb[electedMangaPath][idxChapter];
+    }
 
-      console.debug(
-        "[scrapRandomChapter] Trigger scrap of",
-        electedMangaPath,
-        "chapter",
-        electedIdxChapter
-      );
-      getImagesURL(electedMangaPath, electedIdxChapter);
-    })
-    .catch((err) => {
-      console.debug("[scrapRandomChapter] Failure.", err);
-    });
+    const keys = Object.keys(filterDb);
+    // If there's no more chapter to scrap, skip.
+    if (keys.length === 0) {
+      return;
+    }
+    const idxManga = getRandomInt(0, keys.length);
+    const electedMangaPath = keys[idxManga];
+    const idxChapter = getRandomInt(0, filterDb[electedMangaPath].length);
+    const electedIdxChapter = filterDb[electedMangaPath][idxChapter];
+
+    console.debug(
+      "[scrapRandomChapter] Trigger scrap of",
+      electedMangaPath,
+      "chapter",
+      electedIdxChapter
+    );
+    getImagesURL(electedMangaPath, electedIdxChapter);
+  } catch (error) {
+    console.debug("[scrapRandomChapter] Failure.", error);
+  }
 }
 
 export default class App extends React.Component {
