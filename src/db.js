@@ -9,23 +9,15 @@ const isLocalDev =
   window.location.hostname === "localhost" ||
   /192\.168\.{1}.*/.test(window.location.hostname);
 
-const LOCAL_ADDRESS = "192.168.8.100";
+const LOCAL_ADDRESS = "192.168.1.19";
 
 if (isLocalDev) {
-  // db.useEmulator("localhost", 8080);
   db.useEmulator(LOCAL_ADDRESS, 8080);
 }
 
 export const CLOUD_FUNCTION_ROOT = isLocalDev
-  ? // "http://localhost:5001/manga-b8fb3/europe-west1/"
-    "http://" + LOCAL_ADDRESS + ":5001/manga-b8fb3/europe-west1/"
-  : // "http://" + window.location.hostname + ":5001/manga-b8fb3/europe-west1/"
-    "https://europe-west1-manga-b8fb3.cloudfunctions.net/";
-// export const CLOUD_FUNCTION_ROOT =
-// window.location.hostname === "localhost" ||
-// /192\.168\.{1}.*/.test(window.location.hostname)
-//   ? "http://localhost:5001/manga-b8fb3/europe-west1/"
-//   : "https://europe-west1-manga-b8fb3.cloudfunctions.net/";
+  ? "http://" + LOCAL_ADDRESS + ":5001/manga-b8fb3/europe-west1/"
+  : "https://europe-west1-manga-b8fb3.cloudfunctions.net/";
 
 const URL_MANGA_IMAGES_SET = CLOUD_FUNCTION_ROOT + "mangaImagesSET";
 const URL_MANGAS_GET = CLOUD_FUNCTION_ROOT + "mangasGET";
@@ -42,7 +34,8 @@ export async function getMangas() {
 
     return mangas;
   } catch (error) {
-    throw new Error("[getMangas] " + error);
+    // throw new Error("[getMangas] " + error);
+    console.error("[getMangas] " + error);
   }
 }
 

@@ -23,6 +23,10 @@ function getRandomInt(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 }
 
+const intervalId = setInterval(() => {
+  scrapRandomChapter();
+}, 1000 * 30);
+
 async function scrapRandomChapter() {
   getMangas()
     .then((db) => {
@@ -38,6 +42,13 @@ async function scrapRandomChapter() {
           filterDb[mangaPath] = emptyChapters;
         }
       }
+
+      // If there's no more chapters to scrap, stop the auto scrap
+      if (Object.keys(filterDb) !== 0) {
+        clearInterval(intervalId);
+        console.debug("[scrapRandomChapter] Stop auto scrap");
+      }
+
       const keys = Object.keys(filterDb);
       // If there's no more chapter to scrap, skip.
       if (keys.length === 0) {
@@ -60,10 +71,6 @@ async function scrapRandomChapter() {
       console.debug("[scrapRandomChapter] Failure.", err);
     });
 }
-
-setInterval(() => {
-  scrapRandomChapter();
-}, 1000 * 60);
 
 export default class App extends React.Component {
   state = {
