@@ -5,9 +5,10 @@ import axios from "axios";
 
 const db = firebase.firestore();
 
-const isLocalDev =
-  window.location.hostname === "localhost" ||
-  /192\.168\.{1}.*/.test(window.location.hostname);
+// const isLocalDev =
+//   window.location.hostname === "localhost" ||
+//   /192\.168\.{1}.*/.test(window.location.hostname);
+const isLocalDev = false;
 
 const LOCAL_ADDRESS = "192.168.1.19";
 
