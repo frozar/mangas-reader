@@ -72,7 +72,16 @@ export default function DisplayImage(props) {
         }
       },
       onPinch: ({ offset: [dist] }) => {
-        set({ zoom: dist / 200 });
+        // console.log("useGesture props", props);
+        // Limit negative zoom
+        // console.log("useGesture distanceBounds", distanceBounds);
+        // min = 0;
+        // : { min, max }
+        // const clampedZoom = Math.max(0, dist / 2000);
+        // console.log("useGesture dist / 2000", dist / 2000);
+        // console.log("useGesture zoom", zoom.animation.to);
+        set({ zoom: dist / 2000 });
+        // set({ zoom: clampedZoom });
         setDisplayResetButton(true);
       },
     },
@@ -85,12 +94,22 @@ export default function DisplayImage(props) {
         initial: () => [x.get(), y.get()],
         // initial: () => [0, 0],
         // axis: "x",
-        // bounds: { left: -300, right: 300, top: -150, bottom: 150 },
+        bounds: {
+          left: -600,
+          right: 600,
+          top: -800,
+          // bottom: bottomLimit * factor,
+          bottom: 800,
+        },
         // rubberband: true,
         // swipeDistance: 20,
         // swipeVelocity: 0.01,
         // swipeDuration: 1000,
         // filterTaps: true,
+      },
+      pinch: {
+        // Limit zoom
+        distanceBounds: { min: 0, max: 4000 },
       },
     }
   );

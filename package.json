@@ -10,6 +10,7 @@
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
     "axios": "^0.21.1",
+    "child-process-promise": "^2.2.1",
     "dashify": "^2.0.0",
     "eslint-plugin-promise": "^4.2.1",
     "firebase": "^8.0.1",
@@ -18,7 +19,7 @@
     "react-dom": "^16.14.0",
     "react-helmet": "^6.1.0",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "^4.0.0",
+    "react-scripts": "^4.0.3",
     "react-spring": "^9.1.1",
     "react-use-gesture": "^9.1.3",
     "style-loader": "^2.0.0"

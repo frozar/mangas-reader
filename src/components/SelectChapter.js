@@ -37,10 +37,12 @@ export default function SelectChapter(props) {
 
       const chaptersJacket = {};
       for (const [idx, details] of Object.entries(chapters)) {
-        const { content: imagesURL } = details;
-        chaptersJacket[idx] = imagesURL[0];
-        // console.log("[SelectChapter] idx", idx);
-        // console.log("[SelectChapter] imagesURL", imagesURL);
+        const { content: imagesURL, thumbnail } = details;
+        if (thumbnail.length !== 0) {
+          chaptersJacket[idx] = thumbnail;
+        } else {
+          chaptersJacket[idx] = imagesURL[0];
+        }
       }
       // console.log("");
       setChaptersJacket(chaptersJacket);

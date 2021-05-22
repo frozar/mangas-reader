@@ -1,14 +1,36 @@
 /* eslint-disable no-await-in-loop */
+"use strict";
+
 const _ = require("lodash");
 // The Cloud Functions for Firebase SDK to create Cloud Functions and setup triggers.
 const functions = require("firebase-functions");
 const axios = require("axios");
 const { parse } = require("node-html-parser");
 
-// The Firebase Admin SDK to access Cloud Firestore.
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
+const exec = require("child-process-promise").exec;
+const spawn = require("child-process-promise").spawn;
+
 const admin = require("firebase-admin");
-admin.initializeApp();
+const firebaseConfig = {
+  apiKey: "AIzaSyDnqdKNJhMXzdH_9xzpOx1LIITcVKTy8js",
+  authDomain: "manga-b8fb3.firebaseapp.com",
+  databaseURL: "https://manga-b8fb3.firebaseio.com",
+  projectId: "manga-b8fb3",
+  storageBucket: "manga-b8fb3.appspot.com",
+  messagingSenderId: "266094841766",
+  appId: "1:266094841766:web:67abf73e5a959ec0b14967",
+  measurementId: "G-1X3975D4XF",
+};
+admin.initializeApp(firebaseConfig);
+
+// Cloud Firestore
 const db = admin.firestore();
+
+// Cloud Storage
+const storage = admin.storage();
 
 // The Firebase Admin SDK to access Cloud Firestore.
 const firebase_tools = require("firebase-tools");
@@ -78,6 +100,7 @@ async function getImageURL(URL) {
  * @param {String} path URL path for a given manga.
  * @param {Integer} idxChapter index of the chapter to retrieve the number of scan
  */
+// TODO: Add generation of thumbnail here
 async function scrapChapterImagesURL(path, idxChapter) {
   try {
     const URL = "https://lelscans.net/scan-" + path + "/" + idxChapter;
@@ -85,7 +108,6 @@ async function scrapChapterImagesURL(path, idxChapter) {
 
     const data = response.data;
     if (data) {
-      // console.log("[scrapChapterImagesURL] in if");
       const root = parse(data);
 
       const chapterURLsPromise = root
@@ -139,6 +161,8 @@ function diffScrapedVsDB(scrapedData, DBData) {
   return [mangaToRemoveFromDB, mangaToAddToDB];
 }
 
+// TODO: if there a thumbnail associated to a chapter,
+// delete the thumbnail as well
 async function updateChaptersCollection(docRef, URL) {
   try {
     const scrapedIdx = await scrapIdxChapters(URL);
@@ -381,6 +405,62 @@ exports.mangasGET = functions
     }
   });
 
+async function download(uri, filename) {
+  const writer = fs.createWriteStream(filename);
+
+  const response = await axios({
+    url: uri,
+    method: "GET",
+    responseType: "stream",
+  });
+
+  response.data.pipe(writer);
+
+  return new Promise((resolve, reject) => {
+    writer.on("finish", resolve);
+    writer.on("error", reject);
+  });
+}
+
+function getFileName(uri) {
+  const splittedUri = uri.split("/");
+  const fileName = splittedUri
+    .slice(splittedUri.length - 3, splittedUri.length)
+    .join("_");
+
+  return fileName;
+}
+
+async function createThumbnail(uri) {
+  const fileName = getFileName(uri);
+  const tempFilePath = path.join(os.tmpdir(), fileName);
+  await download(uri, tempFilePath);
+
+  // const command = 'identify -format "%w %h" ' + tempFilePath;
+  // const result = await exec(command);
+  // const dimensions = result.stdout;
+
+  // const divisorFactor = 4;
+  // const [shrinkedWidth, shrinkedHeight] = dimensions
+  //   .split(" ")
+  //   .map((x) => Math.floor(Number(x) / divisorFactor));
+
+  //   const subDimensions = shrinkedWidth + "x" + shrinkedHeight + ">";
+  const subDimensions = "200x200>";
+
+  const thumbFileName = `thumbnail_${fileName}`;
+  const thumbFilePath = path.join(os.tmpdir(), thumbFileName);
+  await spawn("convert", [
+    tempFilePath,
+    "-thumbnail",
+    subDimensions,
+    thumbFilePath,
+  ]);
+  fs.unlinkSync(tempFilePath);
+
+  return [thumbFileName, thumbFilePath];
+}
+
 exports.mangaChaptersGET = functions
   .region("europe-west1")
   .runWith(runtimeOpts)
@@ -396,21 +476,80 @@ exports.mangaChaptersGET = functions
     );
     res.setHeader("Access-Control-Allow-Credentials", true);
 
-    // ***** 0 - Check input parameters
-    const queryPath = req.query.path;
+    try {
+      // ***** 0 - Check input parameters
+      const queryPath = req.query.path;
 
-    if (!queryPath) {
-      res.status(400).send("[mangaChaptersGET] queryPath undefined.");
-      return;
+      if (!queryPath) {
+        res.status(400).send("[mangaChaptersGET] queryPath undefined.");
+        return;
+      }
+
+      // ***** 1 - Read chapter in DB and returns the result the client
+      const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
+      const snapshot = await docRef.get();
+      const dataDoc = snapshot.data();
+      const { chapters: chaptersInDB } = dataDoc;
+
+      res.status(200).send(chaptersInDB);
+
+      // ***** 2 - Create thumbnail for chapters
+      // 2.0 - Collect every chapter where the thumbnail is missing
+      const missingThumbnails = Object.entries(chaptersInDB)
+        .filter(([_, { thumbnail }]) => {
+          return thumbnail.length === 0;
+        })
+        .map(([idx, _]) => idx)
+        .reverse()
+        .slice(0, 2);
+
+      if (missingThumbnails.length === 0) {
+        return;
+      }
+
+      // 2.1 - Create the thumbnails with imageMagick and
+      //       upload to default bucket at 'thumbnails/'
+      let toWait = [];
+      const idxNThumbnail = [];
+      missingThumbnails.forEach((idx) => {
+        const process = async (idx) => {
+          const uri = chaptersInDB[idx].content[0];
+          const [thumbFileName, thumbFilePath] = await createThumbnail(uri);
+
+          const storageBucket = storage.bucket();
+
+          const uploadFile = async (filePath, destFileName) => {
+            const [resUpload] = await storageBucket.upload(filePath, {
+              destination: destFileName,
+              public: true,
+            });
+
+            const [metadata] = await resUpload.getMetadata();
+            const url = metadata.mediaLink;
+            idxNThumbnail.push([idx, url]);
+          };
+
+          const destFileName = "thumbnails/" + thumbFileName;
+          await uploadFile(thumbFilePath, destFileName);
+          fs.unlinkSync(thumbFilePath);
+        };
+
+        toWait.push(process(idx));
+      });
+
+      await Promise.all(toWait);
+
+      // 2.3 - Update the chapter field in DB to write
+      console.log("idxNThumbnail", idxNThumbnail);
+      for (const [idx, url] of idxNThumbnail) {
+        chaptersInDB[idx].thumbnail = url;
+      }
+
+      // 2.4 - Write updated chapter field in DB
+      docRef.set({ chapters: chaptersInDB }, { merge: true });
+    } catch (error) {
+      console.log("Error", error);
     }
-
-    // ***** 1 - Read chapter in DB and returns the result the client
-    const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
-    const snapshot = await docRef.get();
-    const dataDoc = snapshot.data();
-    const { chapters: chaptersInDB } = dataDoc;
-
-    res.status(200).send(chaptersInDB);
   });
 
 exports.mangaImagesSET = functions
@@ -489,3 +628,146 @@ exports.mangaImagesSET = functions
       res.status(400).send(error);
     }
   });
+
+// exports.createThumbnail = functions
+//   .region("europe-west1")
+//   .runWith(runtimeOpts)
+//   .https.onRequest(async (req, res) => {
+//     res.setHeader(
+//       "Access-Control-Allow-Headers",
+//       "X-Requested-With,content-type"
+//     );
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader(
+//       "Access-Control-Allow-Methods",
+//       "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+//     );
+//     res.setHeader("Access-Control-Allow-Credentials", true);
+
+//     try {
+//       const uri = "https://lelscans.net/mangas/one-piece/680/00.jpg";
+//       const splittedUri = uri.split("/");
+//       const fileName = splittedUri
+//         .slice(splittedUri.length - 3, splittedUri.length)
+//         .join("_");
+
+//       // const dir = path.dirname(filePath);
+//       // // if (!path.dirname(filePath) === "images/books") return;
+
+//       // // if (filename.startsWith("thumb_"))
+//       // //   return console.log("Image already a thumbnail");
+
+//       // console.log(fileBucket, filePath, contentType, dir);
+//       // bucket = admin.storage().bucket(fileBucket);
+//       const tempFilePath = path.join(os.tmpdir(), fileName);
+
+//       await download(uri, tempFilePath);
+
+//       // const result = await exec("identify", ["-format", "%w %h", tempFilePath]);
+//       const command = 'identify -format "%w %h" ' + tempFilePath;
+//       // console.log("command", command);
+//       const result = await exec(command);
+//       const dimensions = result.stdout;
+//       // var dimensionsErr = result.stderr;
+//       // const [width, height] = dimensions.split(" ").map((x) => Number(x));
+//       // console.log("[width, height]", [width, height]);
+
+//       const divisorFactor = 4;
+//       const [shrinkedWidth, shrinkedHeight] = dimensions
+//         .split(" ")
+//         .map((x) => Math.floor(Number(x) / divisorFactor));
+//       console.log("[shrinkedWidth, shrinkedHeight]", [
+//         shrinkedWidth,
+//         shrinkedHeight,
+//       ]);
+//       const subDimensions = shrinkedWidth + "x" + shrinkedHeight + ">";
+
+//       const thumbFileName = `thumbnail_${fileName}`;
+//       const thumbFilePath = path.join(os.tmpdir(), thumbFileName);
+//       await spawn("convert", [
+//         tempFilePath,
+//         "-thumbnail",
+//         subDimensions,
+//         thumbFilePath,
+//       ]);
+
+//       // gs://manga-b8fb3.appspot.com
+//       // res.status(200).send("[createThumbnail] Ok", fileName);
+
+//       // Points to the root reference
+//       // console.log("storage", storage);
+//       const storageBucket = storage.bucket();
+//       // const storageRef = admin.firestore().ref();
+//       // console.log("storageBucket  ", storageBucket);
+
+//       const deleteFile = async (fileName) => {
+//         await storageBucket.file(fileName).delete();
+
+//         console.log(`${fileName} deleted`);
+//       };
+
+//       // // deleteFile().catch(console.error);
+//       const [files0] = await storageBucket.getFiles();
+
+//       const toWait = [];
+//       console.log("0 Files:");
+//       files0.forEach(async (file) => {
+//         console.log(file.name);
+//         // await deleteFile(file.name);
+//         toWait.push(deleteFile(file.name));
+//       });
+
+//       await Promise.all(toWait);
+//       // console.log("After wait all");
+
+//       // const uploadFile = async (filePath, destFileName) => {
+//       //   const [resUpload] = await storageBucket.upload(filePath, {
+//       //     destination: destFileName,
+//       //     public: true,
+//       //   });
+
+//       //   console.log(`${filePath} uploaded to root`);
+//       //   const [metadata] = await resUpload.getMetadata();
+//       //   console.log("metadata", metadata);
+//       //   const url = metadata.mediaLink;
+//       //   console.log("URL file:", url);
+//       // };
+
+//       // const filePath = "/tmp/thumbnail_one-piece_680_00.jpg";
+//       // const destFileName = "thumbnails/thumbnail_one-piece_680_00.jpg";
+//       // await uploadFile(filePath, destFileName);
+
+//       // const [files1] = await storageBucket.getFiles();
+
+//       // console.log("1 Files:");
+//       // files1.forEach((file) => {
+//       //   console.log(file.name);
+//       // });
+
+//       // Points to 'images'
+//       // const imagesRef = storageRef.child("images");
+//       // const allImages = imagesRef.listAll();
+//       // const rootAll = storageRef.listAll();
+//       // const rootAll = storage.listAll();
+//       // console.log("[createThumbnail] rootAll", rootAll);
+
+//       // Points to 'images/space.jpg'
+//       // Note that you can use variables to create child values
+//       // const imageFileName = "space.jpg";
+//       // const spaceRef = imagesRef.child(imageFileName);
+
+//       // // File path is 'images/space.jpg'
+//       // var path = spaceRef.fullPath;
+
+//       // // File name is 'space.jpg'
+//       // var name = spaceRef.name;
+
+//       // // Points to 'images'
+//       // var imagesRef = spaceRef.parent;
+
+//       res.status(200).send("OK");
+//     } catch (error) {
+//       console.error("Error", error);
+//       res.status(400).send(error);
+//     }
+//   });
