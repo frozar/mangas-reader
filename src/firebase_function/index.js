@@ -500,8 +500,12 @@ exports.mangaChaptersGET = functions
           return thumbnail.length === 0;
         })
         .map(([idx, _]) => idx)
-        .slice(0, 4);
-      console.log("missingThumbnails", missingThumbnails);
+        .reverse()
+        .slice(0, 2);
+
+      if (missingThumbnails.length === 0) {
+        return;
+      }
 
       // 2.1 - Create the thumbnails with imageMagick and
       //       upload to default bucket at 'thumbnails/'
@@ -537,12 +541,11 @@ exports.mangaChaptersGET = functions
 
       // 2.3 - Update the chapter field in DB to write
       console.log("idxNThumbnail", idxNThumbnail);
-
       for (const [idx, url] of idxNThumbnail) {
         chaptersInDB[idx].thumbnail = url;
       }
 
-      // 2.4 - Writeupdated chapter field in DB
+      // 2.4 - Write updated chapter field in DB
       docRef.set({ chapters: chaptersInDB }, { merge: true });
     } catch (error) {
       console.log("Error", error);
