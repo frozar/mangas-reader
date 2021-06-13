@@ -66,10 +66,9 @@ const useStyles = makeStyles((theme) => ({
       },
     },
   },
-  backgroundImageThumb: {
-    backgroundPosition: "50%",
-    backgroundSize: "cover",
-    backgroundRepeat: "no-repeat",
+  backgroundImageThumbnail: {
+    maxWidth: "100%",
+    objectFit: "cover",
 
     height: "70%",
     marginTop: "15px",
@@ -95,9 +94,66 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+function _handleError(evt) {
+  console.log("Error", evt);
+}
+
+function Portrait(props) {
+  const classes = useStyles();
+  const inputEl = React.useRef(null);
+  const { picture, type } = props;
+  const [current, setCurrent] = React.useState(null);
+
+  React.useEffect(() => {
+    if (inputEl != null) {
+      setCurrent(inputEl.current);
+    }
+  }, []);
+
+  React.useEffect(() => {
+    // use of error event of the image tag
+    current?.addEventListener("error", _handleError);
+
+    return () => {
+      current?.removeEventListener("error", _handleError);
+    };
+  }, [current]);
+
+  let altStr;
+  if (type === "manga") {
+    altStr = picture !== undefined ? picture.split("/")[4] : "noPicture";
+  } else if (type === "chapter") {
+    if (picture.split("%2F").length === 1) {
+      altStr =
+        picture !== undefined
+          ? picture.split("/").slice(4, 6).join(" ")
+          : "noPicture";
+    } else {
+      altStr =
+        picture !== undefined
+          ? picture
+              .split("%2F")[1]
+              .split("?")[0]
+              .split("_")
+              .slice(1, 3)
+              .join(" ")
+          : "noPicture";
+    }
+  }
+
+  return (
+    <img
+      ref={inputEl}
+      className={classes.backgroundImageThumbnail}
+      src={picture}
+      alt={altStr}
+    />
+  );
+}
+
 export default function GridCard(props) {
   const classes = useStyles();
-  const { cards, handleOnClick } = props;
+  const { cards, handleOnClick, type, ...other } = props;
 
   return (
     <Grid
@@ -106,38 +162,35 @@ export default function GridCard(props) {
       justify="center"
       wrap="wrap"
     >
-      {cards.map(({ label, picture }) => (
-        <Grid
-          key={label}
-          item
-          className={classes.cardItem}
-          value={label}
-          onClick={(event) => {
-            handleOnClick(event, label);
-          }}
-        >
-          <Box className={classes.card}>
-            <Box
-              className={classes.backgroundImageThumb}
-              style={{
-                backgroundImage: `url("${picture}")`,
-              }}
-            />
-            <Grid
-              container
-              direction="column"
-              justify="center"
-              className={classes.cardTitleContainer}
-            >
-              <Grid item>
-                <Typography className={classes.cardTitle} variant="h2">
-                  {label}
-                </Typography>
+      {cards.map(({ label, picture }) => {
+        return (
+          <Grid
+            key={label}
+            item
+            className={classes.cardItem}
+            value={label}
+            onClick={(event) => {
+              handleOnClick(event, label);
+            }}
+          >
+            <Box className={classes.card}>
+              <Portrait {...other} picture={picture} type={type} />
+              <Grid
+                container
+                direction="column"
+                justify="center"
+                className={classes.cardTitleContainer}
+              >
+                <Grid item>
+                  <Typography className={classes.cardTitle} variant="h2">
+                    {label}
+                  </Typography>
+                </Grid>
               </Grid>
-            </Grid>
-          </Box>
-        </Grid>
-      ))}
+            </Box>
+          </Grid>
+        );
+      })}
     </Grid>
   );
 }
