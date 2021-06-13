@@ -12,9 +12,10 @@ if (useLocalDB) {
   db.useEmulator(LOCAL_ADDRESS, 8080);
 }
 
-const useLocalCloudFunction =
-  window.location.hostname === "localhost" ||
-  /192\.168\.{1}.*/.test(window.location.hostname);
+// const useLocalCloudFunction =
+//   window.location.hostname === "localhost" ||
+//   /192\.168\.{1}.*/.test(window.location.hostname);
+const useLocalCloudFunction = false;
 
 export const CLOUD_FUNCTION_ROOT = useLocalCloudFunction
   ? "http://" + LOCAL_ADDRESS + ":5001/manga-b8fb3/europe-west1/"
@@ -23,6 +24,7 @@ export const CLOUD_FUNCTION_ROOT = useLocalCloudFunction
 const URL_MANGA_IMAGES_SET = CLOUD_FUNCTION_ROOT + "mangaImagesSET";
 const URL_MANGAS_GET = CLOUD_FUNCTION_ROOT + "mangasGET";
 const URL_MANGA_CHAPTERS_GET = CLOUD_FUNCTION_ROOT + "mangaChaptersGET";
+export const URL_COMPUTER_THUMBNAIL = CLOUD_FUNCTION_ROOT + "computerThumbnail";
 export const LELSCANS_ROOT = "lelscans";
 
 export async function getMangas() {

@@ -1,8 +1,11 @@
 import React from "react";
+import axios from "axios";
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
+
+import { URL_COMPUTER_THUMBNAIL } from "../db";
 
 const useStyles = makeStyles((theme) => ({
   cardContainer: {
@@ -71,6 +74,7 @@ const useStyles = makeStyles((theme) => ({
     objectFit: "cover",
 
     height: "70%",
+    minHeight: "70%",
     marginTop: "15px",
     marginBottom: "10px",
     [theme.breakpoints.down("md")]: {
@@ -94,8 +98,31 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function _handleError(evt) {
-  console.log("Error", evt);
+function doHandleError(mangaPath, chapterIdx, thumbnailFilename) {
+  console.log("mangaPath", mangaPath);
+  console.log("chapterIdx", chapterIdx);
+  console.log("thumbnailFilename", thumbnailFilename);
+
+  // const options = {
+  //   headers: { "Content-Type": "application/json" },
+  // };
+  axios
+    .post(
+      URL_COMPUTER_THUMBNAIL,
+      {
+        mangaPath,
+        chapterIdx,
+        thumbnailFilename,
+      }
+      // ,
+      // options
+    )
+    .then(function (res) {
+      console.log("[doHandleError] Success");
+    })
+    .catch(function (error) {
+      console.log("[doHandleError] Failed");
+    });
 }
 
 function Portrait(props) {
@@ -110,34 +137,56 @@ function Portrait(props) {
     }
   }, []);
 
+  let mangaPath;
+  let chapterIdx;
+  let thumbnailFilename;
+
+  const handleError = React.useCallback(
+    (_) => {
+      doHandleError(mangaPath, chapterIdx, thumbnailFilename);
+    },
+    [mangaPath, chapterIdx, thumbnailFilename]
+  );
+
   React.useEffect(() => {
-    // use of error event of the image tag
-    current?.addEventListener("error", _handleError);
+    current?.addEventListener("error", handleError);
 
     return () => {
-      current?.removeEventListener("error", _handleError);
+      current?.removeEventListener("error", handleError);
     };
-  }, [current]);
+  }, [current, handleError]);
 
   let altStr;
   if (type === "manga") {
     altStr = picture !== undefined ? picture.split("/")[4] : "noPicture";
   } else if (type === "chapter") {
+    // If chapter DOESN'T have a thumbnail
     if (picture.split("%2F").length === 1) {
-      altStr =
-        picture !== undefined
-          ? picture.split("/").slice(4, 6).join(" ")
-          : "noPicture";
-    } else {
-      altStr =
-        picture !== undefined
-          ? picture
-              .split("%2F")[1]
-              .split("?")[0]
-              .split("_")
-              .slice(1, 3)
-              .join(" ")
-          : "noPicture";
+      if (picture !== undefined) {
+        const mangaChapter = picture.split("/").slice(4, 6);
+        [mangaPath, chapterIdx] = mangaChapter;
+        altStr = mangaChapter.join(" ");
+      } else {
+        altStr = "noPicture";
+      }
+    }
+    // If chapter has a thumbnail
+    else {
+      if (picture !== undefined) {
+        thumbnailFilename = picture
+          .split("?")[0]
+          .split("/")[9]
+          .replace("%2F", "/");
+        const mangaChapter = picture
+          .split("%2F")[1]
+          .split("?")[0]
+          .split("_")
+          .slice(1, 3);
+        [mangaPath, chapterIdx] = mangaChapter;
+        altStr = mangaChapter.join(" ");
+      } else {
+        altStr = "noPicture";
+      }
     }
   }
 
