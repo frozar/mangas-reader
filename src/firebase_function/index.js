@@ -2,35 +2,25 @@
 "use strict";
 
 const _ = require("lodash");
-// The Cloud Functions for Firebase SDK to create Cloud Functions and setup triggers.
-const functions = require("firebase-functions");
 const axios = require("axios");
 const { parse } = require("node-html-parser");
 
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-const exec = require("child-process-promise").exec;
 const spawn = require("child-process-promise").spawn;
 
 const admin = require("firebase-admin");
-const firebaseConfig = {
-  apiKey: "AIzaSyDnqdKNJhMXzdH_9xzpOx1LIITcVKTy8js",
-  authDomain: "manga-b8fb3.firebaseapp.com",
-  databaseURL: "https://manga-b8fb3.firebaseio.com",
-  projectId: "manga-b8fb3",
-  storageBucket: "manga-b8fb3.appspot.com",
-  messagingSenderId: "266094841766",
-  appId: "1:266094841766:web:67abf73e5a959ec0b14967",
-  measurementId: "G-1X3975D4XF",
-};
-admin.initializeApp(firebaseConfig);
+admin.initializeApp();
 
 // Cloud Firestore
 const db = admin.firestore();
 
 // Cloud Storage
 const storage = admin.storage();
+
+// Cloud Functions
+const functions = require("firebase-functions");
 
 // The Firebase Admin SDK to access Cloud Firestore.
 const firebase_tools = require("firebase-tools");
@@ -57,11 +47,11 @@ async function scrapIdxChapters(mangaURL) {
       const idxChapters = chapters.map((opt) => opt.childNodes[0].rawText);
       return idxChapters;
     } else {
-      console.error("[scrapIdxChapters] data: " + data);
+      functions.logger.error("[scrapIdxChapters] data: " + data);
       return FAILED;
     }
   } catch (error) {
-    console.error("[scrapIdxChapters] " + error);
+    functions.logger.error("[scrapIdxChapters] " + error);
     return FAILED;
   }
 }
@@ -85,11 +75,11 @@ async function getImageURL(URL) {
 
       return imageURL;
     } else {
-      console.error("[getImageURL] data:", data);
+      functions.logger.error("[getImageURL] data:", data);
       return FAILED;
     }
   } catch (error) {
-    console.error("[getImageURL] ", error);
+    functions.logger.error("[getImageURL] ", error);
     return FAILED;
   }
 }
@@ -131,11 +121,11 @@ async function scrapChapterImagesURL(path, idxChapter) {
         return chapterURLs;
       }
     } else {
-      console.error("[scrapChapterImagesURL] Data:", data);
+      functions.logger.error("[scrapChapterImagesURL] Data:", data);
       return FAILED;
     }
   } catch (error) {
-    console.error("[scrapChapterImagesURL] ", error);
+    functions.logger.error("[scrapChapterImagesURL] ", error);
     return FAILED;
   }
 }
@@ -201,7 +191,7 @@ async function updateChaptersCollection(docRef, URL) {
       return { chapters };
     }
   } catch (error) {
-    console.error("[updateChaptersCollection] " + error);
+    functions.logger.error("[updateChaptersCollection] " + error);
     return FAILED;
   }
 }
@@ -233,8 +223,8 @@ async function scrapMangas() {
 
     return scrapedMangas;
   } catch (error) {
-    console.error("[scrapMangas]: Cannot get info from lelscans");
-    console.error(error.code);
+    functions.logger.error("[scrapMangas]: Cannot get info from lelscans");
+    functions.logger.error(error.code);
     return FAILED;
   }
 }
@@ -271,7 +261,7 @@ exports.mangaTitleSET = functions
     const scrapedMangas = await scrapMangas();
     if (scrapedMangas === FAILED) {
       const errorMsg = "[mangaTitleSET] scrapedMangas() failed.";
-      console.error(errorMsg);
+      functions.logger.error(errorMsg);
       res.status(400).send(errorMsg);
       return;
     }
@@ -286,10 +276,10 @@ exports.mangaTitleSET = functions
     );
 
     if (mangaToAdd.length !== 0) {
-      console.info("[mangaTitleSET] mangaToAdd", mangaToAdd);
+      functions.logger.info("[mangaTitleSET] mangaToAdd", mangaToAdd);
     }
     if (mangaToRemove.length !== 0) {
-      console.info("[mangaTitleSET] mangaToRemove", mangaToRemove);
+      functions.logger.info("[mangaTitleSET] mangaToRemove", mangaToRemove);
     }
 
     // Delete manga to remove
@@ -350,15 +340,15 @@ exports.mangasGET = functions
         mangas[doc.id] = doc.data();
       });
 
-      // console.log("[mangasGET] mangas", mangas);
+      // functions.logger.log("[mangasGET] mangas", mangas);
       res.status(200).send(mangas);
 
       // ***** 1 - Scrapping of manga available
       const scrapedMangas = await scrapMangas();
-      // console.log("[mangasGET] scrapedMangas", scrapedMangas);
+      // functions.logger.log("[mangasGET] scrapedMangas", scrapedMangas);
       if (scrapedMangas === FAILED) {
         const errorMsg = "[mangasGET] scrapedMangas() failed.";
-        console.error(errorMsg);
+        functions.logger.error(errorMsg);
         return;
       }
 
@@ -370,8 +360,8 @@ exports.mangasGET = functions
         scrapedMangasPath,
         mangasPathInDB
       );
-      // console.log("[mangasGET] mangaToRemove", mangaToRemove);
-      // console.log("[mangasGET] mangaToAdd", mangaToAdd);
+      // functions.logger.log("[mangasGET] mangaToRemove", mangaToRemove);
+      // functions.logger.log("[mangasGET] mangaToAdd", mangaToAdd);
 
       // Delete manga to remove
       for (const mangaPath in mangaToRemove) {
@@ -503,6 +493,8 @@ exports.mangaChaptersGET = functions
         .reverse()
         .slice(0, 2);
 
+      functions.logger.log("missingThumbnails: ", missingThumbnails);
+
       if (missingThumbnails.length === 0) {
         return;
       }
@@ -540,7 +532,7 @@ exports.mangaChaptersGET = functions
       await Promise.all(toWait);
 
       // 2.3 - Update the chapter field in DB to write
-      console.log("idxNThumbnail", idxNThumbnail);
+      functions.logger.log("idxNThumbnail", idxNThumbnail);
       for (const [idx, url] of idxNThumbnail) {
         chaptersInDB[idx].thumbnail = url;
       }
@@ -548,7 +540,7 @@ exports.mangaChaptersGET = functions
       // 2.4 - Write updated chapter field in DB
       docRef.set({ chapters: chaptersInDB }, { merge: true });
     } catch (error) {
-      console.log("Error", error);
+      functions.logger.log("Error", error);
     }
   });
 
@@ -580,7 +572,7 @@ exports.mangaImagesSET = functions
       }
 
       if (errors.length > 0) {
-        console.error("[mangaImagesSET]: Error", errors);
+        functions.logger.error("[mangaImagesSET]: Error", errors);
         res.status(400).send(errors.join("</br>"));
         return;
       }
@@ -602,9 +594,9 @@ exports.mangaImagesSET = functions
           content: scrapedChapterImagesURL,
           thumbnail: "",
         };
-        // console.info("[mangaImagesSET]: queryPath", queryPath);
-        // console.info("[mangaImagesSET]: queryIdxChapter", queryIdxChapter);
-        // console.info(
+        // functions.logger.info("[mangaImagesSET]: queryPath", queryPath);
+        // functions.logger.info("[mangaImagesSET]: queryIdxChapter", queryIdxChapter);
+        // functions.logger.info(
         //   "[mangaImagesSET]: scrapedChapterImagesURL.length",
         //   scrapedChapterImagesURL.length
         // );
@@ -614,7 +606,7 @@ exports.mangaImagesSET = functions
         //     notEmptyChapterIdx.push(idx);
         //   }
         // }
-        // console.info(
+        // functions.logger.info(
         //   "[mangaImagesSET]: notEmptyChapterIdx",
         //   notEmptyChapterIdx
         // );
@@ -655,9 +647,9 @@ exports.mangaImagesSET = functions
 //       // // if (!path.dirname(filePath) === "images/books") return;
 
 //       // // if (filename.startsWith("thumb_"))
-//       // //   return console.log("Image already a thumbnail");
+//       // //   return functions.logger.log("Image already a thumbnail");
 
-//       // console.log(fileBucket, filePath, contentType, dir);
+//       // functions.logger.log(fileBucket, filePath, contentType, dir);
 //       // bucket = admin.storage().bucket(fileBucket);
 //       const tempFilePath = path.join(os.tmpdir(), fileName);
 
@@ -665,18 +657,18 @@ exports.mangaImagesSET = functions
 
 //       // const result = await exec("identify", ["-format", "%w %h", tempFilePath]);
 //       const command = 'identify -format "%w %h" ' + tempFilePath;
-//       // console.log("command", command);
+//       // functions.logger.log("command", command);
 //       const result = await exec(command);
 //       const dimensions = result.stdout;
 //       // var dimensionsErr = result.stderr;
 //       // const [width, height] = dimensions.split(" ").map((x) => Number(x));
-//       // console.log("[width, height]", [width, height]);
+//       // functions.logger.log("[width, height]", [width, height]);
 
 //       const divisorFactor = 4;
 //       const [shrinkedWidth, shrinkedHeight] = dimensions
 //         .split(" ")
 //         .map((x) => Math.floor(Number(x) / divisorFactor));
-//       console.log("[shrinkedWidth, shrinkedHeight]", [
+//       functions.logger.log("[shrinkedWidth, shrinkedHeight]", [
 //         shrinkedWidth,
 //         shrinkedHeight,
 //       ]);
@@ -695,30 +687,30 @@ exports.mangaImagesSET = functions
 //       // res.status(200).send("[createThumbnail] Ok", fileName);
 
 //       // Points to the root reference
-//       // console.log("storage", storage);
+//       // functions.logger.log("storage", storage);
 //       const storageBucket = storage.bucket();
 //       // const storageRef = admin.firestore().ref();
-//       // console.log("storageBucket  ", storageBucket);
+//       // functions.logger.log("storageBucket  ", storageBucket);
 
 //       const deleteFile = async (fileName) => {
 //         await storageBucket.file(fileName).delete();
 
-//         console.log(`${fileName} deleted`);
+//         functions.logger.log(`${fileName} deleted`);
 //       };
 
-//       // // deleteFile().catch(console.error);
+//       // // deleteFile().catch(functions.logger.error);
 //       const [files0] = await storageBucket.getFiles();
 
 //       const toWait = [];
-//       console.log("0 Files:");
+//       functions.logger.log("0 Files:");
 //       files0.forEach(async (file) => {
-//         console.log(file.name);
+//         functions.logger.log(file.name);
 //         // await deleteFile(file.name);
 //         toWait.push(deleteFile(file.name));
 //       });
 
 //       await Promise.all(toWait);
-//       // console.log("After wait all");
+//       // functions.logger.log("After wait all");
 
 //       // const uploadFile = async (filePath, destFileName) => {
 //       //   const [resUpload] = await storageBucket.upload(filePath, {
@@ -726,11 +718,11 @@ exports.mangaImagesSET = functions
 //       //     public: true,
 //       //   });
 
-//       //   console.log(`${filePath} uploaded to root`);
+//       //   functions.logger.log(`${filePath} uploaded to root`);
 //       //   const [metadata] = await resUpload.getMetadata();
-//       //   console.log("metadata", metadata);
+//       //   functions.logger.log("metadata", metadata);
 //       //   const url = metadata.mediaLink;
-//       //   console.log("URL file:", url);
+//       //   functions.logger.log("URL file:", url);
 //       // };
 
 //       // const filePath = "/tmp/thumbnail_one-piece_680_00.jpg";
@@ -739,9 +731,9 @@ exports.mangaImagesSET = functions
 
 //       // const [files1] = await storageBucket.getFiles();
 
-//       // console.log("1 Files:");
+//       // functions.logger.log("1 Files:");
 //       // files1.forEach((file) => {
-//       //   console.log(file.name);
+//       //   functions.logger.log(file.name);
 //       // });
 
 //       // Points to 'images'
@@ -749,7 +741,7 @@ exports.mangaImagesSET = functions
 //       // const allImages = imagesRef.listAll();
 //       // const rootAll = storageRef.listAll();
 //       // const rootAll = storage.listAll();
-//       // console.log("[createThumbnail] rootAll", rootAll);
+//       // functions.logger.log("[createThumbnail] rootAll", rootAll);
 
 //       // Points to 'images/space.jpg'
 //       // Note that you can use variables to create child values
@@ -767,7 +759,7 @@ exports.mangaImagesSET = functions
 
 //       res.status(200).send("OK");
 //     } catch (error) {
-//       console.error("Error", error);
+//       functions.logger.error("Error", error);
 //       res.status(400).send(error);
 //     }
 //   });
