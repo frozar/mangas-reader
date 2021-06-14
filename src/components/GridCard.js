@@ -99,24 +99,12 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function doHandleError(mangaPath, chapterIdx, thumbnailFilename) {
-  console.log("mangaPath", mangaPath);
-  console.log("chapterIdx", chapterIdx);
-  console.log("thumbnailFilename", thumbnailFilename);
-
-  // const options = {
-  //   headers: { "Content-Type": "application/json" },
-  // };
   axios
-    .post(
-      URL_COMPUTER_THUMBNAIL,
-      {
-        mangaPath,
-        chapterIdx,
-        thumbnailFilename,
-      }
-      // ,
-      // options
-    )
+    .post(URL_COMPUTER_THUMBNAIL, {
+      mangaPath,
+      chapterIdx,
+      thumbnailFilename,
+    })
     .then(function (res) {
       console.log("[doHandleError] Success");
     })

@@ -5,7 +5,7 @@ import axios from "axios";
 
 const db = firebase.firestore();
 
-const LOCAL_ADDRESS = "192.168.1.19";
+const LOCAL_ADDRESS = "192.168.30.137";
 
 const useLocalDB = false;
 if (useLocalDB) {
@@ -24,7 +24,7 @@ export const CLOUD_FUNCTION_ROOT = useLocalCloudFunction
 const URL_MANGA_IMAGES_SET = CLOUD_FUNCTION_ROOT + "mangaImagesSET";
 const URL_MANGAS_GET = CLOUD_FUNCTION_ROOT + "mangasGET";
 const URL_MANGA_CHAPTERS_GET = CLOUD_FUNCTION_ROOT + "mangaChaptersGET";
-export const URL_COMPUTER_THUMBNAIL = CLOUD_FUNCTION_ROOT + "computerThumbnail";
+export const URL_COMPUTER_THUMBNAIL = CLOUD_FUNCTION_ROOT + "computeThumbnail";
 export const LELSCANS_ROOT = "lelscans";
 
 export async function getMangas() {
