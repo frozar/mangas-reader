@@ -111,7 +111,7 @@ export default function SelectChapter(props) {
         </Grid>
       </Grid>
       <WaitingComponent loading={loading} />
-      <GridCard cards={cards} handleOnClick={handleOnClick} />
+      <GridCard cards={cards} handleOnClick={handleOnClick} type="chapter" />
     </div>
   );
 }

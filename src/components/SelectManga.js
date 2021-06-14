@@ -60,7 +60,7 @@ export default function SelectManga(props) {
         Choisis ton manga
       </Typography>
       <WaitingComponent loading={loading} />
-      <GridCard cards={cards} handleOnClick={handleOnClick} />
+      <GridCard cards={cards} handleOnClick={handleOnClick} type="manga" />
     </div>
   );
 }

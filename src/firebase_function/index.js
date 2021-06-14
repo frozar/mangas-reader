@@ -426,16 +426,6 @@ async function createThumbnail(uri) {
   const tempFilePath = path.join(os.tmpdir(), fileName);
   await download(uri, tempFilePath);
 
-  // const command = 'identify -format "%w %h" ' + tempFilePath;
-  // const result = await exec(command);
-  // const dimensions = result.stdout;
-
-  // const divisorFactor = 4;
-  // const [shrinkedWidth, shrinkedHeight] = dimensions
-  //   .split(" ")
-  //   .map((x) => Math.floor(Number(x) / divisorFactor));
-
-  //   const subDimensions = shrinkedWidth + "x" + shrinkedHeight + ">";
   const subDimensions = "200x200>";
 
   const thumbFileName = `thumbnail_${fileName}`;
@@ -450,6 +440,109 @@ async function createThumbnail(uri) {
 
   return [thumbFileName, thumbFilePath];
 }
+
+function isUndefinedOrEmpty(variable) {
+  return variable === "" || variable === undefined;
+}
+
+exports.computeThumbnail = functions
+  .region("europe-west1")
+  .runWith(runtimeOpts)
+  .https.onRequest(async (req, res) => {
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS");
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, Access-Control-Max-Age"
+    );
+    res.setHeader("Access-Control-Allow-Credentials", true);
+
+    if (req.method === "OPTIONS") {
+      res.status(200).send("Option OK");
+      return;
+    }
+
+    try {
+      const params = req.body;
+
+      // ***** 0 - Check input parameters
+      const { mangaPath, chapterIdx, thumbnailFilename } = params;
+
+      if (isUndefinedOrEmpty(mangaPath)) {
+        res.status(400).send("mangaPath undefined.");
+        return;
+      }
+
+      if (isUndefinedOrEmpty(chapterIdx)) {
+        res.status(400).send("chapterIdx undefined.");
+        return;
+      }
+
+      if (isUndefinedOrEmpty(thumbnailFilename)) {
+        res.status(400).send("thumbnailFilename undefined.");
+        return;
+      }
+
+      // ***** 1 - Read chapter in DB and returns the result the client
+      const docRef = db.collection(LELSCANS_ROOT).doc(mangaPath);
+      const snapshot = await docRef.get();
+      const dataDoc = snapshot.data();
+      const { chapters: chaptersInDB } = dataDoc;
+
+      // 1.0 - If chapter has a thumbnail in DB, delete it
+      if (chaptersInDB[chapterIdx].thumbnail !== "") {
+        chaptersInDB[chapterIdx].thumbnail = "";
+      }
+
+      // ***** 2 - Delete thumbnail in bucket
+      const storageBucket = storage.bucket();
+      try {
+        await storageBucket.file(thumbnailFilename).delete();
+      } catch (error) {
+        functions.logger.log("Cannot delete ", thumbnailFilename);
+        functions.logger.log("Error", error);
+      }
+
+      // ***** 3 - Compute thumbnail
+      const idxNThumbnail = [];
+      const process = async (idx) => {
+        const uri = chaptersInDB[idx].content[0];
+        const [thumbFileName, thumbFilePath] = await createThumbnail(uri);
+
+        const storageBucket = storage.bucket();
+
+        const uploadFile = async (filePath, destFileName) => {
+          const [resUpload] = await storageBucket.upload(filePath, {
+            destination: destFileName,
+            public: true,
+          });
+
+          const [metadata] = await resUpload.getMetadata();
+          const url = metadata.mediaLink;
+          idxNThumbnail.push([idx, url]);
+        };
+
+        const destFileName = "thumbnails/" + thumbFileName;
+        await uploadFile(thumbFilePath, destFileName);
+        fs.unlinkSync(thumbFilePath);
+      };
+
+      await process(chapterIdx);
+
+      // ***** 4 - Update the chapter field in DB to write
+      for (const [idx, url] of idxNThumbnail) {
+        chaptersInDB[idx].thumbnail = url;
+      }
+
+      // ***** 5 - Write updated chapter field in DB
+      docRef.set({ chapters: chaptersInDB }, { merge: true });
+
+      res.status(200).send("Success");
+      return;
+    } catch (error) {
+      functions.logger.log("Error", error);
+    }
+  });
 
 exports.mangaChaptersGET = functions
   .region("europe-west1")
@@ -492,8 +585,6 @@ exports.mangaChaptersGET = functions
         .map(([idx, _]) => idx)
         .reverse()
         .slice(0, 2);
-
-      functions.logger.log("missingThumbnails: ", missingThumbnails);
 
       if (missingThumbnails.length === 0) {
         return;
