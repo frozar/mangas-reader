@@ -202,9 +202,11 @@ export async function getStaticPaths() {
     return { params: { ...param } };
   });
 
+  // fallback == true : generate the page on 1st visit
+  // fallback == false : generate the page at build time
   return {
     paths,
-    fallback: false,
+    fallback: true,
   };
 }
 

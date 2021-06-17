@@ -28,7 +28,7 @@ if (useLocalDB) {
 
 // useLocalCloudFunction
 
-const LOCAL_ADDRESS = "192.168.30.137";
+const LOCAL_ADDRESS = "192.168.1.19";
 
 const CLOUD_FUNCTION_ROOT = process.env.USE_LOCAL_CLOUD_FUNCTION
   ? "http://" + LOCAL_ADDRESS + ":5001/manga-b8fb3/europe-west1/"
@@ -79,7 +79,7 @@ export const LELSCANS_ROOT = "lelscans";
 //   }
 // }
 
-console.log("CLOUD_FUNCTION_ROOT", CLOUD_FUNCTION_ROOT);
+// console.log("CLOUD_FUNCTION_ROOT", CLOUD_FUNCTION_ROOT);
 
 export async function getMangas() {
   try {
@@ -99,13 +99,13 @@ export async function getMangas() {
 export async function getMangasMeta() {
   try {
     const response = await axios.get(URL_MANGAS_META_GET);
-    console.log("response.status", response.status);
+    // console.log("response.status", response.status);
     if (response.status === 400) {
       throw response.statusText;
     }
     const mangas = response.data;
-    console.log("mangas", typeof mangas);
-    console.log("typeof {}", typeof {});
+    // console.log("mangas", typeof mangas);
+    // console.log("typeof {}", typeof {});
 
     return mangas;
   } catch (error) {
