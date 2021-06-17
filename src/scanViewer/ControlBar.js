@@ -7,7 +7,7 @@ import KeyboardArrowLeftRoundedIcon from "@material-ui/icons/KeyboardArrowLeftRo
 import KeyboardArrowRightRoundedIcon from "@material-ui/icons/KeyboardArrowRightRounded";
 import RotateLeftRoundedIcon from "@material-ui/icons/RotateLeftRounded";
 
-import Link from "../../../../src/Link";
+import Link from "../Link";
 
 function ControlButton(props) {
   const { onClick } = props;

@@ -6,8 +6,8 @@ import IconButton from "@material-ui/core/IconButton";
 import ViewComfyRoundedIcon from "@material-ui/icons/ViewComfyRounded";
 
 import Gallery from "./Gallery";
-import NavigationButton from "../../../../src/NavigationButton";
-import Link from "../../../../src/Link";
+import NavigationButton from "../NavigationButton";
+import Link from "../Link";
 
 export default function TopBar(props) {
   const { imagesURL, idManga, idChapter, idScan } = props;

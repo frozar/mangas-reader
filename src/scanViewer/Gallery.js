@@ -4,7 +4,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Drawer from "@material-ui/core/Drawer";
 import Typography from "@material-ui/core/Typography";
-import Link from "../../../../src/Link";
+import Link from "../Link";
 
 const useStyles = makeStyles((theme) => ({
   drawerContainer: {
