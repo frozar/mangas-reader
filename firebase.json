@@ -3,11 +3,8 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "functions": {
-    "predeploy": [
-      "npm --prefix \"$RESOURCE_DIR\" run lint"
-    ],
-    "source": "src/firebase_function"
+  "storage": {
+    "rules": "storage.rules"
   },
   "emulators": {
     "functions": {
@@ -18,8 +15,11 @@
       "host": "192.168.30.137",
       "port": 8080
     },
-    "ui": {
+    "storage": {
       "host": "192.168.30.137",
+      "port": 9199
+    },
+    "ui": {
       "enabled": true
     }
   }

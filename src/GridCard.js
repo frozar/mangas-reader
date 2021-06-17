@@ -1,11 +1,14 @@
 import React from "react";
 import axios from "axios";
+
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Box from "@material-ui/core/Box";
 import Typography from "@material-ui/core/Typography";
 
-import { URL_COMPUTER_THUMBNAIL } from "../db";
+import Link from "./Link";
+
+// import { URL_COMPUTER_THUMBNAIL } from "../db";
 
 const useStyles = makeStyles((theme) => ({
   cardContainer: {
@@ -99,18 +102,18 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 function doHandleError(mangaPath, chapterIdx, thumbnailFilename) {
-  axios
-    .post(URL_COMPUTER_THUMBNAIL, {
-      mangaPath,
-      chapterIdx,
-      thumbnailFilename,
-    })
-    .then(function (res) {
-      console.log("[doHandleError] Success");
-    })
-    .catch(function (error) {
-      console.log("[doHandleError] Failed");
-    });
+  // axios
+  //   .post(URL_COMPUTER_THUMBNAIL, {
+  //     mangaPath,
+  //     chapterIdx,
+  //     thumbnailFilename,
+  //   })
+  //   .then(function (res) {
+  //     console.log("[doHandleError] Success");
+  //   })
+  //   .catch(function (error) {
+  //     console.log("[doHandleError] Failed");
+  //   });
 }
 
 function Portrait(props) {
@@ -190,7 +193,7 @@ function Portrait(props) {
 
 export default function GridCard(props) {
   const classes = useStyles();
-  const { cards, handleOnClick, type, ...other } = props;
+  const { cards, type, ...other } = props;
 
   return (
     <Grid
@@ -199,33 +202,35 @@ export default function GridCard(props) {
       justify="center"
       wrap="wrap"
     >
-      {cards.map(({ label, picture }) => {
+      {cards.map(({ label, picture, link }) => {
+        // console.log("link", link);
         return (
-          <Grid
-            key={label}
-            item
-            className={classes.cardItem}
-            value={label}
-            onClick={(event) => {
-              handleOnClick(event, label);
-            }}
-          >
-            <Box className={classes.card}>
-              <Portrait {...other} picture={picture} type={type} />
-              <Grid
-                container
-                direction="column"
-                justify="center"
-                className={classes.cardTitleContainer}
-              >
-                <Grid item>
-                  <Typography className={classes.cardTitle} variant="h2">
-                    {label}
-                  </Typography>
+          <Link key={label} href={link}>
+            <Grid
+              item
+              className={classes.cardItem}
+              value={label}
+              // onClick={(event) => {
+              //   handleOnClick(event, label);
+              // }}
+            >
+              <Box className={classes.card}>
+                <Portrait {...other} picture={picture} type={type} />
+                <Grid
+                  container
+                  direction="column"
+                  justify="center"
+                  className={classes.cardTitleContainer}
+                >
+                  <Grid item>
+                    <Typography className={classes.cardTitle} variant="h2">
+                      {label}
+                    </Typography>
+                  </Grid>
                 </Grid>
-              </Grid>
-            </Box>
-          </Grid>
+              </Box>
+            </Grid>
+          </Link>
         );
       })}
     </Grid>

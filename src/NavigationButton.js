@@ -5,7 +5,7 @@ import SvgIcon from "@material-ui/core/SvgIcon";
 import ArrowBackRoundedIcon from "@material-ui/icons/ArrowBackRounded";
 
 import { makeStyles } from "@material-ui/core/styles";
-import history from "../history";
+// import history from "../history";
 
 const useStyles = makeStyles((theme) => ({
   label: {
@@ -19,7 +19,7 @@ const useStyles = makeStyles((theme) => ({
 export default function NavigationButton(props) {
   const classes = useStyles();
 
-  const { setLoading, route } = props;
+  // const { setLoading, route } = props;
 
   const color = props.color ? props.color : "black";
 
@@ -29,10 +29,10 @@ export default function NavigationButton(props) {
       style={{
         color,
       }}
-      onClick={() => {
-        setLoading(true);
-        history.push(route);
-      }}
+      // onClick={() => {
+      //   setLoading(true);
+      //   // history.push(route);
+      // }}
       classes={{
         label: classes.label,
       }}

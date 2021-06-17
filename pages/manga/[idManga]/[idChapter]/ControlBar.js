@@ -7,6 +7,8 @@ import KeyboardArrowLeftRoundedIcon from "@material-ui/icons/KeyboardArrowLeftRo
 import KeyboardArrowRightRoundedIcon from "@material-ui/icons/KeyboardArrowRightRounded";
 import RotateLeftRoundedIcon from "@material-ui/icons/RotateLeftRounded";
 
+import Link from "../../../../src/Link";
+
 function ControlButton(props) {
   const { onClick } = props;
 
@@ -32,11 +34,13 @@ function ControlButton(props) {
 
 export default function ControlBar(props) {
   const {
-    setLoading,
-    getPreviousImage,
-    getNextImage,
+    // setLoading,
+    // getPreviousImage,
+    // getNextImage,
     resetPanAndZoom,
     displayResetButton,
+    previousLink,
+    nextLink,
   } = props;
 
   return (
@@ -56,14 +60,13 @@ export default function ControlBar(props) {
       }}
     >
       <Grid item>
-        <ControlButton
-          onClick={(_) => {
-            setLoading(true);
-            setTimeout(() => getPreviousImage(), 0);
-          }}
-        >
-          <KeyboardArrowLeftRoundedIcon fontSize="large" />
-        </ControlButton>
+        {previousLink !== null && (
+          <Link href={previousLink}>
+            <ControlButton onClick={(_) => {}}>
+              <KeyboardArrowLeftRoundedIcon fontSize="large" />
+            </ControlButton>
+          </Link>
+        )}
       </Grid>
       <Grid
         item
@@ -78,14 +81,13 @@ export default function ControlBar(props) {
         </ControlButton>
       </Grid>
       <Grid item>
-        <ControlButton
-          onClick={(_) => {
-            setLoading(true);
-            setTimeout(() => getNextImage(), 0);
-          }}
-        >
-          <KeyboardArrowRightRoundedIcon fontSize="large" />
-        </ControlButton>
+        {nextLink !== null && (
+          <Link href={nextLink}>
+            <ControlButton onClick={(_) => {}}>
+              <KeyboardArrowRightRoundedIcon fontSize="large" />
+            </ControlButton>
+          </Link>
+        )}
       </Grid>
     </Grid>
   );

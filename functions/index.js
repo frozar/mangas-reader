@@ -1,4 +1,13 @@
-/* eslint-disable no-await-in-loop */
+// const functions = require("firebase-functions");
+
+// // // Create and Deploy Your First Cloud Functions
+// // // https://firebase.google.com/docs/functions/write-firebase-functions
+// //
+// // exports.helloWorld = functions.https.onRequest((request, response) => {
+// //   functions.logger.info("Hello logs!", {structuredData: true});
+// //   response.send("Hello from Firebase!");
+// // });
+
 "use strict";
 
 const _ = require("lodash");
@@ -312,6 +321,134 @@ exports.mangaTitleSET = functions
     res.status(200).send("mangaTitleSET: SUCCESS");
   });
 
+// /**
+//  * Write the title and URL in DB for each manga available on lelscans.
+//  */
+// exports.mangasChaptersGET = functions
+//   .region("europe-west1")
+//   .runWith(runtimeOpts)
+//   .https.onRequest(async (req, res) => {
+//     res.setHeader(
+//       "Access-Control-Allow-Headers",
+//       "X-Requested-With,content-type"
+//     );
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader(
+//       "Access-Control-Allow-Methods",
+//       "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+//     );
+//     res.setHeader("Access-Control-Allow-Credentials", true);
+
+//     try {
+//       // ***** 0 - Read mangas in DB and returns the result the client
+//       console.log("0");
+//       const collRef = db.collection(LELSCANS_ROOT);
+//       console.log("1");
+//       // const snapshot = await collRef.get();
+//       console.log("2");
+//       const snapshot = await collRef.where("meta", "==", false).get();
+
+//       const mangas = {};
+//       console.log("3");
+//       snapshot.forEach((doc) => {
+//         // if (!/.*_chapters|.*_meta/.test(doc.id)) {
+//         console.log("doc.id", doc.id);
+//         mangas[doc.id] = doc.data();
+//         // }
+//       });
+//       console.log("4");
+
+//       // // functions.logger.log("[mangasGET] mangas", mangas);
+
+//       // // Add manga to add
+//       // let toWait = [];
+//       // for (const [path, manga] of Object.entries(mangas)) {
+//       //   console.log("path:", path);
+//       //   const { chapters } = manga;
+
+//       //   const docRef = collRef.doc(path + "_chapters");
+//       //   const meta = false;
+
+//       //   let objToWrite = { chapters, meta };
+
+//       //   toWait.push(docRef.set(objToWrite, { merge: true }));
+//       // }
+//       // await Promise.all(toWait);
+//       // console.log("5");
+
+//       res.status(200).send(mangas);
+//       console.log("6");
+//     } catch (error) {
+//       res.status(400).send(error);
+//     }
+//   });
+
+/**
+ * Write the title and URL in DB for each manga available on lelscans.
+ */
+exports.mangasMetaGET = functions
+  .region("europe-west1")
+  .runWith(runtimeOpts)
+  .https.onRequest(async (req, res) => {
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "X-Requested-With,content-type"
+    );
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+    );
+    res.setHeader("Access-Control-Allow-Credentials", true);
+
+    try {
+      // ***** 0 - Read mangas in DB and returns the result the client
+      // console.log("0");
+      const collRef = db.collection(LELSCANS_ROOT);
+
+      // console.log("1");
+      // const snapshot = await collRef.get();
+      // // console.log("2");
+
+      // // Create a query against the collection.
+      const snapshot = await collRef.where("meta", "==", true).get();
+      // const snapshot = await collRef.where("title", "==", "Beelzebub").get();
+
+      const mangas = {};
+      // console.log("3");
+      snapshot.forEach((doc) => {
+        // if (!/.*_meta|.*_chapters/.test(doc.id)) {
+        console.log("doc.id", doc.id);
+        mangas[doc.id] = doc.data();
+        // }
+      });
+      // console.log("4");
+
+      // // functions.logger.log("[mangasGET] mangas", mangas);
+
+      // // Add manga to add
+      // let toWait = [];
+      // for (const [_, manga] of Object.entries(mangas)) {
+      //   const { URL, path, thumbnail, title } = manga;
+      //   console.log("path:", path);
+
+      //   const docRef = collRef.doc(path + "_meta");
+      //   const meta = true;
+
+      //   let objToWrite = { title, URL, path, thumbnail, meta };
+
+      //   toWait.push(docRef.set(objToWrite, { merge: true }));
+      // }
+      // await Promise.all(toWait);
+      // console.log("5");
+
+      res.status(200).send(mangas);
+      // // console.log("6");
+    } catch (error) {
+      res.status(400).send(error);
+    }
+  });
+
 /**
  * Write the title and URL in DB for each manga available on lelscans.
  */
@@ -343,53 +480,53 @@ exports.mangasGET = functions
       // functions.logger.log("[mangasGET] mangas", mangas);
       res.status(200).send(mangas);
 
-      // ***** 1 - Scrapping of manga available
-      const scrapedMangas = await scrapMangas();
-      // functions.logger.log("[mangasGET] scrapedMangas", scrapedMangas);
-      if (scrapedMangas === FAILED) {
-        const errorMsg = "[mangasGET] scrapedMangas() failed.";
-        functions.logger.error(errorMsg);
-        return;
-      }
+      // // ***** 1 - Scrapping of manga available
+      // const scrapedMangas = await scrapMangas();
+      // // functions.logger.log("[mangasGET] scrapedMangas", scrapedMangas);
+      // if (scrapedMangas === FAILED) {
+      //   const errorMsg = "[mangasGET] scrapedMangas() failed.";
+      //   functions.logger.error(errorMsg);
+      //   return;
+      // }
 
-      const scrapedMangasPath = Object.keys(scrapedMangas);
-      const mangasPathInDB = Object.keys(mangas);
+      // const scrapedMangasPath = Object.keys(scrapedMangas);
+      // const mangasPathInDB = Object.keys(mangas);
 
-      // ***** 2 - Compare scrapped data with the DB. If different, update DB.
-      const [mangaToRemove, mangaToAdd] = diffScrapedVsDB(
-        scrapedMangasPath,
-        mangasPathInDB
-      );
-      // functions.logger.log("[mangasGET] mangaToRemove", mangaToRemove);
-      // functions.logger.log("[mangasGET] mangaToAdd", mangaToAdd);
+      // // ***** 2 - Compare scrapped data with the DB. If different, update DB.
+      // const [mangaToRemove, mangaToAdd] = diffScrapedVsDB(
+      //   scrapedMangasPath,
+      //   mangasPathInDB
+      // );
+      // // functions.logger.log("[mangasGET] mangaToRemove", mangaToRemove);
+      // // functions.logger.log("[mangasGET] mangaToAdd", mangaToAdd);
 
-      // Delete manga to remove
-      for (const mangaPath in mangaToRemove) {
-        deletePathDB(LELSCANS_ROOT + "/" + mangaPath);
-      }
+      // // Delete manga to remove
+      // for (const mangaPath in mangaToRemove) {
+      //   deletePathDB(LELSCANS_ROOT + "/" + mangaPath);
+      // }
 
-      // Add manga to add
-      let toWait = [];
-      for (const [path, manga] of Object.entries(scrapedMangas)) {
-        const { title, URL, thumbnail } = manga;
+      // // Add manga to add
+      // let toWait = [];
+      // for (const [path, manga] of Object.entries(scrapedMangas)) {
+      //   const { title, URL, thumbnail } = manga;
 
-        const docRef = collRef.doc(path);
+      //   const docRef = collRef.doc(path);
 
-        let objToWrite = {};
-        if (mangaToAdd.includes(path)) {
-          objToWrite = { title, URL, path, thumbnail };
-        }
+      //   let objToWrite = {};
+      //   if (mangaToAdd.includes(path)) {
+      //     objToWrite = { title, URL, path, thumbnail };
+      //   }
 
-        const chapters = await updateChaptersCollection(docRef, URL);
-        if (chapters !== FAILED) {
-          objToWrite = { ...objToWrite, ...chapters };
-        }
+      //   const chapters = await updateChaptersCollection(docRef, URL);
+      //   if (chapters !== FAILED) {
+      //     objToWrite = { ...objToWrite, ...chapters };
+      //   }
 
-        if (!_.isEmpty(objToWrite)) {
-          toWait.push(docRef.set(objToWrite, { merge: true }));
-        }
-      }
-      await Promise.all(toWait);
+      //   if (!_.isEmpty(objToWrite)) {
+      //     toWait.push(docRef.set(objToWrite, { merge: true }));
+      //   }
+      // }
+      // await Promise.all(toWait);
     } catch (error) {
       res.status(400).send(error);
     }

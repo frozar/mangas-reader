@@ -4,6 +4,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Drawer from "@material-ui/core/Drawer";
 import Typography from "@material-ui/core/Typography";
+import Link from "../../../../src/Link";
 
 const useStyles = makeStyles((theme) => ({
   drawerContainer: {
@@ -80,20 +81,14 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Gallery(props) {
   const classes = useStyles();
-  const {
-    imagesURL,
-    idxImage,
-    setIdxImage,
-    openGallery,
-    toggleGallery,
-    idxChapter,
-  } = props;
+  const { imagesURL, openGallery, toggleGallery, idManga, idChapter, idScan } =
+    props;
 
   return (
     <Drawer anchor={"right"} open={openGallery} onClose={toggleGallery}>
       <div className={classes.drawerContainer}>
         <Grid item container className={classes.galleryTitle} justify="center">
-          <Typography variant="h2">{`Chapitre ${idxChapter}`}</Typography>
+          <Typography variant="h2">{`Chapitre ${idChapter}`}</Typography>
         </Grid>
         <Grid
           container
@@ -113,25 +108,28 @@ export default function Gallery(props) {
                 item
                 className={classes.cardItem}
                 onClick={(_) => {
-                  setIdxImage(idx);
+                  // setIdxImage(idx);
                   toggleGallery();
                 }}
               >
-                <div className={classes.imageContainer}>
-                  <img
-                    src={imageURL}
-                    alt={`${idx}`}
-                    className={classes.image}
-                  />
-                  <div
-                    className={classes.label}
-                    style={{
-                      color: idxImage === idx ? "lime" : "undefined",
-                    }}
-                  >
-                    {idx + 1}
+                <Link href={`/manga/${idManga}/${idChapter}/${idx}`}>
+                  <div className={classes.imageContainer}>
+                    <img
+                      src={imageURL}
+                      alt={`${idx}`}
+                      className={classes.image}
+                    />
+                    <div
+                      className={classes.label}
+                      style={{
+                        color:
+                          Number(idScan) === Number(idx) ? "lime" : "undefined",
+                      }}
+                    >
+                      {idx + 1}
+                    </div>
                   </div>
-                </div>
+                </Link>
               </Grid>
             );
           })}

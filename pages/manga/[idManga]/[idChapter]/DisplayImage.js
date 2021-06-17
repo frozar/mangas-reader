@@ -1,12 +1,12 @@
-import React, { useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { animated, to } from "react-spring";
 import { useGesture } from "react-use-gesture";
 
 import Grid from "@material-ui/core/Grid";
 
-import WaitingComponent from "../WaitingComponent";
+// import WaitingComponent from "../WaitingComponent";
 
-const isMobile = (function (a) {
+const isMobileFunc = function (a) {
   const res =
     /(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(
       a
@@ -15,52 +15,77 @@ const isMobile = (function (a) {
       a.substr(0, 4)
     );
   return res;
-})(navigator.userAgent || navigator.vendor || window.opera);
+};
 
 export default function DisplayImage(props) {
-  const { imageURL, loading, setLoading, set, setDisplayResetButton } = props;
-  const { x, y, zoom, scale } = props.springDict;
-  const domTarget = React.useRef(null);
-
-  const updateLoadingState = useCallback(() => {
-    const scans = Array.from(document.querySelectorAll("#scan"));
-    if (scans.length === 0) {
-      setLoading(true);
-    } else if (scans.length === 1) {
-      const scan = scans[0];
-      const isLoaded = scan.complete && scan.naturalHeight !== 0;
-      setLoading(!isLoaded);
-
-      if (!isMobile && isLoaded) {
-        const bodyRect = document.body.getBoundingClientRect();
-        const elemRect = scan.getBoundingClientRect();
-        const offsetTop = elemRect.top - bodyRect.top;
-        window.scrollTo({ top: offsetTop, behavior: "smooth" });
-      }
-    } else {
-      const someScanNotLoaded = scans
-        .map((scan) => scan.complete && scan.naturalHeight !== 0)
-        .some((bool) => bool === false);
-      setLoading(someScanNotLoaded);
-      if (someScanNotLoaded) {
-        setTimeout(() => updateLoadingState(), 0);
-      }
-
-      if (!isMobile && !someScanNotLoaded) {
-        const bodyRect = document.body.getBoundingClientRect();
-        const elemRect = scans[0].getBoundingClientRect();
-        const offsetTop = elemRect.top - bodyRect.top;
-        window.scrollTo({ top: offsetTop, behavior: "smooth" });
-      }
-    }
-  }, [setLoading]);
+  const { imageURL, set, setDisplayResetButton, springDict } = props;
+  const { x, y, zoom, scale } = springDict;
+  const domTarget = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+  // const loading = false;
 
   useEffect(() => {
-    updateLoadingState();
-  }, [updateLoadingState]);
+    if (isMobileFunc(navigator.userAgent || navigator.vendor || window.opera)) {
+      // setMobileHeight("73vh");
+      setIsMobile(true);
+    }
+  }, []);
+
+  // const updateLoadingState = useCallback(() => {
+  //   const scans = Array.from(document.querySelectorAll("#scan"));
+  //   if (scans.length === 0) {
+  //     // setLoading(true);
+  //   } else if (scans.length === 1) {
+  //     const scan = scans[0];
+  //     const isLoaded = scan.complete && scan.naturalHeight !== 0;
+  //     // setLoading(!isLoaded);
+
+  //     if (!isMobile && isLoaded) {
+  //       const bodyRect = document.body.getBoundingClientRect();
+  //       const elemRect = scan.getBoundingClientRect();
+  //       const offsetTop = elemRect.top - bodyRect.top;
+  //       window.scrollTo({ top: offsetTop, behavior: "smooth" });
+  //     }
+  //   } else {
+  //     const someScanNotLoaded = scans
+  //       .map((scan) => scan.complete && scan.naturalHeight !== 0)
+  //       .some((bool) => bool === false);
+  //     // setLoading(someScanNotLoaded);
+  //     if (someScanNotLoaded) {
+  //       setTimeout(() => updateLoadingState(), 0);
+  //     }
+
+  //     if (!isMobile && !someScanNotLoaded) {
+  //       const bodyRect = document.body.getBoundingClientRect();
+  //       const elemRect = scans[0].getBoundingClientRect();
+  //       const offsetTop = elemRect.top - bodyRect.top;
+  //       window.scrollTo({ top: offsetTop, behavior: "smooth" });
+  //     }
+  //   }
+  //   // }, [setLoading]);
+  // }, [isMobile]);
+
+  // useEffect(() => {
+  //   updateLoadingState();
+  // }, [updateLoadingState]);
+
+  const updateDisplayScroll = useCallback(() => {
+    if (!isMobile) {
+      const scans = Array.from(document.querySelectorAll("#scan"));
+      const bodyRect = document.body.getBoundingClientRect();
+      const elemRect = scans[0].getBoundingClientRect();
+      const offsetTop = elemRect.top - bodyRect.top;
+      window.scrollTo({ top: offsetTop, behavior: "smooth" });
+    }
+  });
+
+  useEffect(() => {
+    updateDisplayScroll();
+  }, [updateDisplayScroll, isMobile]);
 
   const imageLoaded = () => {
-    updateLoadingState();
+    // updateLoadingState();
+    updateDisplayScroll();
   };
 
   useGesture(
@@ -128,30 +153,6 @@ export default function DisplayImage(props) {
       }}
     >
       <Grid item>
-        {loading && (
-          <div
-            style={{
-              position: "absolute",
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              justifyContent: "center",
-              right: 0,
-              bottom: 0,
-              top: 0,
-              left: 0,
-              backgroundColor: "rgba(0, 0, 0, 0.5)",
-              WebkitTapHighlightColor: "transparent",
-              color: "white",
-            }}
-          >
-            <WaitingComponent
-              loading={loading}
-              color={"white"}
-              marginTop={"0px"}
-            />
-          </div>
-        )}
         <animated.img
           ref={domTarget}
           id="scan"

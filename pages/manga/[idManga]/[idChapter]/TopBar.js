@@ -5,18 +5,12 @@ import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import ViewComfyRoundedIcon from "@material-ui/icons/ViewComfyRounded";
 
-import NavigationButton from "../NavigationButton";
 import Gallery from "./Gallery";
+import NavigationButton from "../../../../src/NavigationButton";
+import Link from "../../../../src/Link";
 
 export default function TopBar(props) {
-  const {
-    path,
-    idxChapter,
-    setLoading,
-    imagesURL,
-    idxImage,
-    setIdxImage,
-  } = props;
+  const { imagesURL, idManga, idChapter, idScan } = props;
   const [openGallery, setOpenGallery] = useState(false);
 
   const toggleGallery = () => {
@@ -24,10 +18,10 @@ export default function TopBar(props) {
   };
 
   const undashify = (string) => {
-    return string.replaceAll("-", " ");
+    return string.replace(/-/g, " ");
   };
 
-  const title = undashify(path);
+  const title = undashify(idManga);
 
   return (
     <>
@@ -53,11 +47,9 @@ export default function TopBar(props) {
             spacing={1}
           >
             <Grid item>
-              <NavigationButton
-                setLoading={setLoading}
-                color="white"
-                route="/chapter"
-              />
+              <Link href={`/manga/${idManga}`}>
+                <NavigationButton color="white" />
+              </Link>
             </Grid>
           </Grid>
         </Grid>
@@ -88,7 +80,7 @@ export default function TopBar(props) {
               <Typography
                 variant="h2"
                 style={{ color: "white" }}
-              >{`Chap. ${idxChapter}`}</Typography>
+              >{`Chap. ${idChapter}`}</Typography>
             </Grid>
           </Grid>
         </Grid>
@@ -109,11 +101,11 @@ export default function TopBar(props) {
       </Grid>
       <Gallery
         imagesURL={imagesURL}
-        idxImage={idxImage}
-        setIdxImage={setIdxImage}
         openGallery={openGallery}
         toggleGallery={toggleGallery}
-        idxChapter={idxChapter}
+        idManga={idManga}
+        idChapter={idChapter}
+        idScan={idScan}
       />
     </>
   );
