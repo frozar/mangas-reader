@@ -231,14 +231,14 @@ export async function getStaticProps({ params }) {
   const isFirstChapter = 0 === currentIdxChapter;
   const isLastChapter = chaptersIdx.length - 1 === currentIdxChapter;
 
-  console.log("idScan", idScan);
-  console.log("idChapter", idChapter);
-  console.log("scanIdx", scanIdx);
-  console.log("isFirstIdScan", isFirstIdScan);
-  console.log("isLastIdScan", isLastIdScan);
-  console.log("chaptersIdx", chaptersIdx);
-  console.log("isFirstChapter", isFirstChapter);
-  console.log("isLastChapter", isLastChapter);
+  // console.log("idScan", idScan);
+  // console.log("idChapter", idChapter);
+  // console.log("scanIdx", scanIdx);
+  // console.log("isFirstIdScan", isFirstIdScan);
+  // console.log("isLastIdScan", isLastIdScan);
+  // console.log("chaptersIdx", chaptersIdx);
+  // console.log("isFirstChapter", isFirstChapter);
+  // console.log("isLastChapter", isLastChapter);
 
   // Create the previous and next link considering the current scan
   // Handle the edge cases
@@ -246,11 +246,11 @@ export async function getStaticProps({ params }) {
   let nextLink = null;
 
   if (!isFirstIdScan) {
-    console.log("!isFirstIdScan", !isFirstIdScan);
+    // console.log("!isFirstIdScan", !isFirstIdScan);
     previousLink = `/manga/${idManga}/${idChapter}/${Number(idScan) - 1}`;
   } else {
     if (!isFirstChapter) {
-      console.log("!isFirstChapter", !isFirstChapter);
+      // console.log("!isFirstChapter", !isFirstChapter);
       const previousIdChapter = String(chaptersIdx[currentIdxChapter - 1]);
       const previousChapterLastIdScan =
         chapters[previousIdChapter].content.length - 1;
@@ -259,11 +259,11 @@ export async function getStaticProps({ params }) {
   }
 
   if (!isLastIdScan) {
-    console.log("!isLastIdScan", !isLastIdScan);
+    // console.log("!isLastIdScan", !isLastIdScan);
     nextLink = `/manga/${idManga}/${idChapter}/${Number(idScan) + 1}`;
   } else {
     if (!isLastChapter) {
-      console.log("!isLastChapter", !isLastChapter);
+      // console.log("!isLastChapter", !isLastChapter);
       const nextIdChapter = String(chaptersIdx[currentIdxChapter + 1]);
       const nextChapterFirstIdScan = 0;
       nextLink = `/manga/${idManga}/${nextIdChapter}/${nextChapterFirstIdScan}`;
