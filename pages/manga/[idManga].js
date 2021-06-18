@@ -58,7 +58,17 @@ export default function SelectChapter(props) {
   //   }
   // }, [props.path]);
 
-  const { idManga, chapters } = props;
+  // const { idManga, chapters } = props;
+
+  let idManga = "one-piece";
+  let chapters = {};
+
+  if (props.idManga !== undefined && props.idManga !== null) {
+    idManga = props.idManga;
+  }
+  if (props.chapters !== undefined && props.chapters !== null) {
+    chapters = props.chapters;
+  }
 
   const chaptersJacket = {};
   for (const [idChapter, details] of Object.entries(chapters)) {
@@ -143,7 +153,7 @@ export async function getStaticPaths() {
   // Return a list of possible value for id
   const tmpLObjManga = await getMangasMeta();
   // console.log("tmpLObjManga", tmpLObjManga);
-  const paths = Object.entries(tmpLObjManga).map(([docId, objManga]) => {
+  const paths = Object.entries(tmpLObjManga).map(([_, objManga]) => {
     return {
       params: {
         idManga: objManga.path,
