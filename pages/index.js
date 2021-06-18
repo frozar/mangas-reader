@@ -181,11 +181,17 @@ export default function Index(props) {
   );
 }
 
-export async function getServerSideProps(context) {
+export async function getStaticProps() {
+  // Fetch necessary data for the blog post using params.id
+  // console.log("params", params);
+  // const { idManga } = params;
+  // const docId = idManga + "_chapters";
+  // const chapters = await getMangaChapters(docId);
+
   let lObjManga = [];
   const tmpLObjManga = await getMangasMeta();
   // console.log("tmpLObjManga", tmpLObjManga);
-  console.log("typeof tmpLObjManga", typeof tmpLObjManga);
+  // console.log("typeof tmpLObjManga", typeof tmpLObjManga);
   if (tmpLObjManga !== undefined && typeof tmpLObjManga === "object") {
     const mangas = Object.values(tmpLObjManga);
     mangas.sort((obj1, obj2) => {
@@ -194,9 +200,36 @@ export async function getServerSideProps(context) {
     lObjManga = mangas;
   }
 
+  // return {
+  //   props: {
+  //     // mangaPath,
+  //     idManga,
+  //     chapters,
+  //   },
+  // };
   return {
     props: {
       lObjManga,
     },
   };
 }
+
+// export async function getServerSideProps(context) {
+//   let lObjManga = [];
+//   const tmpLObjManga = await getMangasMeta();
+//   // console.log("tmpLObjManga", tmpLObjManga);
+//   // console.log("typeof tmpLObjManga", typeof tmpLObjManga);
+//   if (tmpLObjManga !== undefined && typeof tmpLObjManga === "object") {
+//     const mangas = Object.values(tmpLObjManga);
+//     mangas.sort((obj1, obj2) => {
+//       return obj1.title.localeCompare(obj2.title);
+//     });
+//     lObjManga = mangas;
+//   }
+
+//   return {
+//     props: {
+//       lObjManga,
+//     },
+//   };
+// }

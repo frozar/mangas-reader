@@ -58,7 +58,7 @@ export default function SelectChapter(props) {
   //   }
   // }, [props.path]);
 
-  const { chapters, idManga } = props;
+  const { idManga, chapters } = props;
 
   const chaptersJacket = {};
   for (const [idChapter, details] of Object.entries(chapters)) {
@@ -167,6 +167,7 @@ export async function getStaticProps({ params }) {
   return {
     props: {
       // mangaPath,
+      idManga,
       chapters,
     },
   };

@@ -172,50 +172,148 @@ export default function ScanViewer(props) {
   }
 }
 
-export async function getStaticPaths() {
-  // TODO: Use directly the DB
-  const tmpLObjManga = await getMangasMeta();
-  const idMangas = Object.entries(tmpLObjManga).map(
-    ([_, objManga]) => objManga.path
-  );
-  let mangaChapters = {};
-  for (const idManga of idMangas) {
-    const docId = idManga + "_chapters";
-    const tmpChapters = await getMangaChapters(docId);
-    const chapters = {};
-    for (const [idChapter, chapter] of Object.entries(tmpChapters)) {
-      chapters[idChapter] = chapter.content;
-    }
-    mangaChapters[idManga] = chapters;
-  }
+// export async function getStaticPaths() {
+//   // TODO: Use directly the DB
+//   const tmpLObjManga = await getMangasMeta();
+//   const idMangas = Object.entries(tmpLObjManga).map(
+//     ([_, objManga]) => objManga.path
+//   );
+//   let mangaChapters = {};
+//   for (const idManga of idMangas) {
+//     const docId = idManga + "_chapters";
+//     const tmpChapters = await getMangaChapters(docId);
+//     const chapters = {};
+//     for (const [idChapter, chapter] of Object.entries(tmpChapters)) {
+//       chapters[idChapter] = chapter.content;
+//     }
+//     mangaChapters[idManga] = chapters;
+//   }
 
-  let res = [];
-  for (const [idManga, chapters] of Object.entries(mangaChapters)) {
-    for (const [idChapter, content] of Object.entries(chapters)) {
-      for (const i in content) {
-        res.push({
-          idManga,
-          idChapter,
-          idScan: i,
-        });
-      }
-    }
-  }
+//   let res = [];
+//   for (const [idManga, chapters] of Object.entries(mangaChapters)) {
+//     for (const [idChapter, content] of Object.entries(chapters)) {
+//       for (const i in content) {
+//         res.push({
+//           idManga,
+//           idChapter,
+//           idScan: i,
+//         });
+//       }
+//     }
+//   }
 
-  const paths = res.map((param) => {
-    return { params: { ...param } };
-  });
+//   const paths = res.map((param) => {
+//     return { params: { ...param } };
+//   });
 
-  // fallback == true : generate the page on 1st visit
-  // fallback == false : generate the page at build time
-  return {
-    paths,
-    fallback: true,
-  };
-}
+//   // fallback == true : generate the page on 1st visit
+//   // fallback == false : generate the page at build time
+//   return {
+//     paths,
+//     fallback: true,
+//   };
+// }
 
-export async function getStaticProps({ params }) {
-  const { idManga, idChapter, idScan } = params;
+// export async function getStaticProps({ params }) {
+//   const { idManga, idChapter, idScan } = params;
+//   // For scan address in DB, create a route
+//   // TODO: Use directly the DB
+//   const docId = idManga + "_chapters";
+//   const chapters = await getMangaChapters(docId);
+
+//   const chapter = chapters[idChapter];
+//   const imageURL = chapter.content[Number(idScan)];
+
+//   const scanIdx = Object.keys(chapter.content)
+//     .map((n) => Number(n))
+//     .sort((a, b) => a - b);
+//   const isFirstIdScan = scanIdx[0] === Number(idScan);
+//   const isLastIdScan = scanIdx[scanIdx.length - 1] === Number(idScan);
+
+//   const chaptersIdx = Object.keys(chapters)
+//     .map((n) => Number(n))
+//     .sort((a, b) => a - b);
+//   const currentIdxChapter = chaptersIdx.indexOf(Number(idChapter));
+//   const isFirstChapter = 0 === currentIdxChapter;
+//   const isLastChapter = chaptersIdx.length - 1 === currentIdxChapter;
+
+//   // console.log("idScan", idScan);
+//   // console.log("idChapter", idChapter);
+//   // console.log("scanIdx", scanIdx);
+//   // console.log("isFirstIdScan", isFirstIdScan);
+//   // console.log("isLastIdScan", isLastIdScan);
+//   // console.log("chaptersIdx", chaptersIdx);
+//   // console.log("isFirstChapter", isFirstChapter);
+//   // console.log("isLastChapter", isLastChapter);
+
+//   // Create the previous and next link considering the current scan
+//   // Handle the edge cases
+//   let previousLink = null;
+//   let nextLink = null;
+
+//   if (!isFirstIdScan) {
+//     // console.log("!isFirstIdScan", !isFirstIdScan);
+//     previousLink = `/manga/${idManga}/${idChapter}/${Number(idScan) - 1}`;
+//   } else {
+//     if (!isFirstChapter) {
+//       // console.log("!isFirstChapter", !isFirstChapter);
+//       const previousIdChapter = String(chaptersIdx[currentIdxChapter - 1]);
+//       const previousChapterLastIdScan =
+//         chapters[previousIdChapter].content.length - 1;
+//       previousLink = `/manga/${idManga}/${previousIdChapter}/${previousChapterLastIdScan}`;
+//     }
+//   }
+
+//   if (!isLastIdScan) {
+//     // console.log("!isLastIdScan", !isLastIdScan);
+//     nextLink = `/manga/${idManga}/${idChapter}/${Number(idScan) + 1}`;
+//   } else {
+//     if (!isLastChapter) {
+//       // console.log("!isLastChapter", !isLastChapter);
+//       const nextIdChapter = String(chaptersIdx[currentIdxChapter + 1]);
+//       const nextChapterFirstIdScan = 0;
+//       nextLink = `/manga/${idManga}/${nextIdChapter}/${nextChapterFirstIdScan}`;
+//     }
+//   }
+
+//   // console.log("previousLink", previousLink);
+//   // console.log("nextLink", nextLink);
+//   // console.log("imageURL", imageURL);
+
+//   return {
+//     props: {
+//       idManga,
+//       idChapter,
+//       idScan,
+//       chapter,
+//       previousLink,
+//       nextLink,
+//       imageURL,
+//     },
+//   };
+// }
+
+export async function getServerSideProps(context) {
+  // console.log("context", context);
+  const { idManga, idChapter, idScan } = context.params;
+  // let lObjManga = [];
+  // const tmpLObjManga = await getMangasMeta();
+  // // console.log("tmpLObjManga", tmpLObjManga);
+  // // console.log("typeof tmpLObjManga", typeof tmpLObjManga);
+  // if (tmpLObjManga !== undefined && typeof tmpLObjManga === "object") {
+  //   const mangas = Object.values(tmpLObjManga);
+  //   mangas.sort((obj1, obj2) => {
+  //     return obj1.title.localeCompare(obj2.title);
+  //   });
+  //   lObjManga = mangas;
+  // }
+
+  // return {
+  //   props: {
+  //     // lObjManga,
+  //   },
+  // };
+
   // For scan address in DB, create a route
   // TODO: Use directly the DB
   const docId = idManga + "_chapters";
