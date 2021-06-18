@@ -1,6 +1,7 @@
 import React from "react";
 // import history from "../history";
 import Link from "../../src/Link";
+import { useRouter } from "next/router";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
@@ -28,6 +29,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function SelectChapter(props) {
   const classes = useStyles();
+  const router = useRouter();
 
   // const [chaptersJacket, setChaptersJacket] = useState({});
   // const [loading, setLoading] = useState(true);
@@ -93,44 +95,48 @@ export default function SelectChapter(props) {
   //   history.push("/manga");
   // }
 
-  return (
-    <div className={classes.container}>
-      <Grid
-        container
-        direction="row"
-        alignItems="center"
-        style={{
-          marginTop: "20px",
-          paddingLeft: "10px",
-          paddingRight: "10px",
-        }}
-      >
-        <Grid item xs={3}>
-          <Link href="/">
-            <NavigationButton />
-          </Link>
-        </Grid>
-        <Grid item xs={6}>
-          <Typography variant="h1" className={classes.title}>
-            Choisis ton chapitre
-          </Typography>
-        </Grid>
+  if (router.isFallback) {
+    return <div>Loading...</div>;
+  } else {
+    return (
+      <div className={classes.container}>
         <Grid
-          item
-          xs={3}
+          container
+          direction="row"
+          alignItems="center"
           style={{
-            marginTop: "auto",
+            marginTop: "20px",
+            paddingLeft: "10px",
+            paddingRight: "10px",
           }}
         >
-          <Typography variant="h2" className={classes.subTitle}>
-            {props.title}
-          </Typography>
+          <Grid item xs={3}>
+            <Link href="/">
+              <NavigationButton />
+            </Link>
+          </Grid>
+          <Grid item xs={6}>
+            <Typography variant="h1" className={classes.title}>
+              Choisis ton chapitre
+            </Typography>
+          </Grid>
+          <Grid
+            item
+            xs={3}
+            style={{
+              marginTop: "auto",
+            }}
+          >
+            <Typography variant="h2" className={classes.subTitle}>
+              {props.title}
+            </Typography>
+          </Grid>
         </Grid>
-      </Grid>
-      {/* <WaitingComponent loading={loading} /> */}
-      <GridCard cards={cards} type="chapter" />
-    </div>
-  );
+        {/* <WaitingComponent loading={loading} /> */}
+        <GridCard cards={cards} type="chapter" />
+      </div>
+    );
+  }
 }
 
 export async function getStaticPaths() {

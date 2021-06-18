@@ -133,39 +133,43 @@ export default function ScanViewer(props) {
     }
   }, [imagesURL]);
 
-  return (
-    <div>
-      <Helmet>
-        <style>{"body { background-color: black; }"}</style>
-      </Helmet>
-      <TopBar
-        imagesURL={imagesURL}
-        idManga={idManga}
-        idChapter={idChapter}
-        idScan={idScan}
-      />
-      <DisplayImage
-        imageURL={imageURL}
-        set={set}
-        setDisplayResetButton={setDisplayResetButton}
-        springDict={{ x, y, zoom, scale }}
-      />
-      <ImageCaption
-        displayResetButton={displayResetButton}
-        idScan={idScan}
-        totalIdScan={imagesURL.length}
-      />
-      <ControlBar
-        // setLoading={setLoading}
-        // getPreviousImage={getPreviousImage}
-        // getNextImage={getNextImage}
-        resetPanAndZoom={resetPanAndZoom}
-        displayResetButton={displayResetButton}
-        previousLink={previousLink}
-        nextLink={nextLink}
-      />
-    </div>
-  );
+  if (router.isFallback) {
+    return <div>Loading...</div>;
+  } else {
+    return (
+      <div>
+        <Helmet>
+          <style>{"body { background-color: black; }"}</style>
+        </Helmet>
+        <TopBar
+          imagesURL={imagesURL}
+          idManga={idManga}
+          idChapter={idChapter}
+          idScan={idScan}
+        />
+        <DisplayImage
+          imageURL={imageURL}
+          set={set}
+          setDisplayResetButton={setDisplayResetButton}
+          springDict={{ x, y, zoom, scale }}
+        />
+        <ImageCaption
+          displayResetButton={displayResetButton}
+          idScan={idScan}
+          totalIdScan={imagesURL.length}
+        />
+        <ControlBar
+          // setLoading={setLoading}
+          // getPreviousImage={getPreviousImage}
+          // getNextImage={getNextImage}
+          resetPanAndZoom={resetPanAndZoom}
+          displayResetButton={displayResetButton}
+          previousLink={previousLink}
+          nextLink={nextLink}
+        />
+      </div>
+    );
+  }
 }
 
 export async function getStaticPaths() {
