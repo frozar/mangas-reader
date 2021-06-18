@@ -96,29 +96,34 @@ export default function ScanViewer(props) {
   //   }
   // }, [imagesURL, idxImage, setIdxImage, nextChapter, resetPanAndZoom]);
 
-  const handleKeyDown = useCallback((evt) => {
-    if (evt.key === "ArrowLeft") {
-      // console.log("ArrowLeft");
-      if (previousLink !== null) {
-        // console.log("previousLink", previousLink);
-        router.push(previousLink);
+  const handleKeyDown = useCallback(
+    (evt) => {
+      if (evt.key === "ArrowLeft") {
+        // console.log("ArrowLeft");
+        if (previousLink !== null) {
+          // console.log("previousLink", previousLink);
+          router.push(previousLink);
+          resetPanAndZoom();
+        }
+        // TODO : else, snapbar to feekback the user there's no previous scan
+      } else if (evt.key === "ArrowRight") {
+        // console.log("ArrowRight");
+        if (nextLink !== null) {
+          // console.log("nextLink", nextLink);
+          router.push(nextLink);
+          resetPanAndZoom();
+        }
+        // TODO : else, snapbar to feekback the user there's no previous scan
+      } else if (evt.key === "f") {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
       }
-      // TODO : else, snapbar to feekback the user there's no previous scan
-    } else if (evt.key === "ArrowRight") {
-      // console.log("ArrowRight");
-      if (nextLink !== null) {
-        // console.log("nextLink", nextLink);
-        router.push(nextLink);
-      }
-      // TODO : else, snapbar to feekback the user there's no previous scan
-    } else if (evt.key === "f") {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen();
-      } else {
-        document.exitFullscreen();
-      }
-    }
-  }, []);
+    },
+    [idManga, idChapter, idScan]
+  );
 
   useEffect(() => {
     document.addEventListener("keydown", handleKeyDown);
