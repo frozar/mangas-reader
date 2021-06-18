@@ -133,41 +133,25 @@ export default function SelectChapter(props) {
   );
 }
 
-// export async function getStaticPaths() {
-//   // Return a list of possible value for id
-//   const tmpLObjManga = await getMangasMeta();
-//   // console.log("tmpLObjManga", tmpLObjManga);
-//   const paths = Object.entries(tmpLObjManga).map(([docId, objManga]) => {
-//     return {
-//       params: {
-//         id: objManga.path,
-//       },
-//     };
-//   });
-//   // console.log("paths", paths);
-//   return {
-//     paths,
-//     fallback: false,
-//   };
-// }
+export async function getStaticPaths() {
+  // Return a list of possible value for id
+  const tmpLObjManga = await getMangasMeta();
+  // console.log("tmpLObjManga", tmpLObjManga);
+  const paths = Object.entries(tmpLObjManga).map(([docId, objManga]) => {
+    return {
+      params: {
+        idManga: objManga.path,
+      },
+    };
+  });
+  // console.log("paths", paths);
+  return {
+    paths,
+    fallback: true,
+  };
+}
 
-// export async function getStaticProps({ params }) {
-//   // Fetch necessary data for the blog post using params.id
-//   // console.log("params", params);
-//   const mangaPath = params.id;
-//   const docId = mangaPath + "_chapters";
-//   const chapters = await getMangaChapters(docId);
-
-//   return {
-//     props: {
-//       // mangaPath,
-//       chapters,
-//     },
-//   };
-// }
-
-export async function getServerSideProps(context) {
-  const { params } = context;
+export async function getStaticProps({ params }) {
   // Fetch necessary data for the blog post using params.id
   // console.log("params", params);
   const { idManga } = params;
@@ -176,8 +160,24 @@ export async function getServerSideProps(context) {
 
   return {
     props: {
+      // mangaPath,
       chapters,
-      idManga,
     },
   };
 }
+
+// export async function getServerSideProps(context) {
+//   const { params } = context;
+//   // Fetch necessary data for the blog post using params.id
+//   // console.log("params", params);
+//   const { idManga } = params;
+//   const docId = idManga + "_chapters";
+//   const chapters = await getMangaChapters(docId);
+
+//   return {
+//     props: {
+//       chapters,
+//       idManga,
+//     },
+//   };
+// }
