@@ -35,15 +35,45 @@ const imagesCache = {
 };
 
 export default function ScanViewer(props) {
-  const {
-    idManga,
-    idChapter,
-    idScan,
-    chapter,
-    previousLink,
-    nextLink,
-    imageURL,
-  } = props;
+  // const {
+  //   idManga,
+  //   idChapter,
+  //   idScan,
+  //   chapter,
+  //   previousLink,
+  //   nextLink,
+  //   imageURL,
+  // } = props;
+
+  let idManga = "one-piece";
+  let idChapter = "1";
+  let idScan = "0";
+  let chapter = [];
+  let previousLink = null;
+  let nextLink = null;
+  let imageURL = "";
+  if (props.idManga !== undefined && props.idManga !== null) {
+    idManga = props.idManga;
+  }
+  if (props.idChapter !== undefined && props.idChapter !== null) {
+    idChapter = props.idChapter;
+  }
+  if (props.idScan !== undefined && props.idScan !== null) {
+    idScan = props.idScan;
+  }
+  if (props.chapter !== undefined && props.chapter !== null) {
+    chapter = props.chapter;
+  }
+  if (props.previousLink !== undefined && props.previousLink !== null) {
+    previousLink = props.previousLink;
+  }
+  if (props.nextLink !== undefined && props.nextLink !== null) {
+    nextLink = props.nextLink;
+  }
+  if (props.imageURL !== undefined && props.imageURL !== null) {
+    imageURL = props.imageURL;
+  }
+
   const router = useRouter();
   // console.log("[ScanViewer] props", props);
   const imagesURL = chapter.content;
