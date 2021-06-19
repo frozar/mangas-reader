@@ -1,5 +1,5 @@
 import React from "react";
-import dynamic from "next/dynamic";
+// import dynamic from "next/dynamic";
 
 import { makeStyles } from "@material-ui/core/styles";
 // import { ThemeProvider } from "@material-ui/core/styles";
@@ -16,6 +16,15 @@ import Typography from "@material-ui/core/Typography";
 import { getMangasMeta } from "../src/db.js";
 
 import GridCard from "../src/GridCard.js";
+// import Counter from "../src/counter";
+import AddCount from "../src/AddCount";
+
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+
+import { addCount } from "../store/count/action";
+import { wrapper } from "../store/store";
+import { serverRenderClock, startClock } from "../store/tick/action";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -59,7 +68,7 @@ const useStyles = makeStyles((theme) => ({
 //     return lObjManga;
 //   });
 
-export default function Index(props) {
+function Index(props) {
   // state = {
   //   path: undefined,
   //   title: undefined,
@@ -173,6 +182,7 @@ export default function Index(props) {
   // console.log("cards", cards);
   return (
     <div className={classes.container}>
+      <AddCount />
       <Typography variant="h1" className={classes.title}>
         Choisis ton manga
       </Typography>
@@ -181,40 +191,8 @@ export default function Index(props) {
   );
 }
 
-export async function getStaticProps() {
-  // Fetch necessary data for the blog post using params.id
-  // console.log("params", params);
-  // const { idManga } = params;
-  // const docId = idManga + "_chapters";
-  // const chapters = await getMangaChapters(docId);
+// export async function getStaticProps() {
 
-  let lObjManga = [];
-  const tmpLObjManga = await getMangasMeta();
-  // console.log("tmpLObjManga", tmpLObjManga);
-  // console.log("typeof tmpLObjManga", typeof tmpLObjManga);
-  if (tmpLObjManga !== undefined && typeof tmpLObjManga === "object") {
-    const mangas = Object.values(tmpLObjManga);
-    mangas.sort((obj1, obj2) => {
-      return obj1.title.localeCompare(obj2.title);
-    });
-    lObjManga = mangas;
-  }
-
-  // return {
-  //   props: {
-  //     // mangaPath,
-  //     idManga,
-  //     chapters,
-  //   },
-  // };
-  return {
-    props: {
-      lObjManga,
-    },
-  };
-}
-
-// export async function getServerSideProps(context) {
 //   let lObjManga = [];
 //   const tmpLObjManga = await getMangasMeta();
 //   // console.log("tmpLObjManga", tmpLObjManga);
@@ -233,3 +211,35 @@ export async function getStaticProps() {
 //     },
 //   };
 // }
+
+export const getStaticProps = wrapper.getStaticProps(async ({ store }) => {
+  store.dispatch(serverRenderClock(true));
+  store.dispatch(addCount());
+
+  let lObjManga = [];
+  const tmpLObjManga = await getMangasMeta();
+  // console.log("tmpLObjManga", tmpLObjManga);
+  // console.log("typeof tmpLObjManga", typeof tmpLObjManga);
+  if (tmpLObjManga !== undefined && typeof tmpLObjManga === "object") {
+    const mangas = Object.values(tmpLObjManga);
+    mangas.sort((obj1, obj2) => {
+      return obj1.title.localeCompare(obj2.title);
+    });
+    lObjManga = mangas;
+  }
+
+  return {
+    props: {
+      lObjManga,
+    },
+  };
+});
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    addCount: bindActionCreators(addCount, dispatch),
+    startClock: bindActionCreators(startClock, dispatch),
+  };
+};
+
+export default connect(null, mapDispatchToProps)(Index);

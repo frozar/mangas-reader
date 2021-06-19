@@ -12,6 +12,16 @@ import GridCard from "../../src/GridCard.js";
 // import WaitingComponent from "./WaitingComponent.js";
 import NavigationButton from "../../src/NavigationButton";
 
+import AddCount from "../../src/AddCount";
+
+import { connect } from "react-redux";
+import { bindActionCreators } from "redux";
+
+import { addCount } from "../../store/count/action";
+import { retrieveManga } from "../../store/manga/action";
+import { wrapper } from "../../store/store";
+import { serverRenderClock, startClock } from "../../store/tick/action";
+
 const useStyles = makeStyles((theme) => ({
   container: {
     ...theme.container,
@@ -27,7 +37,9 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-export default function SelectChapter(props) {
+function SelectChapter(props) {
+  // console.log("SelectChapter props", props);
+  console.log("SelectChapter props.manga", props.manga);
   const classes = useStyles();
   const router = useRouter();
 
@@ -110,6 +122,23 @@ export default function SelectChapter(props) {
   } else {
     return (
       <div className={classes.container}>
+        <AddCount />
+        <div>
+          <style jsx>{`
+            div {
+              padding: 0 0 20px 0;
+            }
+          `}</style>
+          <h1>
+            Retrieve Manga: <span>{props.count}</span>
+          </h1>
+          <button
+            // onClick={props.retrieveManga}
+            onClick={(_) => props.retrieveManga(props.idManga)}
+          >
+            Add To Count
+          </button>
+        </div>
         <Grid
           container
           direction="row"
@@ -167,24 +196,7 @@ export async function getStaticPaths() {
   };
 }
 
-export async function getStaticProps({ params }) {
-  // Fetch necessary data for the blog post using params.id
-  // console.log("params", params);
-  const { idManga } = params;
-  const docId = idManga + "_chapters";
-  const chapters = await getMangaChapters(docId);
-
-  return {
-    props: {
-      // mangaPath,
-      idManga,
-      chapters,
-    },
-  };
-}
-
-// export async function getServerSideProps(context) {
-//   const { params } = context;
+// export async function getStaticProps({ params }) {
 //   // Fetch necessary data for the blog post using params.id
 //   // console.log("params", params);
 //   const { idManga } = params;
@@ -193,8 +205,46 @@ export async function getStaticProps({ params }) {
 
 //   return {
 //     props: {
-//       chapters,
+//       // mangaPath,
 //       idManga,
+//       chapters,
 //     },
 //   };
 // }
+
+export const getStaticProps = wrapper.getStaticProps(
+  async ({ store, params }) => {
+    store.dispatch(serverRenderClock(true));
+    store.dispatch(addCount());
+    store.dispatch(retrieveManga());
+
+    // Fetch necessary data for the blog post using params.id
+    // console.log("params", params);
+    const { idManga } = params;
+    const docId = idManga + "_chapters";
+    const chapters = await getMangaChapters(docId);
+
+    return {
+      props: {
+        // mangaPath,
+        idManga,
+        chapters,
+      },
+    };
+  }
+);
+
+const mapStateToProps = (state) => ({
+  count: state.count.count,
+  manga: state.manga.manga,
+});
+
+const mapDispatchToProps = (dispatch) => {
+  return {
+    addCount: bindActionCreators(addCount, dispatch),
+    startClock: bindActionCreators(startClock, dispatch),
+    retrieveManga: bindActionCreators(retrieveManga, dispatch),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(SelectChapter);

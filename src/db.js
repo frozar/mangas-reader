@@ -28,7 +28,8 @@ if (useLocalDB) {
 
 // useLocalCloudFunction
 
-const LOCAL_ADDRESS = "192.168.1.19";
+// const LOCAL_ADDRESS = "192.168.1.19";
+const LOCAL_ADDRESS = "192.168.30.137";
 
 const CLOUD_FUNCTION_ROOT = process.env.USE_LOCAL_CLOUD_FUNCTION
   ? "http://" + LOCAL_ADDRESS + ":5001/manga-b8fb3/europe-west1/"
