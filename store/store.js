@@ -3,7 +3,7 @@ import { HYDRATE, createWrapper } from "next-redux-wrapper";
 import thunkMiddleware from "redux-thunk";
 
 import count from "./count/reducer";
-import tick from "./tick/reducer";
+// import tick from "./tick_old/reducer";
 import manga from "./manga/reducer";
 
 const bindMiddleware = (middleware) => {
@@ -16,24 +16,44 @@ const bindMiddleware = (middleware) => {
 
 const combinedReducer = combineReducers({
   count,
-  tick,
+  // tick,
   manga,
 });
 
 const reducer = (state, action) => {
+  // console.log("[main reducer] action", action);
+  // console.log("[main reducer] state", state);
   if (action.type === HYDRATE) {
+    // console.log("[main reducer] HYDRATE state.manga", state.manga);
     const nextState = {
       ...state, // use previous state
       ...action.payload, // apply delta from hydration
     };
-    if (state.count.count) nextState.count.count = state.count.count; // preserve count value on client side navigation
+    // console.log("[main reducer] nextState.manga", nextState.manga);
+    // preserve count value on client side navigation
+    if (state.count.count) {
+      nextState.count.count = state.count.count;
+    }
+    // console.log("[main reducer] state.manga.manga", state.manga.manga);
+    // console.log(
+    //   "[main reducer] Boolean(state.manga.manga)",
+    //   Boolean(state.manga.manga)
+    // );
+    if (state.manga.manga) {
+      // nextState.manga.manga = state.manga.manga;
+      const newManga = { ...nextState.manga.manga, ...state.manga.manga };
+      // console.log("[main reducer] newManga", newManga);
+      nextState.manga.manga = newManga;
+    }
     return nextState;
   } else {
+    // console.log("[main reducer] else");
     return combinedReducer(state, action);
   }
 };
 
 const initStore = () => {
+  // console.log("initStore arguments", arguments);
   return createStore(reducer, bindMiddleware([thunkMiddleware]));
 };
 

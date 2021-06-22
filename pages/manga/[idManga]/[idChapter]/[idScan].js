@@ -9,6 +9,9 @@ import ControlBar from "../../../../src/scanViewer/ControlBar";
 import ImageCaption from "../../../../src/scanViewer/ImageCaption";
 // import WaitingComponent from "../../../../src/WaitingComponent.js";
 import { getMangasMeta, getMangaChapters } from "../../../../src/db.js";
+import { wrapper } from "../../../../store/store";
+
+import { connect } from "react-redux";
 
 // Documentation link (inspiration)
 // https://jack72828383883.medium.com/how-to-preload-images-into-cache-in-react-js-ff1642708240
@@ -34,7 +37,7 @@ const imagesCache = {
   },
 };
 
-export default function ScanViewer(props) {
+function ScanViewer(props) {
   // const {
   //   idManga,
   //   idChapter,
@@ -44,6 +47,8 @@ export default function ScanViewer(props) {
   //   nextLink,
   //   imageURL,
   // } = props;
+
+  console.log("[ScanViewer] props", props);
 
   let idManga = "one-piece";
   let idChapter = "1";
@@ -328,100 +333,114 @@ export default function ScanViewer(props) {
 //   };
 // }
 
-export async function getServerSideProps(context) {
-  // console.log("context", context);
-  const { idManga, idChapter, idScan } = context.params;
-  // let lObjManga = [];
-  // const tmpLObjManga = await getMangasMeta();
-  // // console.log("tmpLObjManga", tmpLObjManga);
-  // // console.log("typeof tmpLObjManga", typeof tmpLObjManga);
-  // if (tmpLObjManga !== undefined && typeof tmpLObjManga === "object") {
-  //   const mangas = Object.values(tmpLObjManga);
-  //   mangas.sort((obj1, obj2) => {
-  //     return obj1.title.localeCompare(obj2.title);
-  //   });
-  //   lObjManga = mangas;
-  // }
+// export async function getServerSideProps(context) {
+export const getServerSideProps = wrapper.getServerSideProps(
+  async ({ store, params }) => {
+    // console.log("store", store);
+    // console.log("context", context);
+    // const { idManga, idChapter, idScan } = context.params;
+    const { idManga, idChapter, idScan } = params;
+    // let lObjManga = [];
+    // const tmpLObjManga = await getMangasMeta();
+    // // console.log("tmpLObjManga", tmpLObjManga);
+    // // console.log("typeof tmpLObjManga", typeof tmpLObjManga);
+    // if (tmpLObjManga !== undefined && typeof tmpLObjManga === "object") {
+    //   const mangas = Object.values(tmpLObjManga);
+    //   mangas.sort((obj1, obj2) => {
+    //     return obj1.title.localeCompare(obj2.title);
+    //   });
+    //   lObjManga = mangas;
+    // }
 
-  // return {
-  //   props: {
-  //     // lObjManga,
-  //   },
-  // };
+    // return {
+    //   props: {
+    //     // lObjManga,
+    //   },
+    // };
 
-  // For scan address in DB, create a route
-  // TODO: Use directly the DB
-  const docId = idManga + "_chapters";
-  const chapters = await getMangaChapters(docId);
+    // For scan address in DB, create a route
+    // TODO: Use directly the DB
+    const docId = idManga + "_chapters";
+    const chapters = await getMangaChapters(docId);
 
-  const chapter = chapters[idChapter];
-  const imageURL = chapter.content[Number(idScan)];
+    const chapter = chapters[idChapter];
+    const imageURL = chapter.content[Number(idScan)];
 
-  const scanIdx = Object.keys(chapter.content)
-    .map((n) => Number(n))
-    .sort((a, b) => a - b);
-  const isFirstIdScan = scanIdx[0] === Number(idScan);
-  const isLastIdScan = scanIdx[scanIdx.length - 1] === Number(idScan);
+    const scanIdx = Object.keys(chapter.content)
+      .map((n) => Number(n))
+      .sort((a, b) => a - b);
+    const isFirstIdScan = scanIdx[0] === Number(idScan);
+    const isLastIdScan = scanIdx[scanIdx.length - 1] === Number(idScan);
 
-  const chaptersIdx = Object.keys(chapters)
-    .map((n) => Number(n))
-    .sort((a, b) => a - b);
-  const currentIdxChapter = chaptersIdx.indexOf(Number(idChapter));
-  const isFirstChapter = 0 === currentIdxChapter;
-  const isLastChapter = chaptersIdx.length - 1 === currentIdxChapter;
+    const chaptersIdx = Object.keys(chapters)
+      .map((n) => Number(n))
+      .sort((a, b) => a - b);
+    const currentIdxChapter = chaptersIdx.indexOf(Number(idChapter));
+    const isFirstChapter = 0 === currentIdxChapter;
+    const isLastChapter = chaptersIdx.length - 1 === currentIdxChapter;
 
-  // console.log("idScan", idScan);
-  // console.log("idChapter", idChapter);
-  // console.log("scanIdx", scanIdx);
-  // console.log("isFirstIdScan", isFirstIdScan);
-  // console.log("isLastIdScan", isLastIdScan);
-  // console.log("chaptersIdx", chaptersIdx);
-  // console.log("isFirstChapter", isFirstChapter);
-  // console.log("isLastChapter", isLastChapter);
+    // console.log("idScan", idScan);
+    // console.log("idChapter", idChapter);
+    // console.log("scanIdx", scanIdx);
+    // console.log("isFirstIdScan", isFirstIdScan);
+    // console.log("isLastIdScan", isLastIdScan);
+    // console.log("chaptersIdx", chaptersIdx);
+    // console.log("isFirstChapter", isFirstChapter);
+    // console.log("isLastChapter", isLastChapter);
 
-  // Create the previous and next link considering the current scan
-  // Handle the edge cases
-  let previousLink = null;
-  let nextLink = null;
+    // Create the previous and next link considering the current scan
+    // Handle the edge cases
+    let previousLink = null;
+    let nextLink = null;
 
-  if (!isFirstIdScan) {
-    // console.log("!isFirstIdScan", !isFirstIdScan);
-    previousLink = `/manga/${idManga}/${idChapter}/${Number(idScan) - 1}`;
-  } else {
-    if (!isFirstChapter) {
-      // console.log("!isFirstChapter", !isFirstChapter);
-      const previousIdChapter = String(chaptersIdx[currentIdxChapter - 1]);
-      const previousChapterLastIdScan =
-        chapters[previousIdChapter].content.length - 1;
-      previousLink = `/manga/${idManga}/${previousIdChapter}/${previousChapterLastIdScan}`;
+    if (!isFirstIdScan) {
+      // console.log("!isFirstIdScan", !isFirstIdScan);
+      previousLink = `/manga/${idManga}/${idChapter}/${Number(idScan) - 1}`;
+    } else {
+      if (!isFirstChapter) {
+        // console.log("!isFirstChapter", !isFirstChapter);
+        const previousIdChapter = String(chaptersIdx[currentIdxChapter - 1]);
+        const previousChapterLastIdScan =
+          chapters[previousIdChapter].content.length - 1;
+        previousLink = `/manga/${idManga}/${previousIdChapter}/${previousChapterLastIdScan}`;
+      }
     }
-  }
 
-  if (!isLastIdScan) {
-    // console.log("!isLastIdScan", !isLastIdScan);
-    nextLink = `/manga/${idManga}/${idChapter}/${Number(idScan) + 1}`;
-  } else {
-    if (!isLastChapter) {
-      // console.log("!isLastChapter", !isLastChapter);
-      const nextIdChapter = String(chaptersIdx[currentIdxChapter + 1]);
-      const nextChapterFirstIdScan = 0;
-      nextLink = `/manga/${idManga}/${nextIdChapter}/${nextChapterFirstIdScan}`;
+    if (!isLastIdScan) {
+      // console.log("!isLastIdScan", !isLastIdScan);
+      nextLink = `/manga/${idManga}/${idChapter}/${Number(idScan) + 1}`;
+    } else {
+      if (!isLastChapter) {
+        // console.log("!isLastChapter", !isLastChapter);
+        const nextIdChapter = String(chaptersIdx[currentIdxChapter + 1]);
+        const nextChapterFirstIdScan = 0;
+        nextLink = `/manga/${idManga}/${nextIdChapter}/${nextChapterFirstIdScan}`;
+      }
     }
+
+    // console.log("previousLink", previousLink);
+    // console.log("nextLink", nextLink);
+    // console.log("imageURL", imageURL);
+
+    return {
+      props: {
+        idManga,
+        idChapter,
+        idScan,
+        chapter,
+        previousLink,
+        nextLink,
+        imageURL,
+      },
+    };
   }
+);
 
-  // console.log("previousLink", previousLink);
-  // console.log("nextLink", nextLink);
-  // console.log("imageURL", imageURL);
-
+const mapStateToProps = (state) => {
+  // console.log("ScanViewer mapStateToProps: state", state);
   return {
-    props: {
-      idManga,
-      idChapter,
-      idScan,
-      chapter,
-      previousLink,
-      nextLink,
-      imageURL,
-    },
+    manga: state.manga.manga,
   };
-}
+};
+
+export default connect(mapStateToProps, null)(ScanViewer);

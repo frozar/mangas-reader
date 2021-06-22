@@ -1,21 +1,16 @@
 import { mangaActionTypes } from "./action";
 
-const countInitialState = {
-  manga: {},
-};
-
-// let iDbg = 0;
+const countInitialState = { manga: {} };
 
 export default function reducer(state = countInitialState, action) {
-  // console.log("manga Reducer: state ", state);
-  // console.log("manga Reducer: 0 action ", action);
   switch (action.type) {
     case mangaActionTypes.RETRIEVE:
-      // console.log("manga Reducer: 1 action ", action);
-      // iDbg += 1;
-      return Object.assign({}, state, {
-        manga: { ...state.manga, toto: action.data },
-      });
+      console.log("[manga reducer] state.manga", state.manga);
+      const newManga = { ...state.manga, [action.idManga]: action.chapters };
+      const newState = {
+        manga: newManga,
+      };
+      return newState;
     default:
       return state;
   }

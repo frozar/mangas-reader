@@ -1,18 +1,32 @@
-import axios from "axios";
+import { getMangaChapters } from "../../src/db.js";
 
 export const mangaActionTypes = {
   RETRIEVE: "RETRIEVE",
 };
 
-export const retrieveManga = (arg0) => {
-  // console.log("arg0", arg0);
-  // console.log("arguments 0 ", arguments);
-  return async (dispatch) => {
-    // console.log("arg0", arg0);
-    // console.log("arguments 1 ", arguments);
-    console.log("arg0", arg0);
-    const res = await axios.get("https://jsonplaceholder.typicode.com/users");
-    console.log("res.data", res.data);
-    return dispatch({ type: mangaActionTypes.RETRIEVE, data: res.data });
+export const retrieveManga = (idManga) => {
+  return async (dispatch, getState) => {
+    const currentState = getState();
+
+    if (typeof currentState.manga[idManga] !== "object") {
+      const docId = idManga + "_chapters";
+      // console.log("[action retrieveManga] TRIGGER RETRIEVE");
+      // console.log(
+      //   "[action retrieveManga] currentState.manga",
+      //   currentState.manga
+      // );
+      // console.log("[action retrieveManga] idManga", idManga);
+      // console.log(
+      //   "[action retrieveManga] typeof currentState.manga[idManga]",
+      //   typeof currentState.manga[idManga]
+      // );
+      const chapters = await getMangaChapters(docId);
+      // console.log("[action retrieveManga] chapters", chapters);
+      return dispatch({
+        type: mangaActionTypes.RETRIEVE,
+        idManga,
+        chapters,
+      });
+    }
   };
 };

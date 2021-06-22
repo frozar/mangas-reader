@@ -24,7 +24,7 @@ import { bindActionCreators } from "redux";
 
 import { addCount } from "../store/count/action";
 import { wrapper } from "../store/store";
-import { serverRenderClock, startClock } from "../store/tick/action";
+// import { serverRenderClock, startClock } from "../store/tick_old/action";
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -142,6 +142,8 @@ function Index(props) {
   //   });
   // };
 
+  console.log("Index props", props);
+
   const cards =
     props.lObjManga !== undefined
       ? props.lObjManga
@@ -213,8 +215,8 @@ function Index(props) {
 // }
 
 export const getStaticProps = wrapper.getStaticProps(async ({ store }) => {
-  store.dispatch(serverRenderClock(true));
-  store.dispatch(addCount());
+  // store.dispatch(serverRenderClock(true));
+  // store.dispatch(addCount());
 
   let lObjManga = [];
   const tmpLObjManga = await getMangasMeta();
@@ -235,11 +237,19 @@ export const getStaticProps = wrapper.getStaticProps(async ({ store }) => {
   };
 });
 
-const mapDispatchToProps = (dispatch) => {
+const mapStateToProps = (state) => {
+  // console.log("SelectManga mapStateToProps: state", state);
   return {
-    addCount: bindActionCreators(addCount, dispatch),
-    startClock: bindActionCreators(startClock, dispatch),
+    count: state.count.count,
+    manga: state.manga.manga,
   };
 };
 
-export default connect(null, mapDispatchToProps)(Index);
+const mapDispatchToProps = (dispatch) => {
+  return {
+    addCount: bindActionCreators(addCount, dispatch),
+    // startClock: bindActionCreators(startClock, dispatch),
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Index);
