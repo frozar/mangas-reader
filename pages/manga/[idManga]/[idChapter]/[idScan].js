@@ -8,8 +8,9 @@ import TopBar from "../../../../src/scanViewer/TopBar";
 import ControlBar from "../../../../src/scanViewer/ControlBar";
 import ImageCaption from "../../../../src/scanViewer/ImageCaption";
 // import WaitingComponent from "../../../../src/WaitingComponent.js";
-import { getMangasMeta, getMangaChapters } from "../../../../src/db.js";
+// import { getMangasMeta, getMangaChapters } from "../../../../src/db.js";
 import { wrapper } from "../../../../store/store";
+import { retrieveManga } from "../../../../store/manga/action";
 
 import { connect } from "react-redux";
 
@@ -37,26 +38,85 @@ const imagesCache = {
   },
 };
 
-function ScanViewer(props) {
-  // const {
-  //   idManga,
-  //   idChapter,
-  //   idScan,
-  //   chapter,
-  //   previousLink,
-  //   nextLink,
-  //   imageURL,
-  // } = props;
+function computePreviousAndNextLink(idManga, idChapter, idScan, chapters) {
+  // For scan address in DB, create a route
+  // TODO: Use directly the DB
+  // const docId = idManga + "_chapters";
+  // const chapters = await getMangaChapters(docId);
+  // console.log("computePreviousAndNextLink");
+  // console.log("idManga", idManga);
+  // console.log("idChapter", idChapter);
+  // console.log("idScan", idScan);
 
+  const chapter = chapters[idChapter];
+  // const imageURL = chapter.content[Number(idScan)];
+
+  const scanIdx = Object.keys(chapter.content)
+    .map((n) => Number(n))
+    .sort((a, b) => a - b);
+  const isFirstIdScan = scanIdx[0] === Number(idScan);
+  const isLastIdScan = scanIdx[scanIdx.length - 1] === Number(idScan);
+
+  const chaptersIdx = Object.keys(chapters)
+    .map((n) => Number(n))
+    .sort((a, b) => a - b);
+  const currentIdxChapter = chaptersIdx.indexOf(Number(idChapter));
+  const isFirstChapter = 0 === currentIdxChapter;
+  const isLastChapter = chaptersIdx.length - 1 === currentIdxChapter;
+
+  // console.log("idScan", idScan);
+  // console.log("idChapter", idChapter);
+  // console.log("scanIdx", scanIdx);
+  // console.log("isFirstIdScan", isFirstIdScan);
+  // console.log("isLastIdScan", isLastIdScan);
+  // console.log("chaptersIdx", chaptersIdx);
+  // console.log("isFirstChapter", isFirstChapter);
+  // console.log("isLastChapter", isLastChapter);
+
+  // Create the previous and next link considering the current scan
+  // Handle the edge cases
+  let previousLink = null;
+  let nextLink = null;
+
+  if (!isFirstIdScan) {
+    // console.log("!isFirstIdScan", !isFirstIdScan);
+    previousLink = `/manga/${idManga}/${idChapter}/${Number(idScan) - 1}`;
+    // console.log("previousLink", previousLink);
+  } else {
+    if (!isFirstChapter) {
+      // console.log("!isFirstChapter", !isFirstChapter);
+      const previousIdChapter = String(chaptersIdx[currentIdxChapter - 1]);
+      const previousChapterLastIdScan =
+        chapters[previousIdChapter].content.length - 1;
+      previousLink = `/manga/${idManga}/${previousIdChapter}/${previousChapterLastIdScan}`;
+      // console.log("previousLink", previousLink);
+    }
+  }
+
+  if (!isLastIdScan) {
+    // console.log("!isLastIdScan", !isLastIdScan);
+    nextLink = `/manga/${idManga}/${idChapter}/${Number(idScan) + 1}`;
+    // console.log("nextLink", nextLink);
+  } else {
+    if (!isLastChapter) {
+      // console.log("!isLastChapter", !isLastChapter);
+      const nextIdChapter = String(chaptersIdx[currentIdxChapter + 1]);
+      const nextChapterFirstIdScan = 0;
+      nextLink = `/manga/${idManga}/${nextIdChapter}/${nextChapterFirstIdScan}`;
+      // console.log("nextLink", nextLink);
+    }
+  }
+
+  return [previousLink, nextLink];
+}
+
+function ScanViewer(props) {
   console.log("[ScanViewer] props", props);
 
   let idManga = "one-piece";
   let idChapter = "1";
   let idScan = "0";
-  let chapter = [];
-  let previousLink = null;
-  let nextLink = null;
-  let imageURL = "";
+  let manga = null;
   if (props.idManga !== undefined && props.idManga !== null) {
     idManga = props.idManga;
   }
@@ -66,25 +126,36 @@ function ScanViewer(props) {
   if (props.idScan !== undefined && props.idScan !== null) {
     idScan = props.idScan;
   }
-  if (props.chapter !== undefined && props.chapter !== null) {
-    chapter = props.chapter;
-  }
-  if (props.previousLink !== undefined && props.previousLink !== null) {
-    previousLink = props.previousLink;
-  }
-  if (props.nextLink !== undefined && props.nextLink !== null) {
-    nextLink = props.nextLink;
-  }
-  if (props.imageURL !== undefined && props.imageURL !== null) {
-    imageURL = props.imageURL;
+  if (props.manga !== undefined && props.manga !== null) {
+    manga = props.manga;
   }
 
-  const router = useRouter();
-  // console.log("[ScanViewer] props", props);
+  const chapters = manga[idManga];
+  const chapter = chapters[idChapter];
   const imagesURL = chapter.content;
+  const imageURL = imagesURL[Number(idScan)];
 
-  // const [idxImage, setIdxImage] = useState(idScan);
-  // const [loading, setLoading] = useState(true);
+  const [previousLink, setPreviousLink] = React.useState(null);
+  const [nextLink, setNextLink] = React.useState(null);
+
+  React.useEffect(() => {
+    const [previousLink_, nextLink_] = computePreviousAndNextLink(
+      idManga,
+      idChapter,
+      idScan,
+      chapters
+    );
+    setPreviousLink(previousLink_);
+    setNextLink(nextLink_);
+    // console.log("previousLink", previousLink);
+    // console.log("nextLink", nextLink);
+  }, [
+    props.idManga,
+    props.idChapter,
+    props.idScan,
+    computePreviousAndNextLink,
+  ]);
+
   const [displayResetButton, setDisplayResetButton] = useState(false);
 
   const [{ x, y, zoom, scale }, set] = useSpring(() => ({
@@ -100,37 +171,7 @@ function ScanViewer(props) {
     setDisplayResetButton(false);
   }, [set]);
 
-  // const getPreviousImage = useCallback(async () => {
-  //   resetPanAndZoom();
-  //   let previousIdxImage;
-  //   if (0 < idxImage) {
-  //     // Go to the previous image
-  //     previousIdxImage = idxImage - 1;
-  //   } else if (idxImage === 0) {
-  //     // Go to the previous chapter
-  //     previousIdxImage = await previousChapter();
-  //   }
-  //   if (previousIdxImage !== null) {
-  //     setIdxImage(previousIdxImage);
-  //   }
-  // }, [idxImage, setIdxImage, previousChapter, resetPanAndZoom]);
-
-  // const getNextImage = useCallback(async () => {
-  //   resetPanAndZoom();
-  //   const idxImageMax = imagesURL.length - 1;
-  //   let nextIdxImage;
-  //   if (idxImage < idxImageMax) {
-  //     // Go to the next image
-  //     nextIdxImage = idxImage + 1;
-  //   } else if (idxImage === idxImageMax) {
-  //     // Go to the next chapter
-  //     nextIdxImage = await nextChapter();
-  //   }
-  //   if (nextIdxImage !== null) {
-  //     setIdxImage(nextIdxImage);
-  //   }
-  // }, [imagesURL, idxImage, setIdxImage, nextChapter, resetPanAndZoom]);
-
+  const router = useRouter();
   const handleKeyDown = useCallback(
     (evt) => {
       if (evt.key === "ArrowLeft") {
@@ -148,7 +189,6 @@ function ScanViewer(props) {
           router.push(nextLink);
           resetPanAndZoom();
         }
-        // TODO : else, snapbar to feekback the user there's no previous scan
       } else if (evt.key === "f") {
         if (!document.fullscreenElement) {
           document.documentElement.requestFullscreen();
@@ -157,7 +197,7 @@ function ScanViewer(props) {
         }
       }
     },
-    [idManga, idChapter, idScan]
+    [previousLink, nextLink]
   );
 
   useEffect(() => {
@@ -199,9 +239,6 @@ function ScanViewer(props) {
           totalIdScan={imagesURL.length}
         />
         <ControlBar
-          // setLoading={setLoading}
-          // getPreviousImage={getPreviousImage}
-          // getNextImage={getNextImage}
           resetPanAndZoom={resetPanAndZoom}
           displayResetButton={displayResetButton}
           previousLink={previousLink}
@@ -212,232 +249,24 @@ function ScanViewer(props) {
   }
 }
 
-// export async function getStaticPaths() {
-//   // TODO: Use directly the DB
-//   const tmpLObjManga = await getMangasMeta();
-//   const idMangas = Object.entries(tmpLObjManga).map(
-//     ([_, objManga]) => objManga.path
-//   );
-//   let mangaChapters = {};
-//   for (const idManga of idMangas) {
-//     const docId = idManga + "_chapters";
-//     const tmpChapters = await getMangaChapters(docId);
-//     const chapters = {};
-//     for (const [idChapter, chapter] of Object.entries(tmpChapters)) {
-//       chapters[idChapter] = chapter.content;
-//     }
-//     mangaChapters[idManga] = chapters;
-//   }
-
-//   let res = [];
-//   for (const [idManga, chapters] of Object.entries(mangaChapters)) {
-//     for (const [idChapter, content] of Object.entries(chapters)) {
-//       for (const i in content) {
-//         res.push({
-//           idManga,
-//           idChapter,
-//           idScan: i,
-//         });
-//       }
-//     }
-//   }
-
-//   const paths = res.map((param) => {
-//     return { params: { ...param } };
-//   });
-
-//   // fallback == true : generate the page on 1st visit
-//   // fallback == false : generate the page at build time
-//   return {
-//     paths,
-//     fallback: true,
-//   };
-// }
-
-// export async function getStaticProps({ params }) {
-//   const { idManga, idChapter, idScan } = params;
-//   // For scan address in DB, create a route
-//   // TODO: Use directly the DB
-//   const docId = idManga + "_chapters";
-//   const chapters = await getMangaChapters(docId);
-
-//   const chapter = chapters[idChapter];
-//   const imageURL = chapter.content[Number(idScan)];
-
-//   const scanIdx = Object.keys(chapter.content)
-//     .map((n) => Number(n))
-//     .sort((a, b) => a - b);
-//   const isFirstIdScan = scanIdx[0] === Number(idScan);
-//   const isLastIdScan = scanIdx[scanIdx.length - 1] === Number(idScan);
-
-//   const chaptersIdx = Object.keys(chapters)
-//     .map((n) => Number(n))
-//     .sort((a, b) => a - b);
-//   const currentIdxChapter = chaptersIdx.indexOf(Number(idChapter));
-//   const isFirstChapter = 0 === currentIdxChapter;
-//   const isLastChapter = chaptersIdx.length - 1 === currentIdxChapter;
-
-//   // console.log("idScan", idScan);
-//   // console.log("idChapter", idChapter);
-//   // console.log("scanIdx", scanIdx);
-//   // console.log("isFirstIdScan", isFirstIdScan);
-//   // console.log("isLastIdScan", isLastIdScan);
-//   // console.log("chaptersIdx", chaptersIdx);
-//   // console.log("isFirstChapter", isFirstChapter);
-//   // console.log("isLastChapter", isLastChapter);
-
-//   // Create the previous and next link considering the current scan
-//   // Handle the edge cases
-//   let previousLink = null;
-//   let nextLink = null;
-
-//   if (!isFirstIdScan) {
-//     // console.log("!isFirstIdScan", !isFirstIdScan);
-//     previousLink = `/manga/${idManga}/${idChapter}/${Number(idScan) - 1}`;
-//   } else {
-//     if (!isFirstChapter) {
-//       // console.log("!isFirstChapter", !isFirstChapter);
-//       const previousIdChapter = String(chaptersIdx[currentIdxChapter - 1]);
-//       const previousChapterLastIdScan =
-//         chapters[previousIdChapter].content.length - 1;
-//       previousLink = `/manga/${idManga}/${previousIdChapter}/${previousChapterLastIdScan}`;
-//     }
-//   }
-
-//   if (!isLastIdScan) {
-//     // console.log("!isLastIdScan", !isLastIdScan);
-//     nextLink = `/manga/${idManga}/${idChapter}/${Number(idScan) + 1}`;
-//   } else {
-//     if (!isLastChapter) {
-//       // console.log("!isLastChapter", !isLastChapter);
-//       const nextIdChapter = String(chaptersIdx[currentIdxChapter + 1]);
-//       const nextChapterFirstIdScan = 0;
-//       nextLink = `/manga/${idManga}/${nextIdChapter}/${nextChapterFirstIdScan}`;
-//     }
-//   }
-
-//   // console.log("previousLink", previousLink);
-//   // console.log("nextLink", nextLink);
-//   // console.log("imageURL", imageURL);
-
-//   return {
-//     props: {
-//       idManga,
-//       idChapter,
-//       idScan,
-//       chapter,
-//       previousLink,
-//       nextLink,
-//       imageURL,
-//     },
-//   };
-// }
-
-// export async function getServerSideProps(context) {
 export const getServerSideProps = wrapper.getServerSideProps(
   async ({ store, params }) => {
     // console.log("store", store);
-    // console.log("context", context);
-    // const { idManga, idChapter, idScan } = context.params;
     const { idManga, idChapter, idScan } = params;
-    // let lObjManga = [];
-    // const tmpLObjManga = await getMangasMeta();
-    // // console.log("tmpLObjManga", tmpLObjManga);
-    // // console.log("typeof tmpLObjManga", typeof tmpLObjManga);
-    // if (tmpLObjManga !== undefined && typeof tmpLObjManga === "object") {
-    //   const mangas = Object.values(tmpLObjManga);
-    //   mangas.sort((obj1, obj2) => {
-    //     return obj1.title.localeCompare(obj2.title);
-    //   });
-    //   lObjManga = mangas;
-    // }
 
-    // return {
-    //   props: {
-    //     // lObjManga,
-    //   },
-    // };
-
-    // For scan address in DB, create a route
-    // TODO: Use directly the DB
-    const docId = idManga + "_chapters";
-    const chapters = await getMangaChapters(docId);
-
-    const chapter = chapters[idChapter];
-    const imageURL = chapter.content[Number(idScan)];
-
-    const scanIdx = Object.keys(chapter.content)
-      .map((n) => Number(n))
-      .sort((a, b) => a - b);
-    const isFirstIdScan = scanIdx[0] === Number(idScan);
-    const isLastIdScan = scanIdx[scanIdx.length - 1] === Number(idScan);
-
-    const chaptersIdx = Object.keys(chapters)
-      .map((n) => Number(n))
-      .sort((a, b) => a - b);
-    const currentIdxChapter = chaptersIdx.indexOf(Number(idChapter));
-    const isFirstChapter = 0 === currentIdxChapter;
-    const isLastChapter = chaptersIdx.length - 1 === currentIdxChapter;
-
-    // console.log("idScan", idScan);
-    // console.log("idChapter", idChapter);
-    // console.log("scanIdx", scanIdx);
-    // console.log("isFirstIdScan", isFirstIdScan);
-    // console.log("isLastIdScan", isLastIdScan);
-    // console.log("chaptersIdx", chaptersIdx);
-    // console.log("isFirstChapter", isFirstChapter);
-    // console.log("isLastChapter", isLastChapter);
-
-    // Create the previous and next link considering the current scan
-    // Handle the edge cases
-    let previousLink = null;
-    let nextLink = null;
-
-    if (!isFirstIdScan) {
-      // console.log("!isFirstIdScan", !isFirstIdScan);
-      previousLink = `/manga/${idManga}/${idChapter}/${Number(idScan) - 1}`;
-    } else {
-      if (!isFirstChapter) {
-        // console.log("!isFirstChapter", !isFirstChapter);
-        const previousIdChapter = String(chaptersIdx[currentIdxChapter - 1]);
-        const previousChapterLastIdScan =
-          chapters[previousIdChapter].content.length - 1;
-        previousLink = `/manga/${idManga}/${previousIdChapter}/${previousChapterLastIdScan}`;
-      }
-    }
-
-    if (!isLastIdScan) {
-      // console.log("!isLastIdScan", !isLastIdScan);
-      nextLink = `/manga/${idManga}/${idChapter}/${Number(idScan) + 1}`;
-    } else {
-      if (!isLastChapter) {
-        // console.log("!isLastChapter", !isLastChapter);
-        const nextIdChapter = String(chaptersIdx[currentIdxChapter + 1]);
-        const nextChapterFirstIdScan = 0;
-        nextLink = `/manga/${idManga}/${nextIdChapter}/${nextChapterFirstIdScan}`;
-      }
-    }
-
-    // console.log("previousLink", previousLink);
-    // console.log("nextLink", nextLink);
-    // console.log("imageURL", imageURL);
+    await store.dispatch(retrieveManga(idManga));
 
     return {
       props: {
         idManga,
         idChapter,
         idScan,
-        chapter,
-        previousLink,
-        nextLink,
-        imageURL,
       },
     };
   }
 );
 
 const mapStateToProps = (state) => {
-  // console.log("ScanViewer mapStateToProps: state", state);
   return {
     manga: state.manga.manga,
   };
