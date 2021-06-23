@@ -85,7 +85,7 @@ function SelectChapter(props) {
     manga = props.manga;
   }
 
-  console.log("SelectChapter props", props);
+  // console.log("SelectChapter props", props);
 
   const chapters = manga[idManga] ? manga[idManga] : {};
 
