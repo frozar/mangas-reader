@@ -1,4 +1,5 @@
-import { getMangaChapters, getMangaChapters2 } from "../../src/db.js";
+import { getMangaChapters } from "../../src/db.js";
+import { getMangaChapters2 } from "../../src/serverSide.js";
 
 export const mangaActionTypes = {
   RETRIEVE: "RETRIEVE",
@@ -21,7 +22,6 @@ export const retrieveManga = (idManga) => {
       //   typeof currentState.manga[idManga]
       // );
       const chapters = await getMangaChapters(docId);
-      await getMangaChapters2(docId);
       // console.log("[action retrieveManga] chapters", chapters);
       return dispatch({
         type: mangaActionTypes.RETRIEVE,

@@ -3,14 +3,19 @@ import "firebase/firestore";
 import "firebase/storage";
 
 import storage from "../utils/storage";
+import db from "../utils/db";
+import { LOCAL_ADDRESS } from "../utils/db";
 import axios from "axios";
 
-export const db = firebase.firestore();
+// export const db = firebase.firestore();
 
-const useLocalDB = false;
-if (useLocalDB) {
-  db.useEmulator(LOCAL_ADDRESS, 8080);
-}
+// const LOCAL_ADDRESS = "192.168.1.19";
+// // const LOCAL_ADDRESS = "192.168.30.137";
+
+// const useLocalDB = false;
+// if (useLocalDB) {
+//   db.useEmulator(LOCAL_ADDRESS, 8080);
+// }
 
 // if (process.browser) {
 //   // Client-side-only code
@@ -29,9 +34,6 @@ if (useLocalDB) {
 // console.log("useLocalCloudFunction", useLocalCloudFunction);
 
 // useLocalCloudFunction
-
-const LOCAL_ADDRESS = "192.168.1.19";
-// const LOCAL_ADDRESS = "192.168.30.137";
 
 const CLOUD_FUNCTION_ROOT = process.env.USE_LOCAL_CLOUD_FUNCTION
   ? "http://" + LOCAL_ADDRESS + ":5001/manga-b8fb3/europe-west1/"
@@ -115,88 +117,6 @@ export async function getMangasMeta() {
     // throw new Error("[getMangas] " + error);
     console.error("[getMangasMeta] " + error);
   }
-}
-
-export async function getMangaChapters2(mangaPath) {
-  console.log("[getMangaChapters2] BEGIN");
-
-  // const response = await axios.get(
-  //   "http://localhost:3000/api/mangaChaptersGET",
-  //   {
-  //     params: {
-  //       path: mangaPath,
-  //     },
-  //   }
-  // );
-  // const chapters = response.data;
-  // // console.log("[getMangaChapters2] chapters", chapters);
-
-  // return chapters;
-
-  // Create the file metadata
-  const metadata = {
-    cacheControl: "public",
-    contentType: "image/jpeg",
-  };
-
-  const storageBucket = firebase.storage().ref();
-  console.log("storageBucket");
-
-  console.log("Start storage upload");
-  // Upload file and metadata to the object 'images/mountains.jpg'
-  const uploadTask = storageBucket
-    .child("test/toto.txt")
-    .put("/tmp/toto.txt", metadata);
-
-  console.log("Storage upload started");
-  console.log("storage.TaskEvent", storage.TaskEvent);
-  // console.log(
-  //   "storage.TaskEvent.STATE_CHANGED",
-  //   storage.TaskEvent.STATE_CHANGED
-  // );
-
-  // Listen for state changes, errors, and completion of the upload.
-  uploadTask.on(
-    // storage.TaskEvent.STATE_CHANGED
-    "state_changed", // or 'state_changed'
-    (snapshot) => {
-      // Get task progress, including the number of bytes uploaded and the total number of bytes to be uploaded
-      console.log("snapshot.bytesTransferred", snapshot.bytesTransferred);
-      console.log("snapshot.totalBytes", snapshot.totalBytes);
-      const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-      console.log("Upload is " + progress + "% done");
-      // switch (snapshot.state) {
-      //   case storage.TaskState.PAUSED: // or 'paused'
-      //     console.log("Upload is paused");
-      //     break;
-      //   case storage.TaskState.RUNNING: // or 'running'
-      //     console.log("Upload is running");
-      //     break;
-      // }
-    },
-    (error) => {
-      console.log("Error", error.code);
-    },
-    () => {
-      // Upload completed successfully, now we can get the download URL
-      uploadTask.snapshot.ref.getDownloadURL().then((downloadURL) => {
-        console.log("File available at", downloadURL);
-      });
-    }
-  );
-  return [];
-
-  // const response = await axios({
-  //   // url: uri,
-  //   url: "https://futurestud.io/images/futurestudio-logo-transparent.png",
-  //   // url,
-  //   method: "GET",
-  //   // responseType: "stream",
-  //   responseType: "blob", // Important
-  // });
-  // console.log("[download] response", response);
-
-  // return {};
 }
 
 export async function getMangaChapters(mangaPath) {

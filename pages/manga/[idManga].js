@@ -1,4 +1,6 @@
 import React from "react";
+import axios from "axios";
+
 // import history from "../history";
 import Link from "../../src/Link";
 import { useRouter } from "next/router";
@@ -19,6 +21,7 @@ import { connect } from "react-redux";
 
 // import { addCount } from "../../store/count/action";
 import { retrieveManga } from "../../store/manga/action";
+// import { getMangaChapters2 } from "../../src/serverSide";
 import { wrapper } from "../../store/store";
 
 const useStyles = makeStyles((theme) => ({
@@ -200,6 +203,11 @@ export async function getStaticPaths() {
 
 export const getStaticProps = wrapper.getStaticProps(
   async ({ store, params }) => {
+    // const fs = require("fs");
+
+    // const bufferToUpload = fs.readFileSync("tmp/toto.txt");
+    // console.log("bufferToUpload", bufferToUpload);
+
     // Fetch necessary data for the blog post using params.id
     // console.log("params", params);
     const { idManga } = params;
@@ -208,6 +216,17 @@ export const getStaticProps = wrapper.getStaticProps(
     // store.dispatch(addCount());
     // store.dispatch(setTo10());
     await store.dispatch(retrieveManga(idManga));
+
+    if (typeof windows === "undefined") {
+      // import { getMangaChapters2 } from "../../src/serverSide";
+      // const docId = idManga + "_chapters";
+      // const resGetMangaChapters2 = await getMangaChapters2(docId);
+      // console.log("resGetMangaChapters2", resGetMangaChapters2);
+      const resAxios = await axios.get(
+        "http://localhost:3000/api/mangaChaptersGET"
+      );
+      // console.log("resAxios", resAxios);
+    }
 
     // const docId = idManga + "_chapters";
     // const chapters = await getMangaChapters(docId);
