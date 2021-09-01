@@ -1,3 +1,7 @@
+// Cloud Functions
+const functions = require("firebase-functions");
+// const functions = admin.functions();
+
 const admin = require("firebase-admin");
 
 // // Your web app's Firebase configuration
@@ -12,18 +16,6 @@ const admin = require("firebase-admin");
 //   appId: "1:266094841766:web:67abf73e5a959ec0b14967",
 //   measurementId: "G-1X3975D4XF",
 // };
-
-// if (!admin.apps.length) {
-//   admin.initializeApp(firebaseConfig);
-// } else {
-//   admin.app();
-// }
-
-// export default admin;
-
-// export default !admin.apps.length
-//   ? admin.initializeApp(firebaseConfig)
-//   : admin.app();
 
 // To avoid to include the serviceAccountKey.json file in a public repository,
 // use a local environment variable GOOGLE_CONFIG_BASE64 to store the project
@@ -52,10 +44,12 @@ if (!admin.apps.length) {
 } else {
   admin.app();
 }
-// export default admin.firestore();
+
 export default admin;
 
+// Cloud Firestore
 const db = admin.firestore();
+// Cloud Storage
 const storage = admin.storage();
 
-module.exports = { db, storage };
+module.exports = { db, storage, functions };

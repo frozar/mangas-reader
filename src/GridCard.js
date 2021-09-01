@@ -8,7 +8,8 @@ import Typography from "@material-ui/core/Typography";
 
 import Link from "./Link";
 
-// import { URL_COMPUTER_THUMBNAIL } from "../db";
+import Image from "next/image";
+import { SERVER } from "../utils/url";
 
 const useStyles = makeStyles((theme) => ({
   cardContainer: {
@@ -72,26 +73,12 @@ const useStyles = makeStyles((theme) => ({
       },
     },
   },
-  backgroundImageThumbnail: {
-    maxWidth: "100%",
-    objectFit: "cover",
-
+  thumbnailContainer: {
+    position: "relative",
     height: "70%",
-    minHeight: "70%",
+    width: "100%",
     marginTop: "15px",
     marginBottom: "10px",
-    [theme.breakpoints.down("md")]: {
-      marginTop: "12px",
-      marginBottom: "8px",
-    },
-    [theme.breakpoints.down("sm")]: {
-      marginTop: "10px",
-      marginBottom: "6px",
-    },
-
-    borderRadius: "4px",
-    position: "relative",
-    overflow: "hidden",
   },
   cardTitleContainer: {
     height: "calc(100% - 70% - 15px - 10px)",
@@ -101,51 +88,56 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function doHandleError(mangaPath, chapterIdx, thumbnailFilename) {
-  // axios
-  //   .post(URL_COMPUTER_THUMBNAIL, {
-  //     mangaPath,
-  //     chapterIdx,
-  //     thumbnailFilename,
-  //   })
-  //   .then(function (res) {
-  //     console.log("[doHandleError] Success");
-  //   })
-  //   .catch(function (error) {
-  //     console.log("[doHandleError] Failed");
-  //   });
-}
+// function doHandleError(mangaPath, chapterIdx, thumbnailFilename) {
+//   console.log("Thumbnail error");
+//   console.log("mangaPath", mangaPath);
+//   console.log("chapterIdx", chapterIdx);
+//   console.log("thumbnailFilename", thumbnailFilename);
+//   // axios
+//   //   .post(URL_COMPUTER_THUMBNAIL, {
+//   //     mangaPath,
+//   //     chapterIdx,
+//   //     thumbnailFilename,
+//   //   })
+//   //   .then(function (res) {
+//   //     console.log("[doHandleError] Success");
+//   //   })
+//   //   .catch(function (error) {
+//   //     console.log("[doHandleError] Failed");
+//   //   });
+//   // process.env.GOOGLE_CONFIG_BASE64
+// }
 
 function Portrait(props) {
   const classes = useStyles();
-  const inputEl = React.useRef(null);
+  // const inputEl = React.useRef(null);
   const { picture, type } = props;
-  const [current, setCurrent] = React.useState(null);
+  // const [current, setCurrent] = React.useState(null);
 
-  React.useEffect(() => {
-    if (inputEl != null) {
-      setCurrent(inputEl.current);
-    }
-  }, []);
+  // React.useEffect(() => {
+  //   if (inputEl != null) {
+  //     setCurrent(inputEl.current);
+  //   }
+  // }, [inputEl]);
 
   let mangaPath;
   let chapterIdx;
   let thumbnailFilename;
 
-  const handleError = React.useCallback(
-    (_) => {
-      doHandleError(mangaPath, chapterIdx, thumbnailFilename);
-    },
-    [mangaPath, chapterIdx, thumbnailFilename]
-  );
+  // const handleError = React.useCallback(
+  //   (_) => {
+  //     doHandleError(mangaPath, chapterIdx, thumbnailFilename);
+  //   },
+  //   [mangaPath, chapterIdx, thumbnailFilename]
+  // );
 
-  React.useEffect(() => {
-    current?.addEventListener("error", handleError);
+  // React.useEffect(() => {
+  //   current?.addEventListener("error", handleError);
 
-    return () => {
-      current?.removeEventListener("error", handleError);
-    };
-  }, [current, handleError]);
+  //   return () => {
+  //     current?.removeEventListener("error", handleError);
+  //   };
+  // }, [current, handleError]);
 
   let altStr;
   if (type === "manga") {
@@ -181,13 +173,34 @@ function Portrait(props) {
     }
   }
 
+  const handleErrorTest = () => {
+    // console.log("handleErrorTest");
+    // console.log("mangaPath", mangaPath);
+    // console.log("chapterIdx", chapterIdx);
+    // console.log("thumbnailFilename", thumbnailFilename);
+    // console.log(
+    //   "SERVER_URL + /api/computeThumbnail",
+    //   SERVER + "/api/computeThumbnail"
+    // );
+    axios(SERVER + "/api/computeThumbnail", {
+      params: {
+        mangaPath,
+        chapterIdx,
+        thumbnailFilename,
+      },
+    });
+  };
+
   return (
-    <img
-      ref={inputEl}
-      className={classes.backgroundImageThumbnail}
-      src={picture}
-      alt={altStr}
-    />
+    <div className={classes.thumbnailContainer}>
+      <Image
+        src={picture}
+        layout="fill"
+        objectFit="contain"
+        alt={altStr}
+        onError={handleErrorTest}
+      />
+    </div>
   );
 }
 

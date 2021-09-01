@@ -1,5 +1,4 @@
 import { getMangaChapters } from "../../src/db.js";
-import { getMangaChapters2 } from "../../src/serverSide.js";
 
 export const mangaActionTypes = {
   RETRIEVE: "RETRIEVE",

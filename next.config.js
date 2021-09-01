@@ -15,4 +15,7 @@ module.exports = {
 
     return config;
   },
+  images: {
+    domains: ["storage.googleapis.com", "lelscans.net"],
+  },
 };

@@ -1,3 +1,19 @@
+# Launch dev environment
+
+Check the IP address and port in the `firebase.json` file.
+
+In one terminal:
+
+```sh
+firebase emulators:start --only functions
+```
+
+In another terminal:
+
+```sh
+npm run dev
+```
+
 # Next.js example
 
 ## How to use

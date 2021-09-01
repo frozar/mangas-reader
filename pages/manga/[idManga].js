@@ -3,7 +3,6 @@ import axios from "axios";
 
 // import history from "../history";
 import Link from "../../src/Link";
-import { useRouter } from "next/router";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
@@ -43,7 +42,6 @@ function SelectChapter(props) {
   // console.log("SelectChapter props", props);
   // console.log("SelectChapter props.manga", props.manga);
   const classes = useStyles();
-  const router = useRouter();
 
   // const [chaptersJacket, setChaptersJacket] = useState({});
   // const [loading, setLoading] = useState(true);
@@ -127,13 +125,10 @@ function SelectChapter(props) {
   //   history.push("/manga");
   // }
 
-  if (router.isFallback) {
-    return <div>Loading...</div>;
-  } else {
-    return (
-      <div className={classes.container}>
-        <AddCount />
-        {/* <div>
+  return (
+    <div className={classes.container}>
+      <AddCount />
+      {/* <div>
           <style jsx>{`
             div {
               padding: 0 0 20px 0;
@@ -144,43 +139,41 @@ function SelectChapter(props) {
             Add To Count
           </button>
         </div> */}
+      <Grid
+        container
+        direction="row"
+        alignItems="center"
+        style={{
+          marginTop: "20px",
+          paddingLeft: "10px",
+          paddingRight: "10px",
+        }}
+      >
+        <Grid item xs={3}>
+          <Link href="/">
+            <NavigationButton />
+          </Link>
+        </Grid>
+        <Grid item xs={6}>
+          <Typography variant="h1" className={classes.title}>
+            Choisis ton chapitre
+          </Typography>
+        </Grid>
         <Grid
-          container
-          direction="row"
-          alignItems="center"
+          item
+          xs={3}
           style={{
-            marginTop: "20px",
-            paddingLeft: "10px",
-            paddingRight: "10px",
+            marginTop: "auto",
           }}
         >
-          <Grid item xs={3}>
-            <Link href="/">
-              <NavigationButton />
-            </Link>
-          </Grid>
-          <Grid item xs={6}>
-            <Typography variant="h1" className={classes.title}>
-              Choisis ton chapitre
-            </Typography>
-          </Grid>
-          <Grid
-            item
-            xs={3}
-            style={{
-              marginTop: "auto",
-            }}
-          >
-            <Typography variant="h2" className={classes.subTitle}>
-              {props.title}
-            </Typography>
-          </Grid>
+          <Typography variant="h2" className={classes.subTitle}>
+            {props.title}
+          </Typography>
         </Grid>
-        {/* <WaitingComponent loading={loading} /> */}
-        <GridCard cards={cards} type="chapter" />
-      </div>
-    );
-  }
+      </Grid>
+      <GridCard cards={cards} type="chapter" />
+    </div>
+  );
 }
 
 export async function getStaticPaths() {
@@ -217,16 +210,17 @@ export const getStaticProps = wrapper.getStaticProps(
     // store.dispatch(setTo10());
     await store.dispatch(retrieveManga(idManga));
 
-    if (typeof windows === "undefined") {
-      // import { getMangaChapters2 } from "../../src/serverSide";
-      // const docId = idManga + "_chapters";
-      // const resGetMangaChapters2 = await getMangaChapters2(docId);
-      // console.log("resGetMangaChapters2", resGetMangaChapters2);
-      const resAxios = await axios.get(
-        "http://localhost:3000/api/mangaChaptersGET"
-      );
-      // console.log("resAxios", resAxios);
-    }
+    // if (typeof windows === "undefined") {
+    //   // import { getMangaChapters2 } from "../../src/serverSide";
+    //   // const docId = idManga + "_chapters";
+    //   // const resGetMangaChapters2 = await getMangaChapters2(docId);
+    //   // console.log("resGetMangaChapters2", resGetMangaChapters2);
+    //   const resAxios = await axios.get(
+    //     "http://localhost:3000/api/mangaChaptersGET",
+    //     { params }
+    //   );
+    //   // console.log("resAxios", resAxios);
+    // }
 
     // const docId = idManga + "_chapters";
     // const chapters = await getMangaChapters(docId);

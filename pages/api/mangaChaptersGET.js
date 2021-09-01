@@ -6,13 +6,16 @@ import { storage } from "../../utils/serverSide/firebase";
 // const path = require("path");
 
 export default async (req, res) => {
+  console.log("req", req);
+  console.log("req.method", req.method);
+  console.log("req.query", req.query);
   // Cloud Storage
   // const storage = admin.storage();
   // console.log("storage: ", storage);
 
   // const storage = admin.storage();
 
-  console.log("process.cwd()", process.cwd());
+  // console.log("process.cwd()", process.cwd());
 
   const storageBucket = storage.bucket();
   // const filePath = "tmp/toto.txt";
@@ -28,7 +31,7 @@ export default async (req, res) => {
     const url = metadata.mediaLink;
     console.log("url: ", url);
   };
-  await uploadFile(filePath, destFileName);
+  // await uploadFile(filePath, destFileName);
 
   res.status(200).end("OK");
   // res.status(400).end(error);
