@@ -24,6 +24,15 @@ const reducer = (state, action) => {
   // console.log("[main reducer] action", action);
   // console.log("[main reducer] state", state);
   if (action.type === HYDRATE) {
+    // console.log("[main reducer] HYDRATE action", action);
+    // console.log(
+    //   "[main reducer] HYDRATE action.payload.manga",
+    //   action.payload.manga
+    // );
+    // console.log(
+    //   "[main reducer] HYDRATE action.payload.manga.manga",
+    //   action.payload.manga.manga
+    // );
     // console.log("[main reducer] HYDRATE state.manga", state.manga);
     const nextState = {
       ...state, // use previous state

@@ -87,18 +87,25 @@ export const LELSCANS_ROOT = "lelscans";
 // console.log("CLOUD_FUNCTION_ROOT", CLOUD_FUNCTION_ROOT);
 
 export async function getMangas() {
+  console.log("[getMangas] BEGIN");
   try {
+    console.log("[getMangas] 0");
     const response = await axios.get(URL_MANGAS_GET);
+    console.log("[getMangas] 1");
+    console.log("[getMangas] response.status: " + response.status);
     if (response.status === 400) {
       throw response.statusText;
     }
+    console.log("[getMangas] 2");
     const mangas = response.data;
 
     return mangas;
   } catch (error) {
+    console.log("[getMangas] 3");
     // throw new Error("[getMangas] " + error);
     console.error("[getMangas] " + error);
   }
+  console.log("[getMangas] END");
 }
 
 export async function getMangasMeta() {

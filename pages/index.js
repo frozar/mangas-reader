@@ -13,7 +13,7 @@ import Typography from "@material-ui/core/Typography";
 // import Copyright from "../src/Copyright";
 // import SelectManga from "../src/SelectManga";
 
-import { getMangasMeta } from "../src/db.js";
+import { getMangasMeta, getMangas } from "../src/db.js";
 
 import GridCard from "../src/GridCard.js";
 // import Counter from "../src/counter";
@@ -142,7 +142,7 @@ function Index(props) {
   //   });
   // };
 
-  console.log("Index props", props);
+  // console.log("Index props", props);
 
   const cards =
     props.lObjManga !== undefined
@@ -184,7 +184,7 @@ function Index(props) {
   // console.log("cards", cards);
   return (
     <div className={classes.container}>
-      <AddCount />
+      {/* <AddCount /> */}
       <Typography variant="h1" className={classes.title}>
         Choisis ton manga
       </Typography>
@@ -219,6 +219,7 @@ export const getStaticProps = wrapper.getStaticProps(async ({ store }) => {
   // store.dispatch(addCount());
 
   let lObjManga = [];
+  getMangas();
   const tmpLObjManga = await getMangasMeta();
   // console.log("tmpLObjManga", tmpLObjManga);
   // console.log("typeof tmpLObjManga", typeof tmpLObjManga);

@@ -254,7 +254,7 @@ export const getServerSideProps = wrapper.getServerSideProps(
     // console.log("store", store);
     const { idManga, idChapter, idScan } = params;
 
-    await store.dispatch(retrieveManga(idManga));
+    // await store.dispatch(retrieveManga(idManga));
 
     return {
       props: {
