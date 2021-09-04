@@ -174,21 +174,21 @@ function Portrait(props) {
   }
 
   const handleErrorTest = () => {
-    // console.log("handleErrorTest");
-    // console.log("mangaPath", mangaPath);
-    // console.log("chapterIdx", chapterIdx);
-    // console.log("thumbnailFilename", thumbnailFilename);
+    console.log("[handleErrorTest] BEGIN");
+    console.log("[handleErrorTest] mangaPath", mangaPath);
+    console.log("[handleErrorTest] chapterIdx", chapterIdx);
+    console.log("[handleErrorTest] thumbnailFilename", thumbnailFilename);
     // console.log(
     //   "SERVER_URL + /api/computeThumbnail",
     //   SERVER + "/api/computeThumbnail"
     // );
-    axios(SERVER + "/api/computeThumbnail", {
-      params: {
-        mangaPath,
-        chapterIdx,
-        thumbnailFilename,
-      },
-    });
+    // axios(SERVER + "/api/computeThumbnail", {
+    //   params: {
+    //     mangaPath,
+    //     chapterIdx,
+    //     thumbnailFilename,
+    //   },
+    // });
   };
 
   return (

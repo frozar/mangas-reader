@@ -219,8 +219,9 @@ export const getStaticProps = wrapper.getStaticProps(async ({ store }) => {
   // store.dispatch(addCount());
 
   let lObjManga = [];
-  getMangas();
-  const tmpLObjManga = await getMangasMeta();
+  // getMangas();
+  // const tmpLObjManga = await getMangasMeta();
+  const tmpLObjManga = await getMangas();
   // console.log("tmpLObjManga", tmpLObjManga);
   // console.log("typeof tmpLObjManga", typeof tmpLObjManga);
   if (tmpLObjManga !== undefined && typeof tmpLObjManga === "object") {

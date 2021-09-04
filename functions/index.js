@@ -77,7 +77,7 @@ async function getImageURL(URL) {
       return FAILED;
     }
   } catch (error) {
-    functions.logger.error("[getImageURL] ", error);
+    functions.logger.error("[getImageURL]", error);
     return FAILED;
   }
 }
@@ -141,7 +141,7 @@ function diffScrapedVsDB(scrapedData, DBData) {
   return [mangaToRemoveFromDB, mangaToAddToDB];
 }
 
-// TODO: if there a thumbnail associated to a chapter,
+// TODO: if there is a thumbnail associated to a chapter,
 // delete the thumbnail as well
 async function updateChaptersCollection(docRef, URL) {
   try {
@@ -490,7 +490,7 @@ async function deleteAtPath(path) {
   }
   const access_token = (await cred.getAccessToken()).access_token;
 
-  functions.logger.log(`[deleteAtPath] Requeste to delete path ${path}`);
+  functions.logger.log(`[deleteAtPath] Request to delete path ${path}`);
 
   // Run a recursive delete on the given document or collection path.
   // The 'token' must be set in the functions config, and can be generated
@@ -507,36 +507,158 @@ async function deleteAtPath(path) {
   };
 }
 
+function setCORSHeader(res) {
+  // Set header field to pass CORS security
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "X-Requested-With,content-type"
+  );
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+  res.setHeader("Access-Control-Allow-Credentials", true);
+}
+
+const LIMIT_MAX_CHAPTER = 8;
 /**
- * Write the title and URL in DB for each manga available on lelscans.
+ * For a given manga scrap LIMIT_MAX_CHAPTER chapters
  */
-exports.mangasGET = functions
+exports.scrapMangaChapters = functions
   .region("europe-west1")
   .runWith(runtimeOpts)
   .https.onRequest(async (req, res) => {
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "X-Requested-With,content-type"
-    );
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-    );
-    res.setHeader("Access-Control-Allow-Credentials", true);
+    // Check the type of request
+    if (req.method !== "GET") {
+      res.status("401").send("Unauthorized method");
+      return;
+    }
+
+    setCORSHeader(res);
 
     try {
+      // ***** 0 - Check input parameters of the query
+      const queryPath = req.query.path;
+
+      const errors = [];
+      if (!queryPath) {
+        errors.push("[scrapMangaChapters] queryPath undefined.");
+      }
+
+      if (errors.length > 0) {
+        functions.logger.error("[scrapMangaChapters] Error", errors);
+        res.status(400).send(errors.join("\n"));
+        return;
+      }
+
+      // ***** 1 - Read DB to retrieve manga URL and chapters already scraped
+      const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
+      const docChapterRef = docRef.collection("chapters").doc("data");
+
+      const docManga = await docRef.get();
+      const docChapters = await docChapterRef.get();
+      const manga = docManga.data();
+      const chapters = docChapters.data();
+
+      // ***** 2 - Scrap chapters indexes
+      const { URL } = manga;
+      // Attempt to scrap from lelscan multiple time in a row
+      let scrapedIdx;
+      for (const i in [...Array(5).keys()]) {
+        scrapedIdx = await scrapIdxChapters(URL);
+        if (scrapedIdx !== FAILED) {
+          functions.logger.log(
+            `[scrapMangaChapters] scrapIdxChapters(${URL}) SUCCESS.`
+          );
+          break;
+        }
+      }
+
+      if (scrapedIdx === FAILED) {
+        functions.logger.error(
+          `[scrapMangaChapters] scrapIdxChapters(${URL}) FAILURE.`
+        );
+        res.status(400).send("[scrapMangaChapters] FAILURE");
+        return;
+      }
+
+      const idxInDB = Object.keys(chapters);
+      const [idxToRemove, idxToAdd] = diffScrapedVsDB(scrapedIdx, idxInDB);
+      // console.log("idxToRemove", idxToRemove);
+      // console.log("idxToAdd", idxToAdd);
+
+      // ***** 3 - Remove the unavailable chapters
+      for (const idx of idxToRemove) {
+        delete chapters[idx];
+      }
+      // Delete chapters: without "merge"
+      await docChapterRef.set(chapters);
+
+      // ***** 4 - Add the unavailable chapters
+      // Limit the number of chapters to add to 8 because of time out limit
+      // on Google Cloud function
+      for (const idx of idxToAdd.slice(0, LIMIT_MAX_CHAPTER)) {
+        // Scrap images
+        let scrapedChapterImagesURL;
+        for (const i in [...Array(5).keys()]) {
+          scrapedChapterImagesURL = await scrapChapterImagesURL(queryPath, idx);
+          if (scrapedChapterImagesURL !== FAILED) {
+            functions.logger.log(
+              `[scrapMangaChapters] ${i} scrapChapterImagesURL(${queryPath}, ${idx}) SUCCESS.`
+            );
+            break;
+          }
+        }
+
+        if (scrapedChapterImagesURL === FAILED) {
+          functions.logger.error(
+            `[scrapMangaChapters] scrapChapterImagesURL(${queryPath}, ${idx}) FAILURE.`
+          );
+          continue;
+        }
+
+        chapters[idx] = { content: scrapedChapterImagesURL, thumbnail: "" };
+      }
+      // Add chapters: with "merge"
+      await docChapterRef.set(chapters, { merge: true });
+
+      res.status(200).send("Chapters scraped.");
+      return;
+    } catch (error) {
+      res.status(400).send(error);
+      return;
+    }
+  });
+
+/**
+ *
+ */
+exports.scrapMangas = functions
+  .region("europe-west1")
+  .runWith(runtimeOpts)
+  .https.onRequest(async (req, res) => {
+    // Check the type of request
+    if (req.method !== "GET") {
+      res.status("401").send("Unauthorized method");
+      return;
+    }
+
+    setCORSHeader(res);
+
+    try {
+      // // TODO: to remove
+      // console.log("REMOVE GANTZ");
+      // await deleteAtPath("/" + LELSCANS_ROOT + "/gantz");
+
       // ***** 0 - Read mangas in DB and returns the result the client
       const collRef = db.collection(LELSCANS_ROOT);
       const snapshot = await collRef.get();
 
-      const mangas = {};
+      const mangas = [];
       snapshot.forEach((doc) => {
-        mangas[doc.id] = doc.data();
+        mangas.push(doc.id);
       });
-
-      // functions.logger.log("[mangasGET] mangas", mangas);
-      res.status(200).send(mangas);
 
       // ***** 1 - Scrapping of manga available
       // Attempt to scrap from lelscan multiple time in a row
@@ -551,11 +673,15 @@ exports.mangasGET = functions
 
       if (scrapedMangas === FAILED) {
         functions.logger.error("[mangasGET] scrapedMangas() FAILURE.");
+        res.status(400).send("[mangasGET] FAILURE");
         return;
       }
 
       const scrapedMangasPath = Object.keys(scrapedMangas);
-      const mangasPathInDB = Object.keys(mangas);
+      const mangasPathInDB = mangas;
+
+      // console.log("[mangasGET] scrapedMangasPath", scrapedMangasPath);
+      // console.log("[mangasGET] mangasPathInDB", mangasPathInDB);
 
       // ***** 2 - Compare scrapped data with the DB. If different, update DB.
       const [mangaToRemove, mangaToAdd] = diffScrapedVsDB(
@@ -568,7 +694,8 @@ exports.mangasGET = functions
       // Delete available manga
       for (const mangaPath of mangaToRemove) {
         try {
-          await deleteAtPath("/" + LELSCANS_ROOT + "/" + mangaPath);
+          // console.log("Should delete", mangaPath);
+          // await deleteAtPath("/" + LELSCANS_ROOT + "/" + mangaPath);
         } catch (error) {
           functions.logger.error(`[mangasGET] Delete path ${path} FAILURE`);
           functions.logger.error(error);
@@ -576,28 +703,55 @@ exports.mangasGET = functions
         }
       }
 
-      // // Add new manga
-      // let toWait = [];
-      // for (const [path, manga] of Object.entries(scrapedMangas)) {
-      //   const { title, URL, thumbnail } = manga;
+      // Add new manga
+      let toWait = [];
+      for (const path of mangaToAdd) {
+        const mangaDetails = scrapedMangas[path];
+        const { title, URL, thumbnail } = mangaDetails;
+        const objToWrite = { title, URL, path, thumbnail };
+        const docRef = collRef.doc(path);
+        toWait.push(docRef.set(objToWrite, { merge: true }));
+        const docChapterRef = collRef
+          .doc(path)
+          .collection("chapters")
+          .doc("data");
+        toWait.push(docChapterRef.set({}, { merge: true }));
+      }
+      await Promise.all(toWait);
+      res.status(200).send("Manga scraped.");
+      return;
+    } catch (error) {
+      res.status(400).send(error);
+      return;
+    }
+  });
 
-      //   const docRef = collRef.doc(path);
+/**
+ * Write the title and URL in DB for each manga available on lelscans.
+ */
+exports.mangasGET = functions
+  .region("europe-west1")
+  .runWith(runtimeOpts)
+  .https.onRequest(async (req, res) => {
+    // Check the type of request
+    if (req.method !== "GET") {
+      res.status("401").send("Unauthorized method");
+      return;
+    }
 
-      //   let objToWrite = {};
-      //   if (mangaToAdd.includes(path)) {
-      //     objToWrite = { title, URL, path, thumbnail };
-      //   }
+    setCORSHeader(res);
 
-      //   const chapters = await updateChaptersCollection(docRef, URL);
-      //   if (chapters !== FAILED) {
-      //     objToWrite = { ...objToWrite, ...chapters };
-      //   }
+    try {
+      // ***** 0 - Read mangas in DB and returns the result the client
+      const collRef = db.collection(LELSCANS_ROOT);
+      const snapshot = await collRef.get();
 
-      //   if (!_.isEmpty(objToWrite)) {
-      //     toWait.push(docRef.set(objToWrite, { merge: true }));
-      //   }
-      // }
-      // await Promise.all(toWait);
+      const mangas = {};
+      snapshot.forEach((doc) => {
+        mangas[doc.id] = doc.data();
+      });
+
+      res.status(200).send(mangas);
       return;
     } catch (error) {
       res.status(400).send(error);

@@ -8,7 +8,7 @@ import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 
-import { getMangasMeta, getMangaChapters } from "../../src/db.js";
+import { getMangasMeta, getMangas, getMangaChapters } from "../../src/db.js";
 import GridCard from "../../src/GridCard.js";
 // import WaitingComponent from "./WaitingComponent.js";
 import NavigationButton from "../../src/NavigationButton";
@@ -178,7 +178,8 @@ function SelectChapter(props) {
 
 export async function getStaticPaths() {
   // Return a list of possible value for id
-  const tmpLObjManga = await getMangasMeta();
+  // const tmpLObjManga = await getMangasMeta();
+  const tmpLObjManga = await getMangas();
   // console.log("tmpLObjManga", tmpLObjManga);
   const paths = Object.entries(tmpLObjManga).map(([_, objManga]) => {
     return {

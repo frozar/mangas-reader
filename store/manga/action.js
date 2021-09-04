@@ -9,7 +9,7 @@ export const retrieveManga = (idManga) => {
     const currentState = getState();
 
     if (typeof currentState.manga[idManga] !== "object") {
-      const docId = idManga + "_chapters";
+      const docId = idManga;
       // console.log("[action retrieveManga] TRIGGER RETRIEVE");
       // console.log(
       //   "[action retrieveManga] currentState.manga",
