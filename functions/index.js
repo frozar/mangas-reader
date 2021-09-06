@@ -1,13 +1,3 @@
-// const functions = require("firebase-functions");
-
-// // // Create and Deploy Your First Cloud Functions
-// // // https://firebase.google.com/docs/functions/write-firebase-functions
-// //
-// // exports.helloWorld = functions.https.onRequest((request, response) => {
-// //   functions.logger.info("Hello logs!", {structuredData: true});
-// //   response.send("Hello from Firebase!");
-// // });
-
 "use strict";
 
 const _ = require("lodash");
@@ -20,6 +10,11 @@ const os = require("os");
 const spawn = require("child-process-promise").spawn;
 
 const admin = require("firebase-admin");
+// The Firebase Admin SDK to access Cloud Firestore.
+const firebase_tools = require("firebase-tools");
+// Cloud Functions
+const functions = require("firebase-functions");
+
 admin.initializeApp();
 
 // Cloud Firestore
@@ -27,12 +22,6 @@ const db = admin.firestore();
 
 // Cloud Storage
 const storage = admin.storage();
-
-// Cloud Functions
-const functions = require("firebase-functions");
-
-// The Firebase Admin SDK to access Cloud Firestore.
-const firebase_tools = require("firebase-tools");
 
 const LELSCANS_ROOT = "lelscans";
 const FAILED = 42;
@@ -88,7 +77,7 @@ async function getImageURL(URL) {
       return FAILED;
     }
   } catch (error) {
-    functions.logger.error("[getImageURL] ", error);
+    functions.logger.error("[getImageURL]", error);
     return FAILED;
   }
 }
@@ -139,14 +128,6 @@ async function scrapChapterImagesURL(path, idxChapter) {
   }
 }
 
-async function deletePathDB(path) {
-  await firebase_tools.firestore.delete(path, {
-    project: process.env.GCLOUD_PROJECT,
-    recursive: true,
-    yes: true,
-  });
-}
-
 const runtimeOpts = {
   timeoutSeconds: 540,
   memory: "256MB",
@@ -160,7 +141,7 @@ function diffScrapedVsDB(scrapedData, DBData) {
   return [mangaToRemoveFromDB, mangaToAddToDB];
 }
 
-// TODO: if there a thumbnail associated to a chapter,
+// TODO: if there is a thumbnail associated to a chapter,
 // delete the thumbnail as well
 async function updateChaptersCollection(docRef, URL) {
   try {
@@ -232,8 +213,7 @@ async function scrapMangas() {
 
     return scrapedMangas;
   } catch (error) {
-    functions.logger.error("[scrapMangas]: Cannot get info from lelscans");
-    functions.logger.error(error.code);
+    functions.logger.log("[scrapMangas] Cannot get info from lelscans");
     return FAILED;
   }
 }
@@ -291,34 +271,36 @@ exports.mangaTitleSET = functions
       functions.logger.info("[mangaTitleSET] mangaToRemove", mangaToRemove);
     }
 
-    // Delete manga to remove
-    for (const mangaPath in mangaToRemove) {
-      deletePathDB(LELSCANS_ROOT + "/" + mangaPath);
-    }
+    // TODO: rewrite from mangasGET example
+    // // Delete manga to remove
+    // for (const mangaPath in mangaToRemove) {
+    //   deletePathDB(LELSCANS_ROOT + "/" + mangaPath);
+    // }
 
-    // Add manga to add
-    let toWait = [];
-    for (const [path, manga] of Object.entries(scrapedMangas)) {
-      const { title, URL, thumbnail } = manga;
+    // // Add manga to add
+    // let toWait = [];
+    // for (const [path, manga] of Object.entries(scrapedMangas)) {
+    //   const { title, URL, thumbnail } = manga;
 
-      const docRef = collRef.doc(path);
+    //   const docRef = collRef.doc(path);
 
-      let objToWrite = {};
-      if (mangaToAdd.includes(path)) {
-        objToWrite = { title, URL, path, thumbnail };
-      }
+    //   let objToWrite = {};
+    //   if (mangaToAdd.includes(path)) {
+    //     objToWrite = { title, URL, path, thumbnail };
+    //   }
 
-      if (scrapedMangasPath.includes(path)) {
-        const chapters = await updateChaptersCollection(docRef, URL);
-        if (chapters !== FAILED) {
-          objToWrite = { ...objToWrite, ...chapters };
-        }
-      }
-      toWait.push(docRef.set(objToWrite, { merge: true }));
-    }
-    await Promise.all(toWait);
+    //   if (scrapedMangasPath.includes(path)) {
+    //     const chapters = await updateChaptersCollection(docRef, URL);
+    //     if (chapters !== FAILED) {
+    //       objToWrite = { ...objToWrite, ...chapters };
+    //     }
+    //   }
+    //   toWait.push(docRef.set(objToWrite, { merge: true }));
+    // }
+    // await Promise.all(toWait);
 
     res.status(200).send("mangaTitleSET: SUCCESS");
+    return;
   });
 
 // /**
@@ -422,30 +404,326 @@ exports.mangasMetaGET = functions
         mangas[doc.id] = doc.data();
         // }
       });
-      // console.log("4");
-
-      // // functions.logger.log("[mangasGET] mangas", mangas);
-
-      // // Add manga to add
-      // let toWait = [];
-      // for (const [_, manga] of Object.entries(mangas)) {
-      //   const { URL, path, thumbnail, title } = manga;
-      //   console.log("path:", path);
-
-      //   const docRef = collRef.doc(path + "_meta");
-      //   const meta = true;
-
-      //   let objToWrite = { title, URL, path, thumbnail, meta };
-
-      //   toWait.push(docRef.set(objToWrite, { merge: true }));
-      // }
-      // await Promise.all(toWait);
-      // console.log("5");
 
       res.status(200).send(mangas);
-      // // console.log("6");
     } catch (error) {
-      res.status(400).send(error);
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
+    }
+  });
+
+// /**
+//  *
+//  */
+// exports.modifyDB = functions
+//   .region("europe-west1")
+//   .runWith(runtimeOpts)
+//   .https.onRequest(async (req, res) => {
+//     res.setHeader(
+//       "Access-Control-Allow-Headers",
+//       "X-Requested-With,content-type"
+//     );
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader(
+//       "Access-Control-Allow-Methods",
+//       "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+//     );
+//     res.setHeader("Access-Control-Allow-Credentials", true);
+
+//     // ***** 0 - Read mangas in DB and returns the result the client
+//     const collRef = db.collection(LELSCANS_ROOT);
+//     // console.log("functions.config():", functions.config());
+
+//     // const snapshotChapters = await collRef.get();
+//     // // const mangas = {};
+//     // snapshotChapters.forEach(async (doc) => {
+//     //   const newDocId = doc.id.replace("_meta", "");
+//     //   // if (!/.*_meta$/.test(doc.id)) {
+//     //   //   console.log("[Cloud modifyDB] doc.id:", doc.id);
+//     //   //   // //   mangas[docIdChapters] = doc.data();
+//     //   //   // // }
+//     //   //   // await deletePathDB("/" + doc.id);
+//     //   //   // console.log("[Cloud modifyDB] ", doc.id, ": deleted");
+
+//     //   //   collRef
+//     //   //     .doc(doc.id)
+//     //   //     .delete()
+//     //   //     .then(() => {
+//     //   //       console.log("[Cloud modifyDB]", doc.id, ": deleted");
+//     //   //     })
+//     //   //     .catch((error) => {
+//     //   //       console.error("Error:", doc.id, " :", error);
+//     //   //     });
+//     //   // }
+//     // });
+
+//     // const snapshotMeta = await collRef.where("meta", "==", true).get();
+//     // snapshotMeta.forEach((doc) => {
+//     //   const docIdMeta = doc.id;
+//     //   // if (docIdMeta !== "gantz_meta") {
+//     //   console.log("[Cloud modifyDB] docIdMeta: ", docIdMeta);
+//     //   collRef.doc(doc.id).update({
+//     //     meta: admin.firestore.FieldValue.delete(),
+//     //   });
+//     //   // const docIdChapters = docIdMeta.replace("_meta", "_chapters");
+//     //   // // console.log("mangas[docIdChapters].chapters: ", {
+//     //   // //   ...mangas[docIdChapters].chapters,
+//     //   // // });
+//     //   // // mangas[docIdMeta] = doc.data();
+//     //   // // const docRef = doc.collection("chapters").doc("data");
+//     //   // const docRef = collRef.doc(doc.id).collection("chapters").doc("data");
+//     //   // docRef.set({
+//     //   //   ...mangas[docIdChapters].chapters,
+//     //   // });
+//     //   // }
+//     // });
+
+//     return res.status(200).send("OK");
+//   });
+
+// Documentation link:
+// https://github.com/firebase/snippets-node/tree/f8236ac5cc5da66842f18cd127ba107ec5d38519/firestore/solution-deletes
+// https://stackoverflow.com/questions/64121168/how-to-use-firebase-tools-from-nodejs-script
+async function deleteAtPath(path) {
+  const cred = admin.app().options.credential;
+  if (!cred) {
+    throw new Error("Admin credential was undefined");
+  }
+  const access_token = (await cred.getAccessToken()).access_token;
+
+  functions.logger.log(`[deleteAtPath] Request to delete path ${path}`);
+
+  // Run a recursive delete on the given document or collection path.
+  // The 'token' must be set in the functions config, and can be generated
+  // at the command line by running 'firebase login:ci'.
+  await firebase_tools.firestore.delete(path, {
+    project: process.env.GCLOUD_PROJECT,
+    recursive: true,
+    yes: true,
+    token: access_token,
+  });
+
+  return {
+    path,
+  };
+}
+
+function setCORSHeader(res) {
+  // Set header field to pass CORS security
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "X-Requested-With,content-type"
+  );
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+  );
+  res.setHeader("Access-Control-Allow-Credentials", true);
+}
+
+const LIMIT_MAX_CHAPTER = 8;
+/**
+ * For a given manga scrap LIMIT_MAX_CHAPTER chapters
+ */
+exports.scrapMangaChapters = functions
+  .region("europe-west1")
+  .runWith(runtimeOpts)
+  .https.onRequest(async (req, res) => {
+    // Check the type of request
+    if (req.method !== "GET") {
+      res.status("401").send("Unauthorized method");
+      return;
+    }
+
+    setCORSHeader(res);
+
+    try {
+      // ***** 0 - Check input parameters of the query
+      const queryPath = req.query.path;
+
+      const errors = [];
+      if (!queryPath) {
+        errors.push("[scrapMangaChapters] queryPath undefined.");
+      }
+
+      if (errors.length > 0) {
+        functions.logger.error("[scrapMangaChapters] Error", errors);
+        res.status(400).send(errors.join("\n"));
+        return;
+      }
+
+      // ***** 1 - Read DB to retrieve manga URL and chapters already scraped
+      const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
+      const docChapterRef = docRef.collection("chapters").doc("data");
+
+      const docManga = await docRef.get();
+      const docChapters = await docChapterRef.get();
+      const manga = docManga.data();
+      const chapters = docChapters.data();
+
+      // ***** 2 - Scrap chapters indexes
+      const { URL } = manga;
+      // Attempt to scrap from lelscan multiple time in a row
+      let scrapedIdx;
+      for (const i in [...Array(5).keys()]) {
+        scrapedIdx = await scrapIdxChapters(URL);
+        if (scrapedIdx !== FAILED) {
+          functions.logger.log(
+            `[scrapMangaChapters] scrapIdxChapters(${URL}) SUCCESS.`
+          );
+          break;
+        }
+      }
+
+      if (scrapedIdx === FAILED) {
+        functions.logger.error(
+          `[scrapMangaChapters] scrapIdxChapters(${URL}) FAILURE.`
+        );
+        res.status(400).send("[scrapMangaChapters] FAILURE");
+        return;
+      }
+
+      const idxInDB = Object.keys(chapters);
+      const [idxToRemove, idxToAdd] = diffScrapedVsDB(scrapedIdx, idxInDB);
+      // console.log("idxToRemove", idxToRemove);
+      // console.log("idxToAdd", idxToAdd);
+
+      // ***** 3 - Remove the unavailable chapters
+      for (const idx of idxToRemove) {
+        delete chapters[idx];
+      }
+      // Delete chapters: without "merge"
+      await docChapterRef.set(chapters);
+
+      // ***** 4 - Add the unavailable chapters
+      // Limit the number of chapters to add to 8 because of time out limit
+      // on Google Cloud function
+      for (const idx of idxToAdd.slice(0, LIMIT_MAX_CHAPTER)) {
+        // Scrap images
+        let scrapedChapterImagesURL;
+        for (const i in [...Array(5).keys()]) {
+          scrapedChapterImagesURL = await scrapChapterImagesURL(queryPath, idx);
+          if (scrapedChapterImagesURL !== FAILED) {
+            functions.logger.log(
+              `[scrapMangaChapters] ${i} scrapChapterImagesURL(${queryPath}, ${idx}) SUCCESS.`
+            );
+            break;
+          }
+        }
+
+        if (scrapedChapterImagesURL === FAILED) {
+          functions.logger.error(
+            `[scrapMangaChapters] scrapChapterImagesURL(${queryPath}, ${idx}) FAILURE.`
+          );
+          continue;
+        }
+
+        chapters[idx] = { content: scrapedChapterImagesURL, thumbnail: "" };
+      }
+      // Add chapters: with "merge"
+      await docChapterRef.set(chapters, { merge: true });
+
+      res.status(200).send("Chapters scraped.");
+      return;
+    } catch (error) {
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
+    }
+  });
+
+/**
+ *
+ */
+exports.scrapMangas = functions
+  .region("europe-west1")
+  .runWith(runtimeOpts)
+  .https.onRequest(async (req, res) => {
+    // Check the type of request
+    if (req.method !== "GET") {
+      res.status("401").send("Unauthorized method");
+      return;
+    }
+
+    setCORSHeader(res);
+
+    try {
+      // // TODO: to remove
+      // console.log("REMOVE GANTZ");
+      // await deleteAtPath("/" + LELSCANS_ROOT + "/gantz");
+
+      // ***** 0 - Read mangas in DB and returns the result the client
+      const collRef = db.collection(LELSCANS_ROOT);
+      const snapshot = await collRef.get();
+
+      const mangas = [];
+      snapshot.forEach((doc) => {
+        mangas.push(doc.id);
+      });
+
+      // ***** 1 - Scrapping of manga available
+      // Attempt to scrap from lelscan multiple time in a row
+      let scrapedMangas;
+      for (const i in [...Array(5).keys()]) {
+        scrapedMangas = await scrapMangas();
+        if (scrapedMangas !== FAILED) {
+          functions.logger.log("[mangasGET] scrapedMangas() SUCCESS.");
+          break;
+        }
+      }
+
+      if (scrapedMangas === FAILED) {
+        functions.logger.error("[mangasGET] scrapedMangas() FAILURE.");
+        res.status(400).send("[mangasGET] FAILURE");
+        return;
+      }
+
+      const scrapedMangasPath = Object.keys(scrapedMangas);
+      const mangasPathInDB = mangas;
+
+      // console.log("[mangasGET] scrapedMangasPath", scrapedMangasPath);
+      // console.log("[mangasGET] mangasPathInDB", mangasPathInDB);
+
+      // ***** 2 - Compare scrapped data with the DB. If different, update DB.
+      const [mangaToRemove, mangaToAdd] = diffScrapedVsDB(
+        scrapedMangasPath,
+        mangasPathInDB
+      );
+      // console.log("[mangasGET] mangaToRemove", mangaToRemove);
+      // console.log("[mangasGET] mangaToAdd", mangaToAdd);
+
+      // Delete available manga
+      for (const mangaPath of mangaToRemove) {
+        try {
+          // console.log("Should delete", mangaPath);
+          // await deleteAtPath("/" + LELSCANS_ROOT + "/" + mangaPath);
+        } catch (error) {
+          functions.logger.error(`[mangasGET] Delete path ${path} FAILURE`);
+          functions.logger.error(error);
+          return;
+        }
+      }
+
+      // Add new manga
+      let toWait = [];
+      for (const path of mangaToAdd) {
+        const mangaDetails = scrapedMangas[path];
+        const { title, URL, thumbnail } = mangaDetails;
+        const objToWrite = { title, URL, path, thumbnail };
+        const docRef = collRef.doc(path);
+        toWait.push(docRef.set(objToWrite, { merge: true }));
+        const docChapterRef = collRef
+          .doc(path)
+          .collection("chapters")
+          .doc("data");
+        toWait.push(docChapterRef.set({}, { merge: true }));
+      }
+      await Promise.all(toWait);
+      res.status(200).send("Manga scraped.");
+      return;
+    } catch (error) {
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
     }
   });
 
@@ -456,16 +734,13 @@ exports.mangasGET = functions
   .region("europe-west1")
   .runWith(runtimeOpts)
   .https.onRequest(async (req, res) => {
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "X-Requested-With,content-type"
-    );
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-    );
-    res.setHeader("Access-Control-Allow-Credentials", true);
+    // Check the type of request
+    if (req.method !== "GET") {
+      res.status("401").send("Unauthorized method");
+      return;
+    }
+
+    setCORSHeader(res);
 
     try {
       // ***** 0 - Read mangas in DB and returns the result the client
@@ -477,58 +752,11 @@ exports.mangasGET = functions
         mangas[doc.id] = doc.data();
       });
 
-      // functions.logger.log("[mangasGET] mangas", mangas);
       res.status(200).send(mangas);
-
-      // // ***** 1 - Scrapping of manga available
-      // const scrapedMangas = await scrapMangas();
-      // // functions.logger.log("[mangasGET] scrapedMangas", scrapedMangas);
-      // if (scrapedMangas === FAILED) {
-      //   const errorMsg = "[mangasGET] scrapedMangas() failed.";
-      //   functions.logger.error(errorMsg);
-      //   return;
-      // }
-
-      // const scrapedMangasPath = Object.keys(scrapedMangas);
-      // const mangasPathInDB = Object.keys(mangas);
-
-      // // ***** 2 - Compare scrapped data with the DB. If different, update DB.
-      // const [mangaToRemove, mangaToAdd] = diffScrapedVsDB(
-      //   scrapedMangasPath,
-      //   mangasPathInDB
-      // );
-      // // functions.logger.log("[mangasGET] mangaToRemove", mangaToRemove);
-      // // functions.logger.log("[mangasGET] mangaToAdd", mangaToAdd);
-
-      // // Delete manga to remove
-      // for (const mangaPath in mangaToRemove) {
-      //   deletePathDB(LELSCANS_ROOT + "/" + mangaPath);
-      // }
-
-      // // Add manga to add
-      // let toWait = [];
-      // for (const [path, manga] of Object.entries(scrapedMangas)) {
-      //   const { title, URL, thumbnail } = manga;
-
-      //   const docRef = collRef.doc(path);
-
-      //   let objToWrite = {};
-      //   if (mangaToAdd.includes(path)) {
-      //     objToWrite = { title, URL, path, thumbnail };
-      //   }
-
-      //   const chapters = await updateChaptersCollection(docRef, URL);
-      //   if (chapters !== FAILED) {
-      //     objToWrite = { ...objToWrite, ...chapters };
-      //   }
-
-      //   if (!_.isEmpty(objToWrite)) {
-      //     toWait.push(docRef.set(objToWrite, { merge: true }));
-      //   }
-      // }
-      // await Promise.all(toWait);
+      return;
     } catch (error) {
-      res.status(400).send(error);
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
     }
   });
 
@@ -637,7 +865,7 @@ exports.computeThumbnail = functions
         await storageBucket.file(thumbnailFilename).delete();
       } catch (error) {
         functions.logger.log("Cannot delete ", thumbnailFilename);
-        functions.logger.log("Error", error);
+        functions.logger.error("Error", error);
       }
 
       // ***** 3 - Compute thumbnail
@@ -677,7 +905,8 @@ exports.computeThumbnail = functions
       res.status(200).send("Success");
       return;
     } catch (error) {
-      functions.logger.log("Error", error);
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
     }
   });
 
@@ -768,7 +997,8 @@ exports.mangaChaptersGET = functions
       // 2.4 - Write updated chapter field in DB
       docRef.set({ chapters: chaptersInDB }, { merge: true });
     } catch (error) {
-      functions.logger.log("Error", error);
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
     }
   });
 
@@ -845,7 +1075,8 @@ exports.mangaImagesSET = functions
         res.status(200).send(chapters[queryIdxChapter]);
       }
     } catch (error) {
-      res.status(400).send(error);
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
     }
   });
 

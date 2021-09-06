@@ -1,14 +1,23 @@
-import firebase from "./firebase";
-import "firebase/firestore";
+// import firebase from "./firebase";
+// import "firebase/firestore";
+// import "firebase/storage";
 
+// import storage from "../utils/storage";
+// import db from "../utils/db";
+import { db, LOCAL_ADDRESS } from "../utils/db";
 import axios from "axios";
 
-const db = firebase.firestore();
+// console.log("GLOBAL SRC/DB.JS: db", db);
 
-const useLocalDB = false;
-if (useLocalDB) {
-  db.useEmulator(LOCAL_ADDRESS, 8080);
-}
+// export const db = firebase.firestore();
+
+// const LOCAL_ADDRESS = "192.168.1.19";
+// // const LOCAL_ADDRESS = "192.168.30.137";
+
+// const useLocalDB = false;
+// if (useLocalDB) {
+//   db.useEmulator(LOCAL_ADDRESS, 8080);
+// }
 
 // if (process.browser) {
 //   // Client-side-only code
@@ -28,18 +37,16 @@ if (useLocalDB) {
 
 // useLocalCloudFunction
 
-const LOCAL_ADDRESS = "192.168.1.19";
-
 const CLOUD_FUNCTION_ROOT = process.env.USE_LOCAL_CLOUD_FUNCTION
   ? "http://" + LOCAL_ADDRESS + ":5001/manga-b8fb3/europe-west1/"
   : "https://europe-west1-manga-b8fb3.cloudfunctions.net/";
 
 const URL_MANGA_IMAGES_SET = CLOUD_FUNCTION_ROOT + "mangaImagesSET";
 const URL_MANGAS_GET = CLOUD_FUNCTION_ROOT + "mangasGET";
-const URL_MANGAS_META_GET = CLOUD_FUNCTION_ROOT + "mangasMetaGET";
-const URL_MANGA_CHAPTERS_GET = CLOUD_FUNCTION_ROOT + "mangaChaptersGET";
+// const URL_MANGAS_META_GET = CLOUD_FUNCTION_ROOT + "mangasMetaGET";
+// const URL_MANGA_CHAPTERS_GET = CLOUD_FUNCTION_ROOT + "mangaChaptersGET";
 // TODO: Reuse this cloud function to fix bad thumbnail URL
-const URL_COMPUTER_THUMBNAIL = CLOUD_FUNCTION_ROOT + "computeThumbnail";
+// const URL_COMPUTER_THUMBNAIL = CLOUD_FUNCTION_ROOT + "computeThumbnail";
 export const LELSCANS_ROOT = "lelscans";
 
 // const URL_MANGA_IMAGES_SET = 0;
@@ -82,47 +89,68 @@ export const LELSCANS_ROOT = "lelscans";
 // console.log("CLOUD_FUNCTION_ROOT", CLOUD_FUNCTION_ROOT);
 
 export async function getMangas() {
+  // console.log("[getMangas] BEGIN");
   try {
+    // console.log("[getMangas] 0");
     const response = await axios.get(URL_MANGAS_GET);
+    // console.log("[getMangas] 1");
+    // console.log("[getMangas] response.status: " + response.status);
     if (response.status === 400) {
       throw response.statusText;
     }
+    // console.log("[getMangas] 2");
     const mangas = response.data;
 
+    // console.log("[getMangas] mangas", mangas);
     return mangas;
   } catch (error) {
+    // console.log("[getMangas] 3");
     // throw new Error("[getMangas] " + error);
     console.error("[getMangas] " + error);
   }
+  console.log("[getMangas] END");
 }
 
-export async function getMangasMeta() {
-  try {
-    const response = await axios.get(URL_MANGAS_META_GET);
-    // console.log("response.status", response.status);
-    if (response.status === 400) {
-      throw response.statusText;
-    }
-    const mangas = response.data;
-    // console.log("mangas", typeof mangas);
-    // console.log("typeof {}", typeof {});
+// export async function getMangasMeta() {
+//   try {
+//     const response = await axios.get(URL_MANGAS_META_GET);
+//     // console.log("response.status", response.status);
+//     if (response.status === 400) {
+//       throw response.statusText;
+//     }
+//     const mangas = response.data;
+//     // console.log("mangas", typeof mangas);
+//     // console.log("typeof {}", typeof {});
 
-    return mangas;
-  } catch (error) {
-    // throw new Error("[getMangas] " + error);
-    console.error("[getMangasMeta] " + error);
-  }
-}
+//     return mangas;
+//   } catch (error) {
+//     // throw new Error("[getMangas] " + error);
+//     console.error("[getMangasMeta] " + error);
+//   }
+// }
 
 export async function getMangaChapters(mangaPath) {
-  const response = await axios.get(URL_MANGA_CHAPTERS_GET, {
-    params: {
-      path: mangaPath,
-    },
-  });
-  const chapters = response.data;
-
+  // ***** 1 - Read chapter in DB and returns the result the client
+  const docRef = db
+    .collection(LELSCANS_ROOT)
+    .doc(mangaPath)
+    .collection("chapters")
+    .doc("data");
+  const snapshot = await docRef.get();
+  // const dataDoc = snapshot.data();
+  // const { chapters: chaptersInDB } = dataDoc;
+  const chapters = snapshot.data();
+  // console.log("chapters", chapters);
   return chapters;
+
+  //   const response = await axios.get(URL_MANGA_CHAPTERS_GET, {
+  //     params: {
+  //       path: mangaPath,
+  //     },
+  //   });
+  //   const chapters = response.data;
+
+  //   return chapters;
 }
 
 export async function getIdxChapters(mangaPath) {
