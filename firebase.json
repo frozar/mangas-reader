@@ -3,23 +3,23 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "functions": {
-    "predeploy": [
-      "npm --prefix \"$RESOURCE_DIR\" run lint"
-    ],
-    "source": "src/firebase_function"
+  "storage": {
+    "rules": "storage.rules"
   },
   "emulators": {
     "functions": {
-      "host": "192.168.30.137",
+      "host": "192.168.1.19",
       "port": 5001
     },
     "firestore": {
-      "host": "192.168.30.137",
+      "host": "192.168.1.19",
       "port": 8080
     },
+    "storage": {
+      "host": "192.168.1.19",
+      "port": 9199
+    },
     "ui": {
-      "host": "192.168.30.137",
       "enabled": true
     }
   }
