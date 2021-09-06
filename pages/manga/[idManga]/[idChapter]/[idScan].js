@@ -111,7 +111,7 @@ function computePreviousAndNextLink(idManga, idChapter, idScan, chapters) {
 }
 
 function ScanViewer(props) {
-  console.log("[ScanViewer] props", props);
+  // console.log("[ScanViewer] props", props);
 
   let idManga = "one-piece";
   let idChapter = "1";

@@ -77,7 +77,7 @@ async function getImageURL(URL) {
       return FAILED;
     }
   } catch (error) {
-    functions.logger.error("[getImageURL]", error);
+    functions.logger.error(`[getImageURL] Fail to scrap ${URL}`);
     return FAILED;
   }
 }
@@ -599,6 +599,7 @@ exports.scrapMangaChapters = functions
       // ***** 4 - Add the unavailable chapters
       // Limit the number of chapters to add to 8 because of time out limit
       // on Google Cloud function
+      console.info(`Number of chapter to scrap: ${idxToAdd.length}`);
       for (const idx of idxToAdd.slice(0, LIMIT_MAX_CHAPTER)) {
         // Scrap images
         let scrapedChapterImagesURL;
