@@ -38,65 +38,135 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+function oneThumbnailAtLeastIsMissing(chapters) {
+  const oneAtLeastIsMissing = Object.values(chapters).some(
+    ({ thumbnail }) => thumbnail.length === 0
+  );
+  return oneAtLeastIsMissing;
+}
+
+function computeMissingThumbnails(chapters) {
+  const chaptersIdxMissingThumbnail = Object.entries(chapters)
+    .map(([idxChapter, { thumbnail }]) => {
+      return thumbnail.length === 0 ? idxChapter : null;
+    })
+    .filter((x) => x);
+  return chaptersIdxMissingThumbnail;
+}
+
+async function fetchableThumbnail(chapters) {
+  const indexesRecomputeThumbnails = [];
+  const toWait = [];
+  for (const idx of Object.keys(chapters)) {
+    const process = async (idx) => {
+      try {
+        const res = await fetch(chapters[idx].thumbnail);
+        if (res.status !== 200) {
+          indexesRecomputeThumbnails.push(idx);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    toWait.push(process(idx));
+  }
+  await Promise.all(toWait);
+  return indexesRecomputeThumbnails;
+}
+
 function SelectChapter(props) {
-  // console.log("SelectChapter props", props);
-  // console.log("SelectChapter props.manga", props.manga);
   const classes = useStyles();
-
-  // const [chaptersJacket, setChaptersJacket] = useState({});
-  // const [loading, setLoading] = useState(true);
-  // console.log("props", props);
-
-  // useEffect(() => {
-  //   async function fetchData() {
-  //     const chapters = await getMangaChapters(props.path);
-
-  //     const chaptersJacket = {};
-  //     for (const [idx, details] of Object.entries(chapters)) {
-  //       const { content: imagesURL, thumbnail } = details;
-  //       if (thumbnail.length !== 0) {
-  //         chaptersJacket[idx] = thumbnail;
-  //       } else {
-  //         chaptersJacket[idx] = imagesURL[0];
-  //       }
-  //     }
-  //     // console.log("");
-  //     setChaptersJacket(chaptersJacket);
-  //     setLoading(false);
-  //   }
-  //   if (props.path) {
-  //     setLoading(true);
-  //     fetchData();
-  //   }
-  // }, [props.path]);
-
-  // const { idManga, chapters } = props;
-
   let idManga = "one-piece";
-  // let chapters = {};
   let manga = {};
 
   if (props.idManga !== undefined && props.idManga !== null) {
     idManga = props.idManga;
   }
-  // if (props.chapters !== undefined && props.chapters !== null) {
-  //   chapters = props.chapters;
-  // }
   if (props.manga !== undefined && props.manga !== null) {
     manga = props.manga;
   }
 
   // console.log("SelectChapter props", props);
 
+  // const chapters = manga[idManga] ? manga[idManga] : {};
+  // if (chapters !== {}) {
+  //   if (oneThumbnailAtLeastIsMissing(chapters)) {
+  //     const chapterIndexes = computeMissingThumbnails(chapters);
+  //     axios.post(
+  //       "/api/thumbnails/create",
+  //       {
+  //         mangaPath: idManga,
+  //         chapterIndexes,
+  //       },
+  //       {
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //         },
+  //       }
+  //     );
+  //   } else {
+  //     const chapterIndexes = fetchableThumbnail(chapters);
+  //     console.log("chapterIndexes", chapterIndexes);
+  //     // axios.post(
+  //     //   "/api/thumbnails/recreate",
+  //     //   {
+  //     //     mangaPath: idManga,
+  //     //     chapterIndexes,
+  //     //   },
+  //     //   {
+  //     //     headers: {
+  //     //       "Content-Type": "application/json",
+  //     //     },
+  //     //   }
+  //     // );
+  //   }
+  // }
+
   const chapters = manga[idManga] ? manga[idManga] : {};
 
+  React.useEffect(async () => {
+    if (chapters !== {}) {
+      if (oneThumbnailAtLeastIsMissing(chapters)) {
+        const chapterIndexes = computeMissingThumbnails(chapters);
+        axios.post(
+          "/api/thumbnails/create",
+          {
+            mangaPath: idManga,
+            chapterIndexes,
+          },
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      } else {
+        const chapterIndexes = await fetchableThumbnail(chapters);
+        if (chapterIndexes.length !== 0) {
+          axios.post(
+            "/api/thumbnails/recreate",
+            {
+              mangaPath: idManga,
+              chapterIndexes,
+            },
+            {
+              headers: {
+                "Content-Type": "application/json",
+              },
+            }
+          );
+        }
+      }
+    }
+  }, [props.idManga, props.manga]);
+
   const chaptersJacket = {};
-  for (const [idChapter, details] of Object.entries(chapters)) {
+  for (const [idxChapter, details] of Object.entries(chapters)) {
     const { content: imagesURL, thumbnail } = details;
     if (thumbnail.length !== 0) {
-      chaptersJacket[idChapter] = thumbnail;
+      chaptersJacket[idxChapter] = thumbnail;
     } else {
-      chaptersJacket[idChapter] = imagesURL[0];
+      chaptersJacket[idxChapter] = imagesURL[0];
     }
   }
 
@@ -115,19 +185,9 @@ function SelectChapter(props) {
     })
     .reverse();
 
-  // const handleOnClick = (event, label) => {
-  //   event.persist();
-  //   props.selectChapter(props.path, label);
-  // };
-
-  // // If the current path is undefined, get back to manga selection.
-  // if (!props.path) {
-  //   history.push("/manga");
-  // }
-
   return (
     <div className={classes.container}>
-      <AddCount />
+      {/* <AddCount /> */}
       {/* <div>
           <style jsx>{`
             div {

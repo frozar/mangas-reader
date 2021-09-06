@@ -407,7 +407,8 @@ exports.mangasMetaGET = functions
 
       res.status(200).send(mangas);
     } catch (error) {
-      res.status(400).send(error);
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
     }
   });
 
@@ -626,8 +627,8 @@ exports.scrapMangaChapters = functions
       res.status(200).send("Chapters scraped.");
       return;
     } catch (error) {
-      res.status(400).send(error);
-      return;
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
     }
   });
 
@@ -721,8 +722,8 @@ exports.scrapMangas = functions
       res.status(200).send("Manga scraped.");
       return;
     } catch (error) {
-      res.status(400).send(error);
-      return;
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
     }
   });
 
@@ -754,8 +755,8 @@ exports.mangasGET = functions
       res.status(200).send(mangas);
       return;
     } catch (error) {
-      res.status(400).send(error);
-      return;
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
     }
   });
 
@@ -864,7 +865,7 @@ exports.computeThumbnail = functions
         await storageBucket.file(thumbnailFilename).delete();
       } catch (error) {
         functions.logger.log("Cannot delete ", thumbnailFilename);
-        functions.logger.log("Error", error);
+        functions.logger.error("Error", error);
       }
 
       // ***** 3 - Compute thumbnail
@@ -904,7 +905,8 @@ exports.computeThumbnail = functions
       res.status(200).send("Success");
       return;
     } catch (error) {
-      functions.logger.log("Error", error);
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
     }
   });
 
@@ -995,7 +997,8 @@ exports.mangaChaptersGET = functions
       // 2.4 - Write updated chapter field in DB
       docRef.set({ chapters: chaptersInDB }, { merge: true });
     } catch (error) {
-      functions.logger.log("Error", error);
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
     }
   });
 
@@ -1072,7 +1075,8 @@ exports.mangaImagesSET = functions
         res.status(200).send(chapters[queryIdxChapter]);
       }
     } catch (error) {
-      res.status(400).send(error);
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
     }
   });
 

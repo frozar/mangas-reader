@@ -43,10 +43,10 @@ const CLOUD_FUNCTION_ROOT = process.env.USE_LOCAL_CLOUD_FUNCTION
 
 const URL_MANGA_IMAGES_SET = CLOUD_FUNCTION_ROOT + "mangaImagesSET";
 const URL_MANGAS_GET = CLOUD_FUNCTION_ROOT + "mangasGET";
-const URL_MANGAS_META_GET = CLOUD_FUNCTION_ROOT + "mangasMetaGET";
-const URL_MANGA_CHAPTERS_GET = CLOUD_FUNCTION_ROOT + "mangaChaptersGET";
+// const URL_MANGAS_META_GET = CLOUD_FUNCTION_ROOT + "mangasMetaGET";
+// const URL_MANGA_CHAPTERS_GET = CLOUD_FUNCTION_ROOT + "mangaChaptersGET";
 // TODO: Reuse this cloud function to fix bad thumbnail URL
-const URL_COMPUTER_THUMBNAIL = CLOUD_FUNCTION_ROOT + "computeThumbnail";
+// const URL_COMPUTER_THUMBNAIL = CLOUD_FUNCTION_ROOT + "computeThumbnail";
 export const LELSCANS_ROOT = "lelscans";
 
 // const URL_MANGA_IMAGES_SET = 0;
@@ -140,7 +140,7 @@ export async function getMangaChapters(mangaPath) {
   // const dataDoc = snapshot.data();
   // const { chapters: chaptersInDB } = dataDoc;
   const chapters = snapshot.data();
-  console.log("chapters", chapters);
+  // console.log("chapters", chapters);
   return chapters;
 
   //   const response = await axios.get(URL_MANGA_CHAPTERS_GET, {

@@ -9,7 +9,6 @@ import Typography from "@material-ui/core/Typography";
 import Link from "./Link";
 
 import Image from "next/image";
-import { SERVER } from "../utils/url";
 
 const useStyles = makeStyles((theme) => ({
   cardContainer: {
@@ -88,57 +87,13 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-// function doHandleError(mangaPath, chapterIdx, thumbnailFilename) {
-//   console.log("Thumbnail error");
-//   console.log("mangaPath", mangaPath);
-//   console.log("chapterIdx", chapterIdx);
-//   console.log("thumbnailFilename", thumbnailFilename);
-//   // axios
-//   //   .post(URL_COMPUTER_THUMBNAIL, {
-//   //     mangaPath,
-//   //     chapterIdx,
-//   //     thumbnailFilename,
-//   //   })
-//   //   .then(function (res) {
-//   //     console.log("[doHandleError] Success");
-//   //   })
-//   //   .catch(function (error) {
-//   //     console.log("[doHandleError] Failed");
-//   //   });
-//   // process.env.GOOGLE_CONFIG_BASE64
-// }
-
 function Portrait(props) {
   const classes = useStyles();
-  // const inputEl = React.useRef(null);
   const { picture, type } = props;
-  // const [current, setCurrent] = React.useState(null);
-
-  // React.useEffect(() => {
-  //   if (inputEl != null) {
-  //     setCurrent(inputEl.current);
-  //   }
-  // }, [inputEl]);
 
   let mangaPath;
   let chapterIdx;
-  let thumbnailFilename;
-
-  // const handleError = React.useCallback(
-  //   (_) => {
-  //     doHandleError(mangaPath, chapterIdx, thumbnailFilename);
-  //   },
-  //   [mangaPath, chapterIdx, thumbnailFilename]
-  // );
-
-  // React.useEffect(() => {
-  //   current?.addEventListener("error", handleError);
-
-  //   return () => {
-  //     current?.removeEventListener("error", handleError);
-  //   };
-  // }, [current, handleError]);
-
+  // let thumbnailFilename;
   let altStr;
   if (type === "manga") {
     altStr = picture !== undefined ? picture.split("/")[4] : "noPicture";
@@ -156,10 +111,6 @@ function Portrait(props) {
     // If chapter has a thumbnail
     else {
       if (picture !== undefined) {
-        thumbnailFilename = picture
-          .split("?")[0]
-          .split("/")[9]
-          .replace("%2F", "/");
         const mangaChapter = picture
           .split("%2F")[1]
           .split("?")[0]
@@ -174,21 +125,21 @@ function Portrait(props) {
   }
 
   const handleErrorTest = () => {
-    console.log("[handleErrorTest] BEGIN");
-    console.log("[handleErrorTest] mangaPath", mangaPath);
-    console.log("[handleErrorTest] chapterIdx", chapterIdx);
-    console.log("[handleErrorTest] thumbnailFilename", thumbnailFilename);
-    // console.log(
-    //   "SERVER_URL + /api/computeThumbnail",
-    //   SERVER + "/api/computeThumbnail"
-    // );
-    // axios(SERVER + "/api/computeThumbnail", {
-    //   params: {
+    console.info(
+      `[Portrait] Should recompute thumbnail of ${mangaPath} chap.${chapterIdx}`
+    );
+    // axios.post(
+    //   "/api/thumbnail/recreate",
+    //   {
     //     mangaPath,
-    //     chapterIdx,
-    //     thumbnailFilename,
+    //     chapterIndex: chapterIdx,
     //   },
-    // });
+    //   {
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //   }
+    // );
   };
 
   return (
@@ -207,6 +158,7 @@ function Portrait(props) {
 export default function GridCard(props) {
   const classes = useStyles();
   const { cards, type, ...other } = props;
+  // console.log("cards", cards);
 
   return (
     <Grid
