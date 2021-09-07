@@ -8,12 +8,13 @@ import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 
-import { getMangasMeta, getMangas, getMangaChapters } from "../../src/db.js";
+// import { getMangasMeta, getMangas, getMangaChapters } from "../../src/db.js";
+import { getMangas } from "../../src/db.js";
 import GridCard from "../../src/GridCard.js";
 // import WaitingComponent from "./WaitingComponent.js";
 import NavigationButton from "../../src/NavigationButton";
 
-import AddCount from "../../src/AddCount";
+// import AddCount from "../../src/AddCount";
 
 import { connect } from "react-redux";
 // import { bindActionCreators } from "redux";
