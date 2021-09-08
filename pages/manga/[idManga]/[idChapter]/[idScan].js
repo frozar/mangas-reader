@@ -10,7 +10,7 @@ import ImageCaption from "../../../../src/scanViewer/ImageCaption";
 // import WaitingComponent from "../../../../src/WaitingComponent.js";
 // import { getMangasMeta, getMangaChapters } from "../../../../src/db.js";
 import { wrapper } from "../../../../store/store";
-// import { retrieveManga } from "../../../../store/manga/action";
+import { retrieveManga } from "../../../../store/manga/action";
 
 import { connect } from "react-redux";
 
@@ -20,10 +20,10 @@ import { connect } from "react-redux";
 const imagesCache = {
   __cache: {},
   async readAll(imagesURLarg) {
-    console.log("[readAll] PASS 0");
+    // console.log("[readAll] PASS 0");
     const imagesURL = [...imagesURLarg];
     const missingImages = imagesURL.some((imageURL) => !this.__cache[imageURL]);
-    console.log("[readAll] PASS 1");
+    // console.log("[readAll] PASS 1");
 
     if (missingImages) {
       const promises = imagesURL.map((imageURL) => {
@@ -37,7 +37,7 @@ const imagesCache = {
       await Promise.all(promises);
       imagesURL.map((imageURL) => (this.__cache[imageURL] = true));
     }
-    console.log("[readAll] PASS 2");
+    // console.log("[readAll] PASS 2");
   },
 };
 
@@ -114,7 +114,7 @@ function computePreviousAndNextLink(idManga, idChapter, idScan, chapters) {
 }
 
 function ScanViewer(props) {
-  console.log("[ScanViewer] PASS 0");
+  // console.log("[ScanViewer] PASS 0");
 
   let idManga = "one-piece";
   let idChapter = "1";
@@ -133,18 +133,19 @@ function ScanViewer(props) {
     manga = props.manga;
   }
 
-  console.log("[ScanViewer] PASS 1");
+  // console.log("[ScanViewer] PASS 1");
+  // console.log("[ScanViewer] PASS manga", manga);
   const chapters = manga[idManga];
   const chapter = chapters[idChapter];
   const imagesURL = chapter.content;
   const imageURL = imagesURL[Number(idScan)];
 
-  console.log("[ScanViewer] PASS 2");
+  // console.log("[ScanViewer] PASS 2");
   const [previousLink, setPreviousLink] = React.useState(null);
   const [nextLink, setNextLink] = React.useState(null);
 
   React.useEffect(() => {
-    console.log("[ScanViewer] useEffect PASS 0");
+    // console.log("[ScanViewer] useEffect PASS 0");
     const [previousLink_, nextLink_] = computePreviousAndNextLink(
       idManga,
       idChapter,
@@ -155,7 +156,7 @@ function ScanViewer(props) {
     setNextLink(nextLink_);
     // console.log("previousLink", previousLink);
     // console.log("nextLink", nextLink);
-    console.log("[ScanViewer] useEffect PASS 1");
+    // console.log("[ScanViewer] useEffect PASS 1");
   }, [
     props.idManga,
     props.idChapter,
@@ -163,7 +164,7 @@ function ScanViewer(props) {
     computePreviousAndNextLink,
   ]);
 
-  console.log("[ScanViewer] PASS 3");
+  // console.log("[ScanViewer] PASS 3");
   const [displayResetButton, setDisplayResetButton] = useState(false);
 
   const [{ x, y, zoom, scale }, set] = useSpring(() => ({
@@ -179,7 +180,7 @@ function ScanViewer(props) {
     setDisplayResetButton(false);
   }, [set]);
 
-  console.log("[ScanViewer] PASS 4");
+  // console.log("[ScanViewer] PASS 4");
   const router = useRouter();
   const handleKeyDown = useCallback(
     (evt) => {
@@ -216,14 +217,14 @@ function ScanViewer(props) {
     };
   }, [handleKeyDown]);
 
-  console.log("[ScanViewer] PASS 5");
+  // console.log("[ScanViewer] PASS 5");
   useEffect(() => {
     if (imagesURL.length !== 0) {
       imagesCache.readAll(imagesURL);
     }
   }, [imagesURL]);
 
-  console.log("[ScanViewer] PASS 6");
+  // console.log("[ScanViewer] PASS 6");
   if (router.isFallback) {
     return <div>Loading...</div>;
   } else {
@@ -263,9 +264,10 @@ function ScanViewer(props) {
 export const getServerSideProps = wrapper.getServerSideProps(
   async ({ store, params }) => {
     // console.log("store", store);
+    // console.log("state", store.getState());
     const { idManga, idChapter, idScan } = params;
 
-    // await store.dispatch(retrieveManga(idManga));
+    await store.dispatch(retrieveManga(idManga));
 
     return {
       props: {
