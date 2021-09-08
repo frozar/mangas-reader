@@ -62,10 +62,10 @@ const reducer = (state, action) => {
     }
     return nextState;
   } else {
-    console.log("[main reducer] else");
-    if (action.type !== mangaActionTypes.RETRIEVE) {
-      console.log("[main reducer] action", action);
-    }
+    // console.log("[main reducer] else");
+    // if (action.type !== mangaActionTypes.RETRIEVE) {
+    //   console.log("[main reducer] action", action);
+    // }
     return combinedReducer(state, action);
   }
 };

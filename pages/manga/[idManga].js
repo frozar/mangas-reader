@@ -238,8 +238,7 @@ function SelectChapter(props) {
 }
 
 export async function getStaticPaths() {
-  // Return a list of possible value for id
-  // const tmpLObjManga = await getMangasMeta();
+  // Return a list of possible value for idManga
   const tmpLObjManga = await getMangas();
   // console.log("tmpLObjManga", tmpLObjManga);
   const paths = Object.entries(tmpLObjManga).map(([_, objManga]) => {

@@ -8,7 +8,7 @@ import TopBar from "../../../../src/scanViewer/TopBar";
 import ControlBar from "../../../../src/scanViewer/ControlBar";
 import ImageCaption from "../../../../src/scanViewer/ImageCaption";
 // import WaitingComponent from "../../../../src/WaitingComponent.js";
-// import { getMangasMeta, getMangaChapters } from "../../../../src/db.js";
+import { getMangas, getMangaChapters } from "../../../../src/db.js";
 import { wrapper } from "../../../../store/store";
 import { retrieveManga } from "../../../../store/manga/action";
 
@@ -113,23 +113,35 @@ function computePreviousAndNextLink(idManga, idChapter, idScan, chapters) {
   return [previousLink, nextLink];
 }
 
+function isUndefinedOrNull(val) {
+  return val === undefined || val === null;
+}
+
 function ScanViewer(props) {
-  // console.log("[ScanViewer] PASS 0");
+  // console.log("[ScanViewer] props", props);
+  if (
+    isUndefinedOrNull(props.idManga) ||
+    isUndefinedOrNull(props.idChapter) ||
+    isUndefinedOrNull(props.idScan) ||
+    isUndefinedOrNull(props.manga)
+  ) {
+    return <h1>Nothing to show o_O !</h1>;
+  }
 
   let idManga = "one-piece";
   let idChapter = "1";
   let idScan = "0";
   let manga = null;
-  if (props.idManga !== undefined && props.idManga !== null) {
+  if (!isUndefinedOrNull(props.idManga)) {
     idManga = props.idManga;
   }
-  if (props.idChapter !== undefined && props.idChapter !== null) {
+  if (!isUndefinedOrNull(props.idChapter)) {
     idChapter = props.idChapter;
   }
-  if (props.idScan !== undefined && props.idScan !== null) {
+  if (!isUndefinedOrNull(props.idScan)) {
     idScan = props.idScan;
   }
-  if (props.manga !== undefined && props.manga !== null) {
+  if (!isUndefinedOrNull(props.manga)) {
     manga = props.manga;
   }
 
@@ -261,28 +273,150 @@ function ScanViewer(props) {
   }
 }
 
-export const getServerSideProps = wrapper.getServerSideProps(
-  async ({ store, params }) => {
-    // console.log("store", store);
-    // console.log("state", store.getState());
-    const { idManga, idChapter, idScan } = params;
+// export const getServerSideProps = wrapper.getServerSideProps(
+//   async ({ store, params }) => {
+//     const { idManga, idChapter, idScan } = params;
 
-    await store.dispatch(retrieveManga(idManga));
+//     // console.log("paths", paths);
 
-    return {
-      props: {
-        idManga,
-        idChapter,
-        idScan,
-      },
-    };
+//     await store.dispatch(retrieveManga(idManga));
+
+//     return {
+//       props: {
+//         idManga,
+//         idChapter,
+//         idScan,
+//       },
+//     };
+//   }
+// );
+
+export async function getStaticPaths() {
+  // Return a list of possible value for idManga, idChapter, idScan
+  const tmpLObjManga = await getMangas();
+
+  const mangaToGenerateStatically = [
+    "one-piece",
+    "one-punch-man",
+    "my-hero-academia",
+  ];
+  // const mangaToGenerateStatically = ["gantz"];
+
+  const paths = [];
+  for (const objManga of Object.values(tmpLObjManga)) {
+    const idManga = objManga.path;
+    if (!mangaToGenerateStatically.includes(idManga)) {
+      continue;
+    }
+    console.info(`[Build] Collecting paths to generate statically ${idManga}`);
+    const chapters = await getMangaChapters(idManga);
+    for (const [idChapter, details] of Object.entries(chapters)) {
+      for (const idScan of details.content.keys()) {
+        paths.push({ params: { idManga, idChapter, idScan: String(idScan) } });
+      }
+    }
   }
-);
 
-const mapStateToProps = (state) => {
+  // Documentation link:
+  // https://vercel.com/docs/next.js/incremental-static-regeneration
+  // fallback: true - when a request is made to a page that hasn't
+  // been generated, Next.js will immediately serve a static page
+  // with a loading state on the first request. When the data is
+  // finished loading, the page will re-render using this data and
+  // be cached. Future requests will serve the static file from the cache.
   return {
-    manga: state.manga.manga,
+    paths,
+    fallback: true,
   };
-};
+}
 
-export default connect(mapStateToProps, null)(ScanViewer);
+// export const getStaticProps = wrapper.getStaticProps(
+//   async ({ store, params }) => {
+//     // console.log("params", params);
+//     const { idManga, idChapter, idScan } = params;
+//     console.log("[getStaticProps]", { idManga, idChapter, idScan });
+
+//     await store.dispatch(retrieveManga(idManga));
+
+//     // if (typeof windows === "undefined") {
+//     //   // import { getMangaChapters2 } from "../../src/serverSide";
+//     //   // const docId = idManga + "_chapters";
+//     //   // const resGetMangaChapters2 = await getMangaChapters2(docId);
+//     //   // console.log("resGetMangaChapters2", resGetMangaChapters2);
+//     //   const resAxios = await axios.get(
+//     //     "http://localhost:3000/api/mangaChaptersGET",
+//     //     { params }
+//     //   );
+//     //   // console.log("resAxios", resAxios);
+//     // }
+
+//     // const docId = idManga + "_chapters";
+//     // const chapters = await getMangaChapters(docId);
+
+//     // Documentation link:
+//     // https://vercel.com/docs/next.js/incremental-static-regeneration
+//     return {
+//       props: {
+//         // mangaPath,
+//         idManga,
+//         idChapter,
+//         idScan,
+//         // chapters,
+//       },
+//       // every day (24 hours), chek if regeneration of the page is necessary
+//       revalidate: 60 * 60 * 24,
+//     };
+//   }
+// );
+
+// const mapStateToProps = (state) => {
+//   return {
+//     manga: state.manga.manga,
+//   };
+// };
+
+// export default connect(mapStateToProps, null)(ScanViewer);
+
+export async function getStaticProps({ params }) {
+  // console.log("params", params);
+  const { idManga, idChapter, idScan } = params;
+  // console.log("[getStaticProps]", { idManga, idChapter, idScan });
+
+  // await store.dispatch(retrieveManga(idManga));
+  const chapters = await getMangaChapters(idManga);
+  // for (const [idChapter, details] of Object.entries(chapters)) {
+  const manga = { [idManga]: chapters };
+  // console.log("[getStaticProps] manga", manga);
+
+  // if (typeof windows === "undefined") {
+  //   // import { getMangaChapters2 } from "../../src/serverSide";
+  //   // const docId = idManga + "_chapters";
+  //   // const resGetMangaChapters2 = await getMangaChapters2(docId);
+  //   // console.log("resGetMangaChapters2", resGetMangaChapters2);
+  //   const resAxios = await axios.get(
+  //     "http://localhost:3000/api/mangaChaptersGET",
+  //     { params }
+  //   );
+  //   // console.log("resAxios", resAxios);
+  // }
+
+  // const docId = idManga + "_chapters";
+  // const chapters = await getMangaChapters(docId);
+
+  // Documentation link:
+  // https://vercel.com/docs/next.js/incremental-static-regeneration
+  return {
+    props: {
+      // mangaPath,
+      idManga,
+      idChapter,
+      idScan,
+      manga,
+      // chapters,
+    },
+    // every day (24 hours), chek if regeneration of the page is necessary
+    revalidate: 60 * 60 * 24,
+  };
+}
+
+export default ScanViewer;
