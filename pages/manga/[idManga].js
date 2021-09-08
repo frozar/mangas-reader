@@ -249,7 +249,14 @@ export async function getStaticPaths() {
       },
     };
   });
-  // console.log("paths", paths);
+
+  // Documentation link:
+  // https://vercel.com/docs/next.js/incremental-static-regeneration
+  // fallback: true - when a request is made to a page that hasn't
+  // been generated, Next.js will immediately serve a static page
+  // with a loading state on the first request. When the data is
+  // finished loading, the page will re-render using this data and
+  // be cached. Future requests will serve the static file from the cache.
   return {
     paths,
     fallback: true,
@@ -287,12 +294,16 @@ export const getStaticProps = wrapper.getStaticProps(
     // const docId = idManga + "_chapters";
     // const chapters = await getMangaChapters(docId);
 
+    // Documentation link:
+    // https://vercel.com/docs/next.js/incremental-static-regeneration
     return {
       props: {
         // mangaPath,
         idManga,
         // chapters,
       },
+      // every day (24 hours), chek if regeneration of the page is necessary
+      revalidate: 60 * 60 * 24,
     };
   }
 );
