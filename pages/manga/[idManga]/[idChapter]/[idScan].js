@@ -297,7 +297,7 @@ export async function getStaticPaths() {
 
   const mangaToGenerateStatically = [
     "one-piece",
-    "one-punch-man",
+    // "one-punch-man",
     "my-hero-academia",
   ];
   // const mangaToGenerateStatically = ["gantz"];
