@@ -1,5 +1,5 @@
 import React from "react";
-import axios from "axios";
+// import axios from "axios";
 
 // import history from "../history";
 import Link from "../../src/Link";
@@ -9,7 +9,8 @@ import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
 
 // import { getMangasMeta, getMangas, getMangaChapters } from "../../src/db.js";
-import { getMangas } from "../../src/db.js";
+// import { getMangas } from "../../src/db.js";
+import { getMangas, getMangaChapters } from "../../src/db.js";
 import GridCard from "../../src/GridCard.js";
 // import WaitingComponent from "./WaitingComponent.js";
 import NavigationButton from "../../src/NavigationButton";
@@ -19,8 +20,7 @@ import NavigationButton from "../../src/NavigationButton";
 import { connect } from "react-redux";
 // import { bindActionCreators } from "redux";
 
-// import { addCount } from "../../store/count/action";
-import { retrieveManga } from "../../store/manga/action";
+// import { retrieveManga } from "../../store/manga/action";
 // import { getMangaChapters2 } from "../../src/serverSide";
 import { wrapper } from "../../store/store";
 
@@ -78,106 +78,75 @@ async function fetchableThumbnail(chapters) {
 function SelectChapter(props) {
   const classes = useStyles();
   let idManga = "one-piece";
-  let manga = {};
+  // let manga = {};
+  let chaptersJacket = {};
 
   if (props.idManga !== undefined && props.idManga !== null) {
     idManga = props.idManga;
   }
-  if (props.manga !== undefined && props.manga !== null) {
-    manga = props.manga;
+  // if (props.manga !== undefined && props.manga !== null) {
+  //   manga = props.manga;
+  // }
+  if (props.chaptersJacket !== undefined && props.chaptersJacket !== null) {
+    chaptersJacket = props.chaptersJacket;
   }
 
   // console.log("SelectChapter props", props);
 
   // const chapters = manga[idManga] ? manga[idManga] : {};
-  // if (chapters !== {}) {
-  //   if (oneThumbnailAtLeastIsMissing(chapters)) {
-  //     const chapterIndexes = computeMissingThumbnails(chapters);
-  //     axios.post(
-  //       "/api/thumbnails/create",
-  //       {
-  //         mangaPath: idManga,
-  //         chapterIndexes,
-  //       },
-  //       {
-  //         headers: {
-  //           "Content-Type": "application/json",
+
+  // // TODO: Move in a scheduled cloud function
+  // React.useEffect(async () => {
+  //   if (chapters !== {}) {
+  //     if (oneThumbnailAtLeastIsMissing(chapters)) {
+  //       const chapterIndexes = computeMissingThumbnails(chapters);
+  //       axios.post(
+  //         "/api/thumbnails/create",
+  //         {
+  //           mangaPath: idManga,
+  //           chapterIndexes,
   //         },
+  //         {
+  //           headers: {
+  //             "Content-Type": "application/json",
+  //           },
+  //         }
+  //       );
+  //     } else {
+  //       const chapterIndexes = await fetchableThumbnail(chapters);
+  //       if (chapterIndexes.length !== 0) {
+  //         axios.post(
+  //           "/api/thumbnails/recreate",
+  //           {
+  //             mangaPath: idManga,
+  //             chapterIndexes,
+  //           },
+  //           {
+  //             headers: {
+  //               "Content-Type": "application/json",
+  //             },
+  //           }
+  //         );
   //       }
-  //     );
+  //     }
+  //   }
+  // }, [props.idManga, props.manga]);
+
+  // const chaptersJacket = {};
+  // for (const [idxChapter, details] of Object.entries(chapters)) {
+  //   const { content: imagesURL, thumbnail } = details;
+  //   if (thumbnail.length !== 0) {
+  //     chaptersJacket[idxChapter] = thumbnail;
   //   } else {
-  //     const chapterIndexes = fetchableThumbnail(chapters);
-  //     console.log("chapterIndexes", chapterIndexes);
-  //     // axios.post(
-  //     //   "/api/thumbnails/recreate",
-  //     //   {
-  //     //     mangaPath: idManga,
-  //     //     chapterIndexes,
-  //     //   },
-  //     //   {
-  //     //     headers: {
-  //     //       "Content-Type": "application/json",
-  //     //     },
-  //     //   }
-  //     // );
+  //     chaptersJacket[idxChapter] = imagesURL[0];
   //   }
   // }
-
-  const chapters = manga[idManga] ? manga[idManga] : {};
-
-  React.useEffect(async () => {
-    if (chapters !== {}) {
-      if (oneThumbnailAtLeastIsMissing(chapters)) {
-        const chapterIndexes = computeMissingThumbnails(chapters);
-        axios.post(
-          "/api/thumbnails/create",
-          {
-            mangaPath: idManga,
-            chapterIndexes,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-      } else {
-        const chapterIndexes = await fetchableThumbnail(chapters);
-        if (chapterIndexes.length !== 0) {
-          axios.post(
-            "/api/thumbnails/recreate",
-            {
-              mangaPath: idManga,
-              chapterIndexes,
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
-        }
-      }
-    }
-  }, [props.idManga, props.manga]);
-
-  const chaptersJacket = {};
-  for (const [idxChapter, details] of Object.entries(chapters)) {
-    const { content: imagesURL, thumbnail } = details;
-    if (thumbnail.length !== 0) {
-      chaptersJacket[idxChapter] = thumbnail;
-    } else {
-      chaptersJacket[idxChapter] = imagesURL[0];
-    }
-  }
 
   const cards = Object.keys(chaptersJacket)
     .map((idChapter) => {
       return {
         label: idChapter,
-        picture: chaptersJacket[idChapter]
-          ? chaptersJacket[idChapter]
-          : "/img/imagePlaceholder.png",
+        picture: chaptersJacket[idChapter],
         link: `/manga/${idManga}/${idChapter}/0`,
       };
     })
@@ -264,34 +233,24 @@ export async function getStaticPaths() {
 
 export const getStaticProps = wrapper.getStaticProps(
   async ({ store, params }) => {
-    // const fs = require("fs");
-
-    // const bufferToUpload = fs.readFileSync("tmp/toto.txt");
-    // console.log("bufferToUpload", bufferToUpload);
-
-    // Fetch necessary data for the blog post using params.id
     // console.log("params", params);
     const { idManga } = params;
 
-    // store.dispatch(serverRenderClock(true));
-    // store.dispatch(addCount());
-    // store.dispatch(setTo10());
-    await store.dispatch(retrieveManga(idManga));
+    // await store.dispatch(retrieveManga(idManga));
 
-    // if (typeof windows === "undefined") {
-    //   // import { getMangaChapters2 } from "../../src/serverSide";
-    //   // const docId = idManga + "_chapters";
-    //   // const resGetMangaChapters2 = await getMangaChapters2(docId);
-    //   // console.log("resGetMangaChapters2", resGetMangaChapters2);
-    //   const resAxios = await axios.get(
-    //     "http://localhost:3000/api/mangaChaptersGET",
-    //     { params }
-    //   );
-    //   // console.log("resAxios", resAxios);
-    // }
-
-    // const docId = idManga + "_chapters";
-    // const chapters = await getMangaChapters(docId);
+    // const manga = store.getState().manga.manga;
+    // const chapters = manga[idManga];
+    const chapters = await getMangaChapters(idManga);
+    const chaptersJacket = {};
+    for (const [idxChapter, details] of Object.entries(chapters)) {
+      const { content: imagesURL, thumbnail } = details;
+      if (thumbnail.length !== 0) {
+        chaptersJacket[idxChapter] = thumbnail;
+      } else {
+        chaptersJacket[idxChapter] = imagesURL[0];
+      }
+    }
+    // console.log("chaptersJacket", chaptersJacket);
 
     // Documentation link:
     // https://vercel.com/docs/next.js/incremental-static-regeneration
@@ -299,6 +258,7 @@ export const getStaticProps = wrapper.getStaticProps(
       props: {
         // mangaPath,
         idManga,
+        chaptersJacket,
         // chapters,
       },
       // every day (24 hours), chek if regeneration of the page is necessary
@@ -307,13 +267,13 @@ export const getStaticProps = wrapper.getStaticProps(
   }
 );
 
-const mapStateToProps = (state) => {
-  // console.log("SelectManga mapStateToProps: state", state);
-  return {
-    // count: state.count.count,
-    manga: state.manga.manga,
-  };
-};
+// const mapStateToProps = (state) => {
+//   // console.log("SelectManga mapStateToProps: state", state);
+//   return {
+//     // count: state.count.count,
+//     manga: state.manga.manga,
+//   };
+// };
 
 // const mapDispatchToProps = (dispatch) => {
 //   return {
@@ -324,4 +284,5 @@ const mapStateToProps = (state) => {
 // };
 
 // export default connect(mapStateToProps, mapDispatchToProps)(SelectChapter);
-export default connect(mapStateToProps, null)(SelectChapter);
+// export default connect(mapStateToProps, null)(SelectChapter);
+export default connect(null, null)(SelectChapter);

@@ -42,15 +42,6 @@ import { connect } from "react-redux";
 // };
 
 function computePreviousAndNextLink(idManga, idChapter, idScan, chapters) {
-  // For scan address in DB, create a route
-  // TODO: Use directly the DB
-  // const docId = idManga + "_chapters";
-  // const chapters = await getMangaChapters(docId);
-  // console.log("computePreviousAndNextLink");
-  // console.log("idManga", idManga);
-  // console.log("idChapter", idChapter);
-  // console.log("idScan", idScan);
-
   const chapter = chapters[idChapter];
   // const imageURL = chapter.content[Number(idScan)];
 
@@ -118,7 +109,7 @@ function isUndefinedOrNull(val) {
 }
 
 function ScanViewer(props) {
-  // console.log("[ScanViewer] props", props);
+  console.log("[ScanViewer] props", props);
   if (
     isUndefinedOrNull(props.idManga) ||
     isUndefinedOrNull(props.idChapter) ||
@@ -131,7 +122,11 @@ function ScanViewer(props) {
   let idManga = "one-piece";
   let idChapter = "1";
   let idScan = "0";
-  let manga = null;
+  // let manga = null;
+  let previousLink = null;
+  let nextLink = null;
+  let imagesURL = [];
+  let imageURL = null;
   if (!isUndefinedOrNull(props.idManga)) {
     idManga = props.idManga;
   }
@@ -141,40 +136,52 @@ function ScanViewer(props) {
   if (!isUndefinedOrNull(props.idScan)) {
     idScan = props.idScan;
   }
-  if (!isUndefinedOrNull(props.manga)) {
-    manga = props.manga;
+  // if (!isUndefinedOrNull(props.manga)) {
+  //   manga = props.manga;
+  // }
+  if (!isUndefinedOrNull(props.previousLink)) {
+    previousLink = props.previousLink;
+  }
+  if (!isUndefinedOrNull(props.nextLink)) {
+    nextLink = props.nextLink;
+  }
+  if (!isUndefinedOrNull(props.imagesURL)) {
+    imagesURL = props.imagesURL;
+  }
+  if (!isUndefinedOrNull(props.imageURL)) {
+    imageURL = props.imageURL;
   }
 
   // console.log("[ScanViewer] PASS 1");
   // console.log("[ScanViewer] PASS manga", manga);
-  const chapters = manga[idManga];
-  const chapter = chapters[idChapter];
-  const imagesURL = chapter.content;
-  const imageURL = imagesURL[Number(idScan)];
+  // const chapters = manga[idManga];
+  // const chapter = chapters[idChapter];
+  // const imagesURL = chapter.content;
+  // const imageURL = imagesURL[Number(idScan)];
 
   // console.log("[ScanViewer] PASS 2");
-  const [previousLink, setPreviousLink] = React.useState(null);
-  const [nextLink, setNextLink] = React.useState(null);
+  // const [previousLink, setPreviousLink] = React.useState(null);
+  // const [nextLink, setNextLink] = React.useState(null);
 
-  React.useEffect(() => {
-    // console.log("[ScanViewer] useEffect PASS 0");
-    const [previousLink_, nextLink_] = computePreviousAndNextLink(
-      idManga,
-      idChapter,
-      idScan,
-      chapters
-    );
-    setPreviousLink(previousLink_);
-    setNextLink(nextLink_);
-    // console.log("previousLink", previousLink);
-    // console.log("nextLink", nextLink);
-    // console.log("[ScanViewer] useEffect PASS 1");
-  }, [
-    props.idManga,
-    props.idChapter,
-    props.idScan,
-    computePreviousAndNextLink,
-  ]);
+  // React.useEffect(() => {
+  //   // console.log("[ScanViewer] useEffect PASS 0");
+  //   const [previousLink_, nextLink_] = computePreviousAndNextLink(
+  //     idManga,
+  //     idChapter,
+  //     idScan,
+  //     chapters
+  //   );
+  //   setPreviousLink(previousLink_);
+  //   setNextLink(nextLink_);
+  //   // console.log("previousLink", previousLink);
+  //   // console.log("nextLink", nextLink);
+  //   // console.log("[ScanViewer] useEffect PASS 1");
+  // }, [
+  //   props.idManga,
+  //   props.idChapter,
+  //   props.idScan,
+  //   computePreviousAndNextLink,
+  // ]);
 
   // console.log("[ScanViewer] PASS 3");
   const [displayResetButton, setDisplayResetButton] = useState(false);
@@ -380,39 +387,42 @@ export async function getStaticPaths() {
 export async function getStaticProps({ params }) {
   // console.log("params", params);
   const { idManga, idChapter, idScan } = params;
-  // console.log("[getStaticProps]", { idManga, idChapter, idScan });
+  // console.log("[idScan-getStaticProps]", { idManga, idChapter, idScan });
 
   // await store.dispatch(retrieveManga(idManga));
   const chapters = await getMangaChapters(idManga);
   // for (const [idChapter, details] of Object.entries(chapters)) {
-  const manga = { [idManga]: chapters };
+  // const manga = { [idManga]: chapters };
+  // const chapters = manga[idManga];
   // console.log("[getStaticProps] manga", manga);
+  const [previousLink, nextLink] = computePreviousAndNextLink(
+    idManga,
+    idChapter,
+    idScan,
+    chapters
+  );
+  const imagesURL = chapters[idChapter].content;
+  const imageURL = imagesURL[Number(idScan)];
 
-  // if (typeof windows === "undefined") {
-  //   // import { getMangaChapters2 } from "../../src/serverSide";
-  //   // const docId = idManga + "_chapters";
-  //   // const resGetMangaChapters2 = await getMangaChapters2(docId);
-  //   // console.log("resGetMangaChapters2", resGetMangaChapters2);
-  //   const resAxios = await axios.get(
-  //     "http://localhost:3000/api/mangaChaptersGET",
-  //     { params }
-  //   );
-  //   // console.log("resAxios", resAxios);
-  // }
-
-  // const docId = idManga + "_chapters";
-  // const chapters = await getMangaChapters(docId);
+  // console.log("[idScan-getStaticProps] idManga", idManga);
+  // console.log("[idScan-getStaticProps] idChapter", idChapter);
+  // console.log("[idScan-getStaticProps] idScan", idScan);
+  // console.log("[idScan-getStaticProps] previousLink", previousLink);
+  // console.log("[idScan-getStaticProps] nextLink", nextLink);
+  // console.log("[idScan-getStaticProps] imagesURL", imagesURL);
+  // console.log("[idScan-getStaticProps] imageURL", imageURL);
 
   // Documentation link:
   // https://vercel.com/docs/next.js/incremental-static-regeneration
   return {
     props: {
-      // mangaPath,
       idManga,
       idChapter,
       idScan,
-      manga,
-      // chapters,
+      previousLink,
+      nextLink,
+      imagesURL,
+      imageURL,
     },
     // every day (24 hours), chek if regeneration of the page is necessary
     revalidate: 60 * 60 * 24,
