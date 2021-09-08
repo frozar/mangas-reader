@@ -295,12 +295,12 @@ export async function getStaticPaths() {
   // Return a list of possible value for idManga, idChapter, idScan
   const tmpLObjManga = await getMangas();
 
-  // const mangaToGenerateStatically = [
-  //   "one-piece",
-  //   // "one-punch-man",
-  //   "my-hero-academia",
-  // ];
-  const mangaToGenerateStatically = ["gantz"];
+  const mangaToGenerateStatically = [
+    "one-piece",
+    // "one-punch-man",
+    // "my-hero-academia",
+  ];
+  // const mangaToGenerateStatically = ["gantz"];
 
   const paths = [];
   for (const objManga of Object.values(tmpLObjManga)) {
