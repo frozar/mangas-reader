@@ -14,32 +14,32 @@ import { retrieveManga } from "../../../../store/manga/action";
 
 import { connect } from "react-redux";
 
-// Documentation link (inspiration)
-// https://jack72828383883.medium.com/how-to-preload-images-into-cache-in-react-js-ff1642708240
-// https://css-tricks.com/pre-caching-image-with-react-suspense/
-const imagesCache = {
-  __cache: {},
-  async readAll(imagesURLarg) {
-    // console.log("[readAll] PASS 0");
-    const imagesURL = [...imagesURLarg];
-    const missingImages = imagesURL.some((imageURL) => !this.__cache[imageURL]);
-    // console.log("[readAll] PASS 1");
+// // Documentation link (inspiration)
+// // https://jack72828383883.medium.com/how-to-preload-images-into-cache-in-react-js-ff1642708240
+// // https://css-tricks.com/pre-caching-image-with-react-suspense/
+// const imagesCache = {
+//   __cache: {},
+//   async readAll(imagesURLarg) {
+//     // console.log("[readAll] PASS 0");
+//     const imagesURL = [...imagesURLarg];
+//     const missingImages = imagesURL.some((imageURL) => !this.__cache[imageURL]);
+//     // console.log("[readAll] PASS 1");
 
-    if (missingImages) {
-      const promises = imagesURL.map((imageURL) => {
-        return new Promise(function (resolve, reject) {
-          const img = new Image();
-          img.src = imageURL;
-          img.onload = resolve();
-          img.onerror = reject();
-        });
-      });
-      await Promise.all(promises);
-      imagesURL.map((imageURL) => (this.__cache[imageURL] = true));
-    }
-    // console.log("[readAll] PASS 2");
-  },
-};
+//     if (missingImages) {
+//       const promises = imagesURL.map((imageURL) => {
+//         return new Promise(function (resolve, reject) {
+//           const img = new Image();
+//           img.src = imageURL;
+//           img.onload = resolve();
+//           img.onerror = reject();
+//         });
+//       });
+//       await Promise.all(promises);
+//       imagesURL.map((imageURL) => (this.__cache[imageURL] = true));
+//     }
+//     // console.log("[readAll] PASS 2");
+//   },
+// };
 
 function computePreviousAndNextLink(idManga, idChapter, idScan, chapters) {
   // For scan address in DB, create a route
@@ -217,12 +217,12 @@ function ScanViewer(props) {
     };
   }, [handleKeyDown]);
 
-  // console.log("[ScanViewer] PASS 5");
-  useEffect(() => {
-    if (imagesURL.length !== 0) {
-      imagesCache.readAll(imagesURL);
-    }
-  }, [imagesURL]);
+  // // console.log("[ScanViewer] PASS 5");
+  // useEffect(() => {
+  //   if (imagesURL.length !== 0) {
+  //     imagesCache.readAll(imagesURL);
+  //   }
+  // }, [imagesURL]);
 
   // console.log("[ScanViewer] PASS 6");
   if (router.isFallback) {
