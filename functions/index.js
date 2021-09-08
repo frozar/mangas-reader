@@ -77,7 +77,7 @@ async function getImageURL(URL) {
       return FAILED;
     }
   } catch (error) {
-    functions.logger.error("[getImageURL]", error);
+    functions.logger.error(`[getImageURL] Fail to scrap ${URL}`);
     return FAILED;
   }
 }
@@ -599,6 +599,7 @@ exports.scrapMangaChapters = functions
       // ***** 4 - Add the unavailable chapters
       // Limit the number of chapters to add to 8 because of time out limit
       // on Google Cloud function
+      console.info(`Number of chapter to scrap: ${idxToAdd.length}`);
       for (const idx of idxToAdd.slice(0, LIMIT_MAX_CHAPTER)) {
         // Scrap images
         let scrapedChapterImagesURL;
@@ -727,38 +728,38 @@ exports.scrapMangas = functions
     }
   });
 
-/**
- * Write the title and URL in DB for each manga available on lelscans.
- */
-exports.mangasGET = functions
-  .region("europe-west1")
-  .runWith(runtimeOpts)
-  .https.onRequest(async (req, res) => {
-    // Check the type of request
-    if (req.method !== "GET") {
-      res.status("401").send("Unauthorized method");
-      return;
-    }
+// /**
+//  * Write the title and URL in DB for each manga available on lelscans.
+//  */
+// exports.mangasGET = functions
+//   .region("europe-west1")
+//   .runWith(runtimeOpts)
+//   .https.onRequest(async (req, res) => {
+//     // Check the type of request
+//     if (req.method !== "GET") {
+//       res.status("401").send("Unauthorized method");
+//       return;
+//     }
 
-    setCORSHeader(res);
+//     setCORSHeader(res);
 
-    try {
-      // ***** 0 - Read mangas in DB and returns the result the client
-      const collRef = db.collection(LELSCANS_ROOT);
-      const snapshot = await collRef.get();
+//     try {
+//       // ***** 0 - Read mangas in DB and returns the result the client
+//       const collRef = db.collection(LELSCANS_ROOT);
+//       const snapshot = await collRef.get();
 
-      const mangas = {};
-      snapshot.forEach((doc) => {
-        mangas[doc.id] = doc.data();
-      });
+//       const mangas = {};
+//       snapshot.forEach((doc) => {
+//         mangas[doc.id] = doc.data();
+//       });
 
-      res.status(200).send(mangas);
-      return;
-    } catch (error) {
-      functions.logger.error("Error", error);
-      return res.status(400).send(error);
-    }
-  });
+//       res.status(200).send(mangas);
+//       return;
+//     } catch (error) {
+//       functions.logger.error("Error", error);
+//       return res.status(400).send(error);
+//     }
+//   });
 
 async function download(uri, filename) {
   const writer = fs.createWriteStream(filename);

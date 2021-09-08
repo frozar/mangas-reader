@@ -5,7 +5,7 @@
 // import storage from "../utils/storage";
 // import db from "../utils/db";
 import { db, LOCAL_ADDRESS } from "../utils/db";
-import axios from "axios";
+// import axios from "axios";
 
 // console.log("GLOBAL SRC/DB.JS: db", db);
 
@@ -41,8 +41,8 @@ const CLOUD_FUNCTION_ROOT = process.env.USE_LOCAL_CLOUD_FUNCTION
   ? "http://" + LOCAL_ADDRESS + ":5001/manga-b8fb3/europe-west1/"
   : "https://europe-west1-manga-b8fb3.cloudfunctions.net/";
 
-const URL_MANGA_IMAGES_SET = CLOUD_FUNCTION_ROOT + "mangaImagesSET";
-const URL_MANGAS_GET = CLOUD_FUNCTION_ROOT + "mangasGET";
+// const URL_MANGA_IMAGES_SET = CLOUD_FUNCTION_ROOT + "mangaImagesSET";
+// const URL_MANGAS_GET = CLOUD_FUNCTION_ROOT + "mangasGET";
 // const URL_MANGAS_META_GET = CLOUD_FUNCTION_ROOT + "mangasMetaGET";
 // const URL_MANGA_CHAPTERS_GET = CLOUD_FUNCTION_ROOT + "mangaChaptersGET";
 // TODO: Reuse this cloud function to fix bad thumbnail URL
@@ -89,26 +89,21 @@ export const LELSCANS_ROOT = "lelscans";
 // console.log("CLOUD_FUNCTION_ROOT", CLOUD_FUNCTION_ROOT);
 
 export async function getMangas() {
-  // console.log("[getMangas] BEGIN");
   try {
-    // console.log("[getMangas] 0");
-    const response = await axios.get(URL_MANGAS_GET);
-    // console.log("[getMangas] 1");
-    // console.log("[getMangas] response.status: " + response.status);
-    if (response.status === 400) {
-      throw response.statusText;
-    }
-    // console.log("[getMangas] 2");
-    const mangas = response.data;
+    // ***** 0 - Read mangas in DB and returns the result the client
+    const collRef = db.collection(LELSCANS_ROOT);
+    const snapshot = await collRef.get();
 
-    // console.log("[getMangas] mangas", mangas);
+    const mangas = {};
+    snapshot.forEach((doc) => {
+      mangas[doc.id] = doc.data();
+    });
+
     return mangas;
   } catch (error) {
-    // console.log("[getMangas] 3");
-    // throw new Error("[getMangas] " + error);
     console.error("[getMangas] " + error);
   }
-  console.log("[getMangas] END");
+  // console.log("[getMangas] END");
 }
 
 // export async function getMangasMeta() {
@@ -153,56 +148,56 @@ export async function getMangaChapters(mangaPath) {
   //   return chapters;
 }
 
-export async function getIdxChapters(mangaPath) {
-  const snapshot = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
+// export async function getIdxChapters(mangaPath) {
+//   const snapshot = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
 
-  const data = snapshot.data();
-  // const getChapters = await snapshot.get("chapters");
-  // console.log("[getIdxChapters] snapshot", snapshot);
-  // console.log("[getIdxChapters] mangaPath", mangaPath);
-  // console.log("[getIdxChapters] getChapters", getChapters);
-  // console.log("[getIdxChapters] data", data);
-  const { chapters } = data;
-  // console.log("[getIdxChapters] chapters", chapters);
-  // console.log("[getIdxChapters] title", title);
+//   const data = snapshot.data();
+//   // const getChapters = await snapshot.get("chapters");
+//   // console.log("[getIdxChapters] snapshot", snapshot);
+//   // console.log("[getIdxChapters] mangaPath", mangaPath);
+//   // console.log("[getIdxChapters] getChapters", getChapters);
+//   // console.log("[getIdxChapters] data", data);
+//   const { chapters } = data;
+//   // console.log("[getIdxChapters] chapters", chapters);
+//   // console.log("[getIdxChapters] title", title);
 
-  let idxChapters = Object.keys(chapters);
-  // snapshot.forEach((doc) => {
-  //   idxChapters.push(doc.id);
-  // });
+//   let idxChapters = Object.keys(chapters);
+//   // snapshot.forEach((doc) => {
+//   //   idxChapters.push(doc.id);
+//   // });
 
-  return idxChapters.sort((a, b) => Number(a) - Number(b));
-}
+//   return idxChapters.sort((a, b) => Number(a) - Number(b));
+// }
 
-export async function getImagesURL(mangaPath, idxChapter) {
-  try {
-    const snapshot = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
+// export async function getImagesURL(mangaPath, idxChapter) {
+//   try {
+//     const snapshot = await db.collection(LELSCANS_ROOT).doc(mangaPath).get();
 
-    const { chapters } = snapshot.data();
-    if (
-      chapters[idxChapter] !== undefined &&
-      chapters[idxChapter].content !== undefined
-    ) {
-      let imagesURL = chapters[idxChapter].content;
-      if (imagesURL.length === 0) {
-        const response = await axios.get(URL_MANGA_IMAGES_SET, {
-          params: {
-            path: mangaPath,
-            idxChapter: idxChapter,
-          },
-        });
-        if (response.status === 400) {
-          throw new Error("[getImagesURL]: " + response.statusText);
-        }
-        imagesURL = response.data.content;
-      }
-      return imagesURL;
-    } else {
-      console.error("[getImagesURL] DB read failed.");
-      return [];
-    }
-  } catch (error) {
-    console.error("[getImagesURL] Error: " + error);
-    return [];
-  }
-}
+//     const { chapters } = snapshot.data();
+//     if (
+//       chapters[idxChapter] !== undefined &&
+//       chapters[idxChapter].content !== undefined
+//     ) {
+//       let imagesURL = chapters[idxChapter].content;
+//       if (imagesURL.length === 0) {
+//         const response = await axios.get(URL_MANGA_IMAGES_SET, {
+//           params: {
+//             path: mangaPath,
+//             idxChapter: idxChapter,
+//           },
+//         });
+//         if (response.status === 400) {
+//           throw new Error("[getImagesURL]: " + response.statusText);
+//         }
+//         imagesURL = response.data.content;
+//       }
+//       return imagesURL;
+//     } else {
+//       console.error("[getImagesURL] DB read failed.");
+//       return [];
+//     }
+//   } catch (error) {
+//     console.error("[getImagesURL] Error: " + error);
+//     return [];
+//   }
+// }

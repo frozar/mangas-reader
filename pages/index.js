@@ -13,16 +13,17 @@ import Typography from "@material-ui/core/Typography";
 // import Copyright from "../src/Copyright";
 // import SelectManga from "../src/SelectManga";
 
-import { getMangasMeta, getMangas } from "../src/db.js";
+// import { getMangasMeta, getMangas } from "../src/db.js";
+import { getMangas } from "../src/db.js";
 
 import GridCard from "../src/GridCard.js";
 // import Counter from "../src/counter";
-import AddCount from "../src/AddCount";
+// import AddCount from "../src/AddCount";
 
 import { connect } from "react-redux";
-import { bindActionCreators } from "redux";
+// import { bindActionCreators } from "redux";
 
-import { addCount } from "../store/count/action";
+// import { addCount } from "../store/count/action";
 import { wrapper } from "../store/store";
 // import { serverRenderClock, startClock } from "../store/tick_old/action";
 
@@ -242,16 +243,17 @@ export const getStaticProps = wrapper.getStaticProps(async ({ store }) => {
 const mapStateToProps = (state) => {
   // console.log("SelectManga mapStateToProps: state", state);
   return {
-    count: state.count.count,
+    // count: state.count.count,
     manga: state.manga.manga,
   };
 };
 
-const mapDispatchToProps = (dispatch) => {
-  return {
-    addCount: bindActionCreators(addCount, dispatch),
-    // startClock: bindActionCreators(startClock, dispatch),
-  };
-};
+// const mapDispatchToProps = (dispatch) => {
+//   return {
+//     addCount: bindActionCreators(addCount, dispatch),
+//     // startClock: bindActionCreators(startClock, dispatch),
+//   };
+// };
 
-export default connect(mapStateToProps, mapDispatchToProps)(Index);
+// export default connect(mapStateToProps, mapDispatchToProps)(Index);
+export default connect(mapStateToProps, null)(Index);

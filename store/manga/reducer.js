@@ -1,8 +1,8 @@
 import { mangaActionTypes } from "./action";
 
-const countInitialState = { manga: {} };
+const mangaInitialState = { manga: {} };
 
-export default function reducer(state = countInitialState, action) {
+export default function reducer(state = mangaInitialState, action) {
   switch (action.type) {
     case mangaActionTypes.RETRIEVE:
       // console.log("[manga reducer] state.manga", state.manga);

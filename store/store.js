@@ -1,10 +1,12 @@
 import { createStore, applyMiddleware, combineReducers } from "redux";
 import { HYDRATE, createWrapper } from "next-redux-wrapper";
 import thunkMiddleware from "redux-thunk";
+// import { mangaActionTypes } from "./action";
 
-import count from "./count/reducer";
+// import count from "./count/reducer";
 // import tick from "./tick_old/reducer";
 import manga from "./manga/reducer";
+import { mangaActionTypes } from "./manga/action";
 
 const bindMiddleware = (middleware) => {
   if (process.env.NODE_ENV !== "production") {
@@ -15,7 +17,7 @@ const bindMiddleware = (middleware) => {
 };
 
 const combinedReducer = combineReducers({
-  count,
+  // count,
   // tick,
   manga,
 });
@@ -40,23 +42,30 @@ const reducer = (state, action) => {
     };
     // console.log("[main reducer] nextState.manga", nextState.manga);
     // preserve count value on client side navigation
-    if (state.count.count) {
-      nextState.count.count = state.count.count;
-    }
+    // if (state.count.count) {
+    //   nextState.count.count = state.count.count;
+    // }
     // console.log("[main reducer] state.manga.manga", state.manga.manga);
     // console.log(
     //   "[main reducer] Boolean(state.manga.manga)",
     //   Boolean(state.manga.manga)
     // );
     if (state.manga.manga) {
-      // nextState.manga.manga = state.manga.manga;
-      const newManga = { ...nextState.manga.manga, ...state.manga.manga };
-      // console.log("[main reducer] newManga", newManga);
-      nextState.manga.manga = newManga;
+      // // nextState.manga.manga = state.manga.manga;
+      // const newManga = { ...nextState.manga.manga, ...state.manga.manga };
+      // // console.log("[main reducer] newManga", newManga);
+      // nextState.manga.manga = newManga;
+      nextState.manga.manga = {
+        ...state.manga.manga,
+        ...nextState.manga.manga,
+      };
     }
     return nextState;
   } else {
-    // console.log("[main reducer] else");
+    console.log("[main reducer] else");
+    if (action.type !== mangaActionTypes.RETRIEVE) {
+      console.log("[main reducer] action", action);
+    }
     return combinedReducer(state, action);
   }
 };
