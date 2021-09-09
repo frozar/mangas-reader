@@ -109,7 +109,7 @@ function isUndefinedOrNull(val) {
 }
 
 function ScanViewer(props) {
-  console.log("[ScanViewer] props", props);
+  // console.log("[ScanViewer] props", props);
   if (
     isUndefinedOrNull(props.idManga) ||
     isUndefinedOrNull(props.idChapter) ||
