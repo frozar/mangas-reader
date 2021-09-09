@@ -114,8 +114,6 @@ function ScanViewer(props) {
     isUndefinedOrNull(props.idManga) ||
     isUndefinedOrNull(props.idChapter) ||
     isUndefinedOrNull(props.idScan) ||
-    isUndefinedOrNull(props.previousLink) ||
-    isUndefinedOrNull(props.nextLink) ||
     isUndefinedOrNull(props.imagesURL) ||
     isUndefinedOrNull(props.imageURL)
   ) {
