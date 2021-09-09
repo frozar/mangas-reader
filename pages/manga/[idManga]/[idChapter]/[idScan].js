@@ -430,7 +430,7 @@ export async function getStaticProps({ params }) {
       imagesURL,
       imageURL,
     },
-    // every day (24 hours), chek if regeneration of the page is necessary
+    // every day (24 hours), check if regeneration of the page is necessary
     revalidate: 60 * 60 * 24,
   };
 }

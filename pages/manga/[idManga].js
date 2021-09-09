@@ -260,8 +260,8 @@ export const getStaticProps = wrapper.getStaticProps(
         chaptersJacket,
         // chapters,
       },
-      // every day (24 hours), chek if regeneration of the page is necessary
-      revalidate: 60 * 60 * 24,
+      // every hours, check if regeneration of the page is necessary
+      revalidate: 60 * 60 * 1,
     };
   }
 );
