@@ -239,7 +239,6 @@ export const getStaticProps = wrapper.getStaticProps(
     // await store.dispatch(retrieveManga(idManga));
 
     // const manga = store.getState().manga.manga;
-    // const chapters = manga[idManga];
     const chapters = await getMangaChapters(idManga);
     const chaptersJacket = {};
     for (const [idxChapter, details] of Object.entries(chapters)) {

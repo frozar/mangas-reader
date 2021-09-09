@@ -298,26 +298,32 @@ function ScanViewer(props) {
 //   }
 // );
 
+const MAX_STATIC_CHAPTER = 5;
+
 export async function getStaticPaths() {
   // Return a list of possible value for idManga, idChapter, idScan
   const tmpLObjManga = await getMangas();
 
-  const mangaToGenerateStatically = [
-    "one-piece",
-    // "one-punch-man",
-    // "my-hero-academia",
-  ];
+  // const mangaToGenerateStatically = [
+  //   "one-piece",
+  //   // "one-punch-man",
+  //   // "my-hero-academia",
+  // ];
   // const mangaToGenerateStatically = ["gantz"];
 
   const paths = [];
   for (const objManga of Object.values(tmpLObjManga)) {
     const idManga = objManga.path;
-    if (!mangaToGenerateStatically.includes(idManga)) {
-      continue;
-    }
+    // if (!mangaToGenerateStatically.includes(idManga)) {
+    //   continue;
+    // }
     console.info(`[Build] Collecting paths to generate statically ${idManga}`);
     const chapters = await getMangaChapters(idManga);
-    for (const [idChapter, details] of Object.entries(chapters)) {
+    for (const [idChapter, details] of Object.entries(chapters)
+      .sort(([idxChapter0, details0], [idxChapter1, details1]) => {
+        return Number(idxChapter1) - Number(idxChapter0);
+      }) // Greater first
+      .slice(0, MAX_STATIC_CHAPTER)) {
       for (const idScan of details.content.keys()) {
         paths.push({ params: { idManga, idChapter, idScan: String(idScan) } });
       }
@@ -326,14 +332,12 @@ export async function getStaticPaths() {
 
   // Documentation link:
   // https://vercel.com/docs/next.js/incremental-static-regeneration
-  // fallback: true - when a request is made to a page that hasn't
-  // been generated, Next.js will immediately serve a static page
-  // with a loading state on the first request. When the data is
-  // finished loading, the page will re-render using this data and
-  // be cached. Future requests will serve the static file from the cache.
+  // fallback: blocking - (preferred) – when a request is made to a page that
+  // hasn't been generated, Next.js will server-render the page on the first
+  // request. Future requests will serve the static file from the cache.
   return {
     paths,
-    fallback: true,
+    fallback: "blocking",
   };
 }
 
