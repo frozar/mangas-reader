@@ -114,7 +114,10 @@ function ScanViewer(props) {
     isUndefinedOrNull(props.idManga) ||
     isUndefinedOrNull(props.idChapter) ||
     isUndefinedOrNull(props.idScan) ||
-    isUndefinedOrNull(props.manga)
+    isUndefinedOrNull(props.previousLink) ||
+    isUndefinedOrNull(props.nextLink) ||
+    isUndefinedOrNull(props.imagesURL) ||
+    isUndefinedOrNull(props.imageURL)
   ) {
     return <h1>Nothing to show o_O !</h1>;
   }
@@ -329,6 +332,7 @@ export async function getStaticPaths() {
       }
     }
   }
+  // console.log("[getStaticPaths] paths", paths);
 
   // Documentation link:
   // https://vercel.com/docs/next.js/incremental-static-regeneration
