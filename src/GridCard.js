@@ -87,6 +87,25 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const shimmer = (w, h) => `
+<svg width="${w}" height="${h}" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <linearGradient id="g">
+      <stop stop-color="#333" offset="20%" />
+      <stop stop-color="#222" offset="50%" />
+      <stop stop-color="#333" offset="70%" />
+    </linearGradient>
+  </defs>
+  <rect width="${w}" height="${h}" fill="#333" />
+  <rect id="r" width="${w}" height="${h}" fill="url(#g)" />
+  <animate xlink:href="#r" attributeName="x" from="-${w}" to="${w}" dur="1s" repeatCount="indefinite"  />
+</svg>`;
+
+const toBase64 = (str) =>
+  typeof window === "undefined"
+    ? Buffer.from(str).toString("base64")
+    : window.btoa(str);
+
 function Portrait(props) {
   const classes = useStyles();
   const { picture, type } = props;
@@ -128,6 +147,7 @@ function Portrait(props) {
     console.info(
       `[Portrait] Should recompute thumbnail of ${mangaPath} chap.${chapterIdx}`
     );
+    // TODO: deal with it in a cloud function
     // axios.post(
     //   "/api/thumbnail/recreate",
     //   {
@@ -150,6 +170,13 @@ function Portrait(props) {
         objectFit="contain"
         alt={altStr}
         onError={handleErrorTest}
+        unoptimized={true}
+        placeholder={true}
+        blurDataURL={`data:image/svg+xml;base64,${toBase64(shimmer(475, 700))}`}
+        style={{
+          minWidth: 200,
+          minHeight: 400,
+        }}
       />
     </div>
   );
