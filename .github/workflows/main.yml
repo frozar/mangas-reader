@@ -29,7 +29,7 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Run a one-line script
-        run: curl https://europe-west1-manga-b8fb3.cloudfunctions.net/mangasGET
+        run: curl https://europe-west1-manga-b8fb3.cloudfunctions.net/scrapMangas
 
       # Runs a set of commands using the runners shell
       # - name: Run a multi-line script
