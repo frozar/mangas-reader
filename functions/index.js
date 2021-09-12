@@ -25,6 +25,10 @@ const storage = admin.storage();
 
 const LELSCANS_ROOT = "lelscans";
 const FAILED = 42;
+const SUCCEED = 666;
+const SAME = 0;
+const CHANGED = 0;
+const LIMIT_MAX_CHAPTER = 8;
 
 /**
  * For a given manga, returns the number of chapter in this manga.
@@ -88,7 +92,6 @@ async function getImageURL(URL) {
  * @param {String} path URL path for a given manga.
  * @param {Integer} idxChapter index of the chapter to retrieve the number of scan
  */
-// TODO: Add generation of thumbnail here
 async function scrapChapterImagesURL(path, idxChapter) {
   try {
     const URL = "https://lelscans.net/scan-" + path + "/" + idxChapter;
@@ -141,50 +144,50 @@ function diffScrapedVsDB(scrapedData, DBData) {
   return [mangaToRemoveFromDB, mangaToAddToDB];
 }
 
-// TODO: if there is a thumbnail associated to a chapter,
-// delete the thumbnail as well
-async function updateChaptersCollection(docRef, URL) {
-  try {
-    const scrapedIdx = await scrapIdxChapters(URL);
-    if (scrapedIdx === FAILED) {
-      return FAILED;
-    }
+// // TODO: if there is a thumbnail associated to a chapter,
+// // delete the thumbnail as well
+// async function updateChaptersCollection(docRef, URL) {
+//   try {
+//     const scrapedIdx = await scrapIdxChapters(URL);
+//     if (scrapedIdx === FAILED) {
+//       return FAILED;
+//     }
 
-    const snapshot = await docRef.get();
-    const docData = snapshot.data();
+//     const snapshot = await docRef.get();
+//     const docData = snapshot.data();
 
-    // Initialise the 'chapters' var depending if the document is found
-    // in the DB are not
-    let chapters;
-    if (!docData) {
-      chapters = {};
-    } else {
-      chapters = docData.chapters;
-    }
+//     // Initialise the 'chapters' var depending if the document is found
+//     // in the DB are not
+//     let chapters;
+//     if (!docData) {
+//       chapters = {};
+//     } else {
+//       chapters = docData.chapters;
+//     }
 
-    const idxInDB = Object.keys(chapters);
-    const [idxToRemove, idxToAdd] = diffScrapedVsDB(scrapedIdx, idxInDB);
+//     const idxInDB = Object.keys(chapters);
+//     const [idxToRemove, idxToAdd] = diffScrapedVsDB(scrapedIdx, idxInDB);
 
-    if (idxToRemove.length === 0 && idxToAdd.length === 0) {
-      return FAILED;
-    } else {
-      // Remove the unavailable chapters
-      for (const idx of idxToRemove) {
-        delete chapters[idx];
-      }
+//     if (idxToRemove.length === 0 && idxToAdd.length === 0) {
+//       return FAILED;
+//     } else {
+//       // Remove the unavailable chapters
+//       for (const idx of idxToRemove) {
+//         delete chapters[idx];
+//       }
 
-      // Add the unavailable chapters
-      for (const idx of idxToAdd) {
-        chapters[idx] = { content: [], thumbnail: "" };
-      }
+//       // Add the unavailable chapters
+//       for (const idx of idxToAdd) {
+//         chapters[idx] = { content: [], thumbnail: "" };
+//       }
 
-      return { chapters };
-    }
-  } catch (error) {
-    functions.logger.error("[updateChaptersCollection] " + error);
-    return FAILED;
-  }
-}
+//       return { chapters };
+//     }
+//   } catch (error) {
+//     functions.logger.error("[updateChaptersCollection] " + error);
+//     return FAILED;
+//   }
+// }
 
 async function scrapMangas() {
   try {
@@ -218,90 +221,90 @@ async function scrapMangas() {
   }
 }
 
-async function getMangasPathInDB(collRef) {
-  const snapshot = await collRef.get();
+// async function getMangasPathInDB(collRef) {
+//   const snapshot = await collRef.get();
 
-  const mangasPathInDB = [];
-  snapshot.forEach((doc) => {
-    mangasPathInDB.push(doc.id);
-  });
+//   const mangasPathInDB = [];
+//   snapshot.forEach((doc) => {
+//     mangasPathInDB.push(doc.id);
+//   });
 
-  return mangasPathInDB;
-}
+//   return mangasPathInDB;
+// }
 
-/**
- * Write the title and URL in DB for each manga available on lelscans.
- */
-exports.mangaTitleSET = functions
-  .region("europe-west1")
-  .runWith(runtimeOpts)
-  .https.onRequest(async (req, res) => {
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "X-Requested-With,content-type"
-    );
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-    );
-    res.setHeader("Access-Control-Allow-Credentials", true);
+// /**
+//  * Write the title and URL in DB for each manga available on lelscans.
+//  */
+// exports.mangaTitleSET = functions
+//   .region("europe-west1")
+//   .runWith(runtimeOpts)
+//   .https.onRequest(async (req, res) => {
+//     res.setHeader(
+//       "Access-Control-Allow-Headers",
+//       "X-Requested-With,content-type"
+//     );
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader(
+//       "Access-Control-Allow-Methods",
+//       "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+//     );
+//     res.setHeader("Access-Control-Allow-Credentials", true);
 
-    const scrapedMangas = await scrapMangas();
-    if (scrapedMangas === FAILED) {
-      const errorMsg = "[mangaTitleSET] scrapedMangas() failed.";
-      functions.logger.error(errorMsg);
-      res.status(400).send(errorMsg);
-      return;
-    }
+//     const scrapedMangas = await scrapMangas();
+//     if (scrapedMangas === FAILED) {
+//       const errorMsg = "[mangaTitleSET] scrapedMangas() failed.";
+//       functions.logger.error(errorMsg);
+//       res.status(400).send(errorMsg);
+//       return;
+//     }
 
-    const collRef = db.collection(LELSCANS_ROOT);
-    const mangasPathInDB = await getMangasPathInDB(collRef);
+//     const collRef = db.collection(LELSCANS_ROOT);
+//     const mangasPathInDB = await getMangasPathInDB(collRef);
 
-    const scrapedMangasPath = Object.keys(scrapedMangas);
-    const [mangaToRemove, mangaToAdd] = diffScrapedVsDB(
-      scrapedMangasPath,
-      mangasPathInDB
-    );
+//     const scrapedMangasPath = Object.keys(scrapedMangas);
+//     const [mangaToRemove, mangaToAdd] = diffScrapedVsDB(
+//       scrapedMangasPath,
+//       mangasPathInDB
+//     );
 
-    if (mangaToAdd.length !== 0) {
-      functions.logger.info("[mangaTitleSET] mangaToAdd", mangaToAdd);
-    }
-    if (mangaToRemove.length !== 0) {
-      functions.logger.info("[mangaTitleSET] mangaToRemove", mangaToRemove);
-    }
+//     if (mangaToAdd.length !== 0) {
+//       functions.logger.info("[mangaTitleSET] mangaToAdd", mangaToAdd);
+//     }
+//     if (mangaToRemove.length !== 0) {
+//       functions.logger.info("[mangaTitleSET] mangaToRemove", mangaToRemove);
+//     }
 
-    // TODO: rewrite from mangasGET example
-    // // Delete manga to remove
-    // for (const mangaPath in mangaToRemove) {
-    //   deletePathDB(LELSCANS_ROOT + "/" + mangaPath);
-    // }
+//     // TODO: rewrite from mangasGET example
+//     // // Delete manga to remove
+//     // for (const mangaPath in mangaToRemove) {
+//     //   deletePathDB(LELSCANS_ROOT + "/" + mangaPath);
+//     // }
 
-    // // Add manga to add
-    // let toWait = [];
-    // for (const [path, manga] of Object.entries(scrapedMangas)) {
-    //   const { title, URL, thumbnail } = manga;
+//     // // Add manga to add
+//     // let toWait = [];
+//     // for (const [path, manga] of Object.entries(scrapedMangas)) {
+//     //   const { title, URL, thumbnail } = manga;
 
-    //   const docRef = collRef.doc(path);
+//     //   const docRef = collRef.doc(path);
 
-    //   let objToWrite = {};
-    //   if (mangaToAdd.includes(path)) {
-    //     objToWrite = { title, URL, path, thumbnail };
-    //   }
+//     //   let objToWrite = {};
+//     //   if (mangaToAdd.includes(path)) {
+//     //     objToWrite = { title, URL, path, thumbnail };
+//     //   }
 
-    //   if (scrapedMangasPath.includes(path)) {
-    //     const chapters = await updateChaptersCollection(docRef, URL);
-    //     if (chapters !== FAILED) {
-    //       objToWrite = { ...objToWrite, ...chapters };
-    //     }
-    //   }
-    //   toWait.push(docRef.set(objToWrite, { merge: true }));
-    // }
-    // await Promise.all(toWait);
+//     //   if (scrapedMangasPath.includes(path)) {
+//     //     const chapters = await updateChaptersCollection(docRef, URL);
+//     //     if (chapters !== FAILED) {
+//     //       objToWrite = { ...objToWrite, ...chapters };
+//     //     }
+//     //   }
+//     //   toWait.push(docRef.set(objToWrite, { merge: true }));
+//     // }
+//     // await Promise.all(toWait);
 
-    res.status(200).send("mangaTitleSET: SUCCESS");
-    return;
-  });
+//     res.status(200).send("mangaTitleSET: SUCCESS");
+//     return;
+//   });
 
 // /**
 //  * Write the title and URL in DB for each manga available on lelscans.
@@ -365,52 +368,52 @@ exports.mangaTitleSET = functions
 //     }
 //   });
 
-/**
- * Write the title and URL in DB for each manga available on lelscans.
- */
-exports.mangasMetaGET = functions
-  .region("europe-west1")
-  .runWith(runtimeOpts)
-  .https.onRequest(async (req, res) => {
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "X-Requested-With,content-type"
-    );
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-    );
-    res.setHeader("Access-Control-Allow-Credentials", true);
+// /**
+//  * Write the title and URL in DB for each manga available on lelscans.
+//  */
+// exports.mangasMetaGET = functions
+//   .region("europe-west1")
+//   .runWith(runtimeOpts)
+//   .https.onRequest(async (req, res) => {
+//     res.setHeader(
+//       "Access-Control-Allow-Headers",
+//       "X-Requested-With,content-type"
+//     );
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader(
+//       "Access-Control-Allow-Methods",
+//       "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+//     );
+//     res.setHeader("Access-Control-Allow-Credentials", true);
 
-    try {
-      // ***** 0 - Read mangas in DB and returns the result the client
-      // console.log("0");
-      const collRef = db.collection(LELSCANS_ROOT);
+//     try {
+//       // ***** 0 - Read mangas in DB and returns the result the client
+//       // console.log("0");
+//       const collRef = db.collection(LELSCANS_ROOT);
 
-      // console.log("1");
-      // const snapshot = await collRef.get();
-      // // console.log("2");
+//       // console.log("1");
+//       // const snapshot = await collRef.get();
+//       // // console.log("2");
 
-      // // Create a query against the collection.
-      const snapshot = await collRef.where("meta", "==", true).get();
-      // const snapshot = await collRef.where("title", "==", "Beelzebub").get();
+//       // // Create a query against the collection.
+//       const snapshot = await collRef.where("meta", "==", true).get();
+//       // const snapshot = await collRef.where("title", "==", "Beelzebub").get();
 
-      const mangas = {};
-      // console.log("3");
-      snapshot.forEach((doc) => {
-        // if (!/.*_meta|.*_chapters/.test(doc.id)) {
-        console.log("doc.id", doc.id);
-        mangas[doc.id] = doc.data();
-        // }
-      });
+//       const mangas = {};
+//       // console.log("3");
+//       snapshot.forEach((doc) => {
+//         // if (!/.*_meta|.*_chapters/.test(doc.id)) {
+//         console.log("doc.id", doc.id);
+//         mangas[doc.id] = doc.data();
+//         // }
+//       });
 
-      res.status(200).send(mangas);
-    } catch (error) {
-      functions.logger.error("Error", error);
-      return res.status(400).send(error);
-    }
-  });
+//       res.status(200).send(mangas);
+//     } catch (error) {
+//       functions.logger.error("Error", error);
+//       return res.status(400).send(error);
+//     }
+//   });
 
 // /**
 //  *
@@ -522,7 +525,84 @@ function setCORSHeader(res) {
   res.setHeader("Access-Control-Allow-Credentials", true);
 }
 
-const LIMIT_MAX_CHAPTER = 8;
+async function scrapMangaChaptersFunction(queryPath) {
+  // ***** 1 - Read DB to retrieve manga URL and chapters already scraped
+  const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
+  const docChapterRef = docRef.collection("chapters").doc("data");
+
+  const docManga = await docRef.get();
+  const docChapters = await docChapterRef.get();
+  const manga = docManga.data();
+  const chapters = docChapters.data();
+
+  // ***** 2 - Scrap chapters indexes
+  const { URL } = manga;
+  // Attempt to scrap from lelscan multiple time in a row
+  let scrapedIdx;
+  for (const i in [...Array(5).keys()]) {
+    scrapedIdx = await scrapIdxChapters(URL);
+    if (scrapedIdx !== FAILED) {
+      functions.logger.log(
+        `[scrapMangaChaptersFunction] scrapIdxChapters(${URL}) SUCCESS.`
+      );
+      break;
+    }
+  }
+
+  if (scrapedIdx === FAILED) {
+    functions.logger.error(
+      `[scrapMangaChaptersFunction] scrapIdxChapters(${URL}) FAILURE.`
+    );
+    return [FAILED, "[scrapMangaChaptersFunction] FAILURE"];
+  }
+
+  const idxInDB = Object.keys(chapters);
+  const [idxToRemove, idxToAdd] = diffScrapedVsDB(scrapedIdx, idxInDB);
+  // console.log("idxToRemove", idxToRemove);
+  // console.log("idxToAdd", idxToAdd);
+  if (idxToRemove.length === 0 && idxToAdd.length === 0) {
+    return [SUCCEED, SAME];
+  }
+
+  // ***** 3 - Remove the unavailable chapters
+  for (const idx of idxToRemove) {
+    delete chapters[idx];
+  }
+  // Delete chapters: without "merge"
+  await docChapterRef.set(chapters);
+
+  // ***** 4 - Add the unavailable chapters
+  // Limit the number of chapters to add to 8 because of time out limit
+  // on Google Cloud function
+  console.info(`Number of chapter to scrap: ${idxToAdd.length}`);
+  for (const idx of idxToAdd.slice(0, LIMIT_MAX_CHAPTER)) {
+    // Scrap images
+    let scrapedChapterImagesURL;
+    for (const i in [...Array(5).keys()]) {
+      scrapedChapterImagesURL = await scrapChapterImagesURL(queryPath, idx);
+      if (scrapedChapterImagesURL !== FAILED) {
+        functions.logger.log(
+          `[scrapMangaChaptersFunction] ${i} scrapChapterImagesURL(${queryPath}, ${idx}) SUCCESS.`
+        );
+        break;
+      }
+    }
+
+    if (scrapedChapterImagesURL === FAILED) {
+      functions.logger.error(
+        `[scrapMangaChaptersFunction] scrapChapterImagesURL(${queryPath}, ${idx}) FAILURE.`
+      );
+      continue;
+    }
+
+    chapters[idx] = { content: scrapedChapterImagesURL, thumbnail: "" };
+  }
+  // Add chapters: with "merge"
+  await docChapterRef.set(chapters, { merge: true });
+
+  return [SUCCEED, CHANGED];
+}
+
 /**
  * For a given manga scrap LIMIT_MAX_CHAPTER chapters
  */
@@ -549,84 +629,65 @@ exports.scrapMangaChapters = functions
 
       if (errors.length > 0) {
         functions.logger.error("[scrapMangaChapters] Error", errors);
-        res.status(400).send(errors.join("\n"));
-        return;
+        return res.status(400).send(errors.join("\n"));
       }
 
-      // ***** 1 - Read DB to retrieve manga URL and chapters already scraped
-      const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
-      const docChapterRef = docRef.collection("chapters").doc("data");
-
-      const docManga = await docRef.get();
-      const docChapters = await docChapterRef.get();
-      const manga = docManga.data();
-      const chapters = docChapters.data();
-
-      // ***** 2 - Scrap chapters indexes
-      const { URL } = manga;
-      // Attempt to scrap from lelscan multiple time in a row
-      let scrapedIdx;
-      for (const i in [...Array(5).keys()]) {
-        scrapedIdx = await scrapIdxChapters(URL);
-        if (scrapedIdx !== FAILED) {
-          functions.logger.log(
-            `[scrapMangaChapters] scrapIdxChapters(${URL}) SUCCESS.`
-          );
-          break;
-        }
+      const [status, message] = await scrapMangaChaptersFunction(queryPath);
+      if (status === FAILED) {
+        return res.status(400).send(message);
       }
 
-      if (scrapedIdx === FAILED) {
-        functions.logger.error(
-          `[scrapMangaChapters] scrapIdxChapters(${URL}) FAILURE.`
-        );
-        res.status(400).send("[scrapMangaChapters] FAILURE");
-        return;
-      }
+      return res.status(200).send("Chapters scraped.");
+    } catch (error) {
+      functions.logger.error("Error", error);
+      return res.status(400).send(error);
+    }
+  });
 
-      const idxInDB = Object.keys(chapters);
-      const [idxToRemove, idxToAdd] = diffScrapedVsDB(scrapedIdx, idxInDB);
-      // console.log("idxToRemove", idxToRemove);
-      // console.log("idxToAdd", idxToAdd);
-
-      // ***** 3 - Remove the unavailable chapters
-      for (const idx of idxToRemove) {
-        delete chapters[idx];
-      }
-      // Delete chapters: without "merge"
-      await docChapterRef.set(chapters);
-
-      // ***** 4 - Add the unavailable chapters
-      // Limit the number of chapters to add to 8 because of time out limit
-      // on Google Cloud function
-      console.info(`Number of chapter to scrap: ${idxToAdd.length}`);
-      for (const idx of idxToAdd.slice(0, LIMIT_MAX_CHAPTER)) {
-        // Scrap images
-        let scrapedChapterImagesURL;
-        for (const i in [...Array(5).keys()]) {
-          scrapedChapterImagesURL = await scrapChapterImagesURL(queryPath, idx);
-          if (scrapedChapterImagesURL !== FAILED) {
-            functions.logger.log(
-              `[scrapMangaChapters] ${i} scrapChapterImagesURL(${queryPath}, ${idx}) SUCCESS.`
-            );
-            break;
-          }
-        }
-
-        if (scrapedChapterImagesURL === FAILED) {
-          functions.logger.error(
-            `[scrapMangaChapters] scrapChapterImagesURL(${queryPath}, ${idx}) FAILURE.`
-          );
-          continue;
-        }
-
-        chapters[idx] = { content: scrapedChapterImagesURL, thumbnail: "" };
-      }
-      // Add chapters: with "merge"
-      await docChapterRef.set(chapters, { merge: true });
-
-      res.status(200).send("Chapters scraped.");
+/**
+ *
+ */
+exports.scrapAllMangaChapters = functions
+  .region("europe-west1")
+  .runWith(runtimeOpts)
+  .https.onRequest(async (req, res) => {
+    // Check the type of request
+    if (req.method !== "GET") {
+      res.status("401").send("Unauthorized method");
       return;
+    }
+
+    setCORSHeader(res);
+
+    try {
+      // ***** 0 - Read mangas in DB and returns the result the client
+      const collRef = db.collection(LELSCANS_ROOT);
+      const snapshot = await collRef.get();
+
+      const mangas = [];
+      snapshot.forEach((doc) => {
+        mangas.push(doc.id);
+      });
+
+      // ***** 1 - Scrap chapters for every manga available in DB
+      const toWait = [];
+      for (const mangaId in mangas) {
+        toWait.push(scrapMangaChaptersFunction(mangaId));
+      }
+      await Promise.all(toWait);
+
+      // ***** 2 - If a changed has been made in the DB, redeploy
+      if (
+        toWait.some(
+          ([status, state]) => status === SUCCEED && state === CHANGED
+        )
+      ) {
+        axios.get(
+          "https://api.vercel.com/v1/integrations/deploy/prj_hP1Xmi066dAYkWNKlHVXSMTfCIP0/ltGqfbCEaU"
+        );
+      }
+
+      return res.status(200).send("All manga chapters scraped.");
     } catch (error) {
       functions.logger.error("Error", error);
       return res.status(400).send(error);
@@ -649,10 +710,6 @@ exports.scrapMangas = functions
     setCORSHeader(res);
 
     try {
-      // // TODO: to remove
-      // console.log("REMOVE GANTZ");
-      // await deleteAtPath("/" + LELSCANS_ROOT + "/gantz");
-
       // ***** 0 - Read mangas in DB and returns the result the client
       const collRef = db.collection(LELSCANS_ROOT);
       const snapshot = await collRef.get();
@@ -697,7 +754,7 @@ exports.scrapMangas = functions
       for (const mangaPath of mangaToRemove) {
         try {
           // console.log("Should delete", mangaPath);
-          // await deleteAtPath("/" + LELSCANS_ROOT + "/" + mangaPath);
+          await deleteAtPath("/" + LELSCANS_ROOT + "/" + mangaPath);
         } catch (error) {
           functions.logger.error(`[mangasGET] Delete path ${path} FAILURE`);
           functions.logger.error(error);
@@ -720,8 +777,7 @@ exports.scrapMangas = functions
         toWait.push(docChapterRef.set({}, { merge: true }));
       }
       await Promise.all(toWait);
-      res.status(200).send("Manga scraped.");
-      return;
+      return res.status(200).send("Manga scraped.");
     } catch (error) {
       functions.logger.error("Error", error);
       return res.status(400).send(error);
@@ -761,325 +817,325 @@ exports.scrapMangas = functions
 //     }
 //   });
 
-async function download(uri, filename) {
-  const writer = fs.createWriteStream(filename);
+// async function download(uri, filename) {
+//   const writer = fs.createWriteStream(filename);
 
-  const response = await axios({
-    url: uri,
-    method: "GET",
-    responseType: "stream",
-  });
+//   const response = await axios({
+//     url: uri,
+//     method: "GET",
+//     responseType: "stream",
+//   });
 
-  response.data.pipe(writer);
+//   response.data.pipe(writer);
 
-  return new Promise((resolve, reject) => {
-    writer.on("finish", resolve);
-    writer.on("error", reject);
-  });
-}
+//   return new Promise((resolve, reject) => {
+//     writer.on("finish", resolve);
+//     writer.on("error", reject);
+//   });
+// }
 
-function getFileName(uri) {
-  const splittedUri = uri.split("/");
-  const fileName = splittedUri
-    .slice(splittedUri.length - 3, splittedUri.length)
-    .join("_");
+// function getFileName(uri) {
+//   const splittedUri = uri.split("/");
+//   const fileName = splittedUri
+//     .slice(splittedUri.length - 3, splittedUri.length)
+//     .join("_");
 
-  return fileName;
-}
+//   return fileName;
+// }
 
-async function createThumbnail(uri) {
-  const fileName = getFileName(uri);
-  const tempFilePath = path.join(os.tmpdir(), fileName);
-  await download(uri, tempFilePath);
+// async function createThumbnail(uri) {
+//   const fileName = getFileName(uri);
+//   const tempFilePath = path.join(os.tmpdir(), fileName);
+//   await download(uri, tempFilePath);
 
-  const subDimensions = "200x200>";
+//   const subDimensions = "200x200>";
 
-  const thumbFileName = `thumbnail_${fileName}`;
-  const thumbFilePath = path.join(os.tmpdir(), thumbFileName);
-  await spawn("convert", [
-    tempFilePath,
-    "-thumbnail",
-    subDimensions,
-    thumbFilePath,
-  ]);
-  fs.unlinkSync(tempFilePath);
+//   const thumbFileName = `thumbnail_${fileName}`;
+//   const thumbFilePath = path.join(os.tmpdir(), thumbFileName);
+//   await spawn("convert", [
+//     tempFilePath,
+//     "-thumbnail",
+//     subDimensions,
+//     thumbFilePath,
+//   ]);
+//   fs.unlinkSync(tempFilePath);
 
-  return [thumbFileName, thumbFilePath];
-}
+//   return [thumbFileName, thumbFilePath];
+// }
 
-function isUndefinedOrEmpty(variable) {
-  return variable === "" || variable === undefined;
-}
+// function isUndefinedOrEmpty(variable) {
+//   return variable === "" || variable === undefined;
+// }
 
-exports.computeThumbnail = functions
-  .region("europe-west1")
-  .runWith(runtimeOpts)
-  .https.onRequest(async (req, res) => {
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS");
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, Access-Control-Max-Age"
-    );
-    res.setHeader("Access-Control-Allow-Credentials", true);
+// exports.computeThumbnail = functions
+//   .region("europe-west1")
+//   .runWith(runtimeOpts)
+//   .https.onRequest(async (req, res) => {
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader("Access-Control-Allow-Methods", "DELETE, POST, GET, OPTIONS");
+//     res.setHeader(
+//       "Access-Control-Allow-Headers",
+//       "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, Access-Control-Max-Age"
+//     );
+//     res.setHeader("Access-Control-Allow-Credentials", true);
 
-    if (req.method === "OPTIONS") {
-      res.status(200).send("Option OK");
-      return;
-    }
+//     if (req.method === "OPTIONS") {
+//       res.status(200).send("Option OK");
+//       return;
+//     }
 
-    try {
-      const params = req.body;
+//     try {
+//       const params = req.body;
 
-      // ***** 0 - Check input parameters
-      const { mangaPath, chapterIdx, thumbnailFilename } = params;
+//       // ***** 0 - Check input parameters
+//       const { mangaPath, chapterIdx, thumbnailFilename } = params;
 
-      if (isUndefinedOrEmpty(mangaPath)) {
-        res.status(400).send("mangaPath undefined.");
-        return;
-      }
+//       if (isUndefinedOrEmpty(mangaPath)) {
+//         res.status(400).send("mangaPath undefined.");
+//         return;
+//       }
 
-      if (isUndefinedOrEmpty(chapterIdx)) {
-        res.status(400).send("chapterIdx undefined.");
-        return;
-      }
+//       if (isUndefinedOrEmpty(chapterIdx)) {
+//         res.status(400).send("chapterIdx undefined.");
+//         return;
+//       }
 
-      if (isUndefinedOrEmpty(thumbnailFilename)) {
-        res.status(400).send("thumbnailFilename undefined.");
-        return;
-      }
+//       if (isUndefinedOrEmpty(thumbnailFilename)) {
+//         res.status(400).send("thumbnailFilename undefined.");
+//         return;
+//       }
 
-      // ***** 1 - Read chapter in DB and returns the result the client
-      const docRef = db.collection(LELSCANS_ROOT).doc(mangaPath);
-      const snapshot = await docRef.get();
-      const dataDoc = snapshot.data();
-      const { chapters: chaptersInDB } = dataDoc;
+//       // ***** 1 - Read chapter in DB and returns the result the client
+//       const docRef = db.collection(LELSCANS_ROOT).doc(mangaPath);
+//       const snapshot = await docRef.get();
+//       const dataDoc = snapshot.data();
+//       const { chapters: chaptersInDB } = dataDoc;
 
-      // 1.0 - If chapter has a thumbnail in DB, delete it
-      if (chaptersInDB[chapterIdx].thumbnail !== "") {
-        chaptersInDB[chapterIdx].thumbnail = "";
-      }
+//       // 1.0 - If chapter has a thumbnail in DB, delete it
+//       if (chaptersInDB[chapterIdx].thumbnail !== "") {
+//         chaptersInDB[chapterIdx].thumbnail = "";
+//       }
 
-      // ***** 2 - Delete thumbnail in bucket
-      const storageBucket = storage.bucket();
-      try {
-        await storageBucket.file(thumbnailFilename).delete();
-      } catch (error) {
-        functions.logger.log("Cannot delete ", thumbnailFilename);
-        functions.logger.error("Error", error);
-      }
+//       // ***** 2 - Delete thumbnail in bucket
+//       const storageBucket = storage.bucket();
+//       try {
+//         await storageBucket.file(thumbnailFilename).delete();
+//       } catch (error) {
+//         functions.logger.log("Cannot delete ", thumbnailFilename);
+//         functions.logger.error("Error", error);
+//       }
 
-      // ***** 3 - Compute thumbnail
-      const idxNThumbnail = [];
-      const process = async (idx) => {
-        const uri = chaptersInDB[idx].content[0];
-        const [thumbFileName, thumbFilePath] = await createThumbnail(uri);
+//       // ***** 3 - Compute thumbnail
+//       const idxNThumbnail = [];
+//       const process = async (idx) => {
+//         const uri = chaptersInDB[idx].content[0];
+//         const [thumbFileName, thumbFilePath] = await createThumbnail(uri);
 
-        const storageBucket = storage.bucket();
+//         const storageBucket = storage.bucket();
 
-        const uploadFile = async (filePath, destFileName) => {
-          const [resUpload] = await storageBucket.upload(filePath, {
-            destination: destFileName,
-            public: true,
-          });
+//         const uploadFile = async (filePath, destFileName) => {
+//           const [resUpload] = await storageBucket.upload(filePath, {
+//             destination: destFileName,
+//             public: true,
+//           });
 
-          const [metadata] = await resUpload.getMetadata();
-          const url = metadata.mediaLink;
-          idxNThumbnail.push([idx, url]);
-        };
+//           const [metadata] = await resUpload.getMetadata();
+//           const url = metadata.mediaLink;
+//           idxNThumbnail.push([idx, url]);
+//         };
 
-        const destFileName = "thumbnails/" + thumbFileName;
-        await uploadFile(thumbFilePath, destFileName);
-        fs.unlinkSync(thumbFilePath);
-      };
+//         const destFileName = "thumbnails/" + thumbFileName;
+//         await uploadFile(thumbFilePath, destFileName);
+//         fs.unlinkSync(thumbFilePath);
+//       };
 
-      await process(chapterIdx);
+//       await process(chapterIdx);
 
-      // ***** 4 - Update the chapter field in DB to write
-      for (const [idx, url] of idxNThumbnail) {
-        chaptersInDB[idx].thumbnail = url;
-      }
+//       // ***** 4 - Update the chapter field in DB to write
+//       for (const [idx, url] of idxNThumbnail) {
+//         chaptersInDB[idx].thumbnail = url;
+//       }
 
-      // ***** 5 - Write updated chapter field in DB
-      docRef.set({ chapters: chaptersInDB }, { merge: true });
+//       // ***** 5 - Write updated chapter field in DB
+//       docRef.set({ chapters: chaptersInDB }, { merge: true });
 
-      res.status(200).send("Success");
-      return;
-    } catch (error) {
-      functions.logger.error("Error", error);
-      return res.status(400).send(error);
-    }
-  });
+//       res.status(200).send("Success");
+//       return;
+//     } catch (error) {
+//       functions.logger.error("Error", error);
+//       return res.status(400).send(error);
+//     }
+//   });
 
-exports.mangaChaptersGET = functions
-  .region("europe-west1")
-  .runWith(runtimeOpts)
-  .https.onRequest(async (req, res) => {
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "X-Requested-With,content-type"
-    );
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-    );
-    res.setHeader("Access-Control-Allow-Credentials", true);
+// exports.mangaChaptersGET = functions
+//   .region("europe-west1")
+//   .runWith(runtimeOpts)
+//   .https.onRequest(async (req, res) => {
+//     res.setHeader(
+//       "Access-Control-Allow-Headers",
+//       "X-Requested-With,content-type"
+//     );
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader(
+//       "Access-Control-Allow-Methods",
+//       "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+//     );
+//     res.setHeader("Access-Control-Allow-Credentials", true);
 
-    try {
-      // ***** 0 - Check input parameters
-      const queryPath = req.query.path;
+//     try {
+//       // ***** 0 - Check input parameters
+//       const queryPath = req.query.path;
 
-      if (!queryPath) {
-        res.status(400).send("[mangaChaptersGET] queryPath undefined.");
-        return;
-      }
+//       if (!queryPath) {
+//         res.status(400).send("[mangaChaptersGET] queryPath undefined.");
+//         return;
+//       }
 
-      // ***** 1 - Read chapter in DB and returns the result the client
-      const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
-      const snapshot = await docRef.get();
-      const dataDoc = snapshot.data();
-      const { chapters: chaptersInDB } = dataDoc;
+//       // ***** 1 - Read chapter in DB and returns the result the client
+//       const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
+//       const snapshot = await docRef.get();
+//       const dataDoc = snapshot.data();
+//       const { chapters: chaptersInDB } = dataDoc;
 
-      res.status(200).send(chaptersInDB);
+//       res.status(200).send(chaptersInDB);
 
-      // ***** 2 - Create thumbnail for chapters
-      // 2.0 - Collect every chapter where the thumbnail is missing
-      const missingThumbnails = Object.entries(chaptersInDB)
-        .filter(([_, { thumbnail }]) => {
-          return thumbnail.length === 0;
-        })
-        .map(([idx, _]) => idx)
-        .reverse()
-        .slice(0, 2);
+//       // ***** 2 - Create thumbnail for chapters
+//       // 2.0 - Collect every chapter where the thumbnail is missing
+//       const missingThumbnails = Object.entries(chaptersInDB)
+//         .filter(([_, { thumbnail }]) => {
+//           return thumbnail.length === 0;
+//         })
+//         .map(([idx, _]) => idx)
+//         .reverse()
+//         .slice(0, 2);
 
-      if (missingThumbnails.length === 0) {
-        return;
-      }
+//       if (missingThumbnails.length === 0) {
+//         return;
+//       }
 
-      // 2.1 - Create the thumbnails with imageMagick and
-      //       upload to default bucket at 'thumbnails/'
-      let toWait = [];
-      const idxNThumbnail = [];
-      missingThumbnails.forEach((idx) => {
-        const process = async (idx) => {
-          const uri = chaptersInDB[idx].content[0];
-          const [thumbFileName, thumbFilePath] = await createThumbnail(uri);
+//       // 2.1 - Create the thumbnails with imageMagick and
+//       //       upload to default bucket at 'thumbnails/'
+//       let toWait = [];
+//       const idxNThumbnail = [];
+//       missingThumbnails.forEach((idx) => {
+//         const process = async (idx) => {
+//           const uri = chaptersInDB[idx].content[0];
+//           const [thumbFileName, thumbFilePath] = await createThumbnail(uri);
 
-          const storageBucket = storage.bucket();
+//           const storageBucket = storage.bucket();
 
-          const uploadFile = async (filePath, destFileName) => {
-            const [resUpload] = await storageBucket.upload(filePath, {
-              destination: destFileName,
-              public: true,
-            });
+//           const uploadFile = async (filePath, destFileName) => {
+//             const [resUpload] = await storageBucket.upload(filePath, {
+//               destination: destFileName,
+//               public: true,
+//             });
 
-            const [metadata] = await resUpload.getMetadata();
-            const url = metadata.mediaLink;
-            idxNThumbnail.push([idx, url]);
-          };
+//             const [metadata] = await resUpload.getMetadata();
+//             const url = metadata.mediaLink;
+//             idxNThumbnail.push([idx, url]);
+//           };
 
-          const destFileName = "thumbnails/" + thumbFileName;
-          await uploadFile(thumbFilePath, destFileName);
-          fs.unlinkSync(thumbFilePath);
-        };
+//           const destFileName = "thumbnails/" + thumbFileName;
+//           await uploadFile(thumbFilePath, destFileName);
+//           fs.unlinkSync(thumbFilePath);
+//         };
 
-        toWait.push(process(idx));
-      });
+//         toWait.push(process(idx));
+//       });
 
-      await Promise.all(toWait);
+//       await Promise.all(toWait);
 
-      // 2.3 - Update the chapter field in DB to write
-      functions.logger.log("idxNThumbnail", idxNThumbnail);
-      for (const [idx, url] of idxNThumbnail) {
-        chaptersInDB[idx].thumbnail = url;
-      }
+//       // 2.3 - Update the chapter field in DB to write
+//       functions.logger.log("idxNThumbnail", idxNThumbnail);
+//       for (const [idx, url] of idxNThumbnail) {
+//         chaptersInDB[idx].thumbnail = url;
+//       }
 
-      // 2.4 - Write updated chapter field in DB
-      docRef.set({ chapters: chaptersInDB }, { merge: true });
-    } catch (error) {
-      functions.logger.error("Error", error);
-      return res.status(400).send(error);
-    }
-  });
+//       // 2.4 - Write updated chapter field in DB
+//       docRef.set({ chapters: chaptersInDB }, { merge: true });
+//     } catch (error) {
+//       functions.logger.error("Error", error);
+//       return res.status(400).send(error);
+//     }
+//   });
 
-exports.mangaImagesSET = functions
-  .region("europe-west1")
-  .runWith(runtimeOpts)
-  .https.onRequest(async (req, res) => {
-    res.setHeader(
-      "Access-Control-Allow-Headers",
-      "X-Requested-With,content-type"
-    );
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader(
-      "Access-Control-Allow-Methods",
-      "GET, POST, OPTIONS, PUT, PATCH, DELETE"
-    );
-    res.setHeader("Access-Control-Allow-Credentials", true);
+// exports.mangaImagesSET = functions
+//   .region("europe-west1")
+//   .runWith(runtimeOpts)
+//   .https.onRequest(async (req, res) => {
+//     res.setHeader(
+//       "Access-Control-Allow-Headers",
+//       "X-Requested-With,content-type"
+//     );
+//     res.setHeader("Access-Control-Allow-Origin", "*");
+//     res.setHeader(
+//       "Access-Control-Allow-Methods",
+//       "GET, POST, OPTIONS, PUT, PATCH, DELETE"
+//     );
+//     res.setHeader("Access-Control-Allow-Credentials", true);
 
-    try {
-      const queryPath = req.query.path;
-      const queryIdxChapter = req.query.idxChapter;
+//     try {
+//       const queryPath = req.query.path;
+//       const queryIdxChapter = req.query.idxChapter;
 
-      const errors = [];
-      if (!queryPath) {
-        errors.push("[mangaImagesSET]: queryPath undefined.");
-      }
-      if (!queryIdxChapter) {
-        errors.push("[mangaImagesSET]: queryIdxChapter undefined.");
-      }
+//       const errors = [];
+//       if (!queryPath) {
+//         errors.push("[mangaImagesSET]: queryPath undefined.");
+//       }
+//       if (!queryIdxChapter) {
+//         errors.push("[mangaImagesSET]: queryIdxChapter undefined.");
+//       }
 
-      if (errors.length > 0) {
-        functions.logger.error("[mangaImagesSET]: Error", errors);
-        res.status(400).send(errors.join("</br>"));
-        return;
-      }
+//       if (errors.length > 0) {
+//         functions.logger.error("[mangaImagesSET]: Error", errors);
+//         res.status(400).send(errors.join("</br>"));
+//         return;
+//       }
 
-      const scrapedChapterImagesURL = await scrapChapterImagesURL(
-        queryPath,
-        queryIdxChapter
-      );
+//       const scrapedChapterImagesURL = await scrapChapterImagesURL(
+//         queryPath,
+//         queryIdxChapter
+//       );
 
-      if (scrapedChapterImagesURL === FAILED) {
-        res.status(400).send("mangaImagesSET: Cannot scrap images.");
-      } else {
-        const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
-        const snapshot = await docRef.get();
-        let { chapters } = snapshot.data();
+//       if (scrapedChapterImagesURL === FAILED) {
+//         res.status(400).send("mangaImagesSET: Cannot scrap images.");
+//       } else {
+//         const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
+//         const snapshot = await docRef.get();
+//         let { chapters } = snapshot.data();
 
-        // Update image URL
-        chapters[queryIdxChapter] = {
-          content: scrapedChapterImagesURL,
-          thumbnail: "",
-        };
-        // functions.logger.info("[mangaImagesSET]: queryPath", queryPath);
-        // functions.logger.info("[mangaImagesSET]: queryIdxChapter", queryIdxChapter);
-        // functions.logger.info(
-        //   "[mangaImagesSET]: scrapedChapterImagesURL.length",
-        //   scrapedChapterImagesURL.length
-        // );
-        // const notEmptyChapterIdx = [];
-        // for (const [idx, details] of Object.entries(chapters)) {
-        //   if (details.content.length !== 0) {
-        //     notEmptyChapterIdx.push(idx);
-        //   }
-        // }
-        // functions.logger.info(
-        //   "[mangaImagesSET]: notEmptyChapterIdx",
-        //   notEmptyChapterIdx
-        // );
+//         // Update image URL
+//         chapters[queryIdxChapter] = {
+//           content: scrapedChapterImagesURL,
+//           thumbnail: "",
+//         };
+//         // functions.logger.info("[mangaImagesSET]: queryPath", queryPath);
+//         // functions.logger.info("[mangaImagesSET]: queryIdxChapter", queryIdxChapter);
+//         // functions.logger.info(
+//         //   "[mangaImagesSET]: scrapedChapterImagesURL.length",
+//         //   scrapedChapterImagesURL.length
+//         // );
+//         // const notEmptyChapterIdx = [];
+//         // for (const [idx, details] of Object.entries(chapters)) {
+//         //   if (details.content.length !== 0) {
+//         //     notEmptyChapterIdx.push(idx);
+//         //   }
+//         // }
+//         // functions.logger.info(
+//         //   "[mangaImagesSET]: notEmptyChapterIdx",
+//         //   notEmptyChapterIdx
+//         // );
 
-        docRef.set({ chapters }, { merge: true });
+//         docRef.set({ chapters }, { merge: true });
 
-        // res.status(200).send(chapters);
-        res.status(200).send(chapters[queryIdxChapter]);
-      }
-    } catch (error) {
-      functions.logger.error("Error", error);
-      return res.status(400).send(error);
-    }
-  });
+//         // res.status(200).send(chapters);
+//         res.status(200).send(chapters[queryIdxChapter]);
+//       }
+//     } catch (error) {
+//       functions.logger.error("Error", error);
+//       return res.status(400).send(error);
+//     }
+//   });
 
 // exports.createThumbnail = functions
 //   .region("europe-west1")
