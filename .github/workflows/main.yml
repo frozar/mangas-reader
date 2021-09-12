@@ -10,15 +10,17 @@ on:
   # pull_request:
   #   branches: [ master ]
   schedule:
-  - cron: "0 0,4,8,16,20 * * 3,4"
+    - cron: "0 0,4,8,16,20 * * 3,4"
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
+# Documentation link:
+# https://stackoverflow.com/questions/62750603/github-actions-trigger-another-action-after-one-action-is-completed
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  build:
+  scrap-mangas:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
 
@@ -28,7 +30,7 @@ jobs:
       - uses: actions/checkout@master
 
       # Runs a single command using the runners shell
-      - name: Run a one-line script
+      - name: Call scrapMangas cloud function
         run: curl https://europe-west1-manga-b8fb3.cloudfunctions.net/scrapMangas
 
       # Runs a set of commands using the runners shell
@@ -36,3 +38,13 @@ jobs:
       #   run: |
       #     echo Add other actions to build,
       #     echo test, and deploy your project.
+
+  scrap-all-manga-chapters:
+    needs: scrap-mangas
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@master
+
+      - name: Call scrapAllMangaChapters cloud function
+        run: curl https://europe-west1-manga-b8fb3.cloudfunctions.net/scrapAllMangaChapters
