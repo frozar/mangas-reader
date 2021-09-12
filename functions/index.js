@@ -27,7 +27,7 @@ const LELSCANS_ROOT = "lelscans";
 const FAILED = 42;
 const SUCCEED = 666;
 const SAME = 0;
-const CHANGED = 0;
+const CHANGED = 1;
 const LIMIT_MAX_CHAPTER = 8;
 
 /**
@@ -612,8 +612,7 @@ exports.scrapMangaChapters = functions
   .https.onRequest(async (req, res) => {
     // Check the type of request
     if (req.method !== "GET") {
-      res.status("401").send("Unauthorized method");
-      return;
+      return res.status("401").send("Unauthorized method");
     }
 
     setCORSHeader(res);
@@ -653,8 +652,7 @@ exports.scrapAllMangaChapters = functions
   .https.onRequest(async (req, res) => {
     // Check the type of request
     if (req.method !== "GET") {
-      res.status("401").send("Unauthorized method");
-      return;
+      return res.status("401").send("Unauthorized method");
     }
 
     setCORSHeader(res);
@@ -671,17 +669,18 @@ exports.scrapAllMangaChapters = functions
 
       // ***** 1 - Scrap chapters for every manga available in DB
       const toWait = [];
-      for (const mangaId in mangas) {
+      for (const mangaId of mangas) {
         toWait.push(scrapMangaChaptersFunction(mangaId));
       }
       await Promise.all(toWait);
 
+      const DBhasUpdates = toWait.some(async (promise) => {
+        const [status, state] = await promise;
+        return status === SUCCEED && state === CHANGED;
+      });
+
       // ***** 2 - If a changed has been made in the DB, redeploy
-      if (
-        toWait.some(
-          ([status, state]) => status === SUCCEED && state === CHANGED
-        )
-      ) {
+      if (DBhasUpdates) {
         axios.get(
           "https://api.vercel.com/v1/integrations/deploy/prj_hP1Xmi066dAYkWNKlHVXSMTfCIP0/ltGqfbCEaU"
         );
@@ -703,8 +702,7 @@ exports.scrapMangas = functions
   .https.onRequest(async (req, res) => {
     // Check the type of request
     if (req.method !== "GET") {
-      res.status("401").send("Unauthorized method");
-      return;
+      return res.status("401").send("Unauthorized method");
     }
 
     setCORSHeader(res);
