@@ -669,15 +669,23 @@ exports.scrapAllMangaChapters = functions
 
       // ***** 1 - Scrap chapters for every manga available in DB
       const toWait = [];
-      for (const mangaId of mangas) {
+      for (const mangaId of mangas.slice(0, 1)) {
+        console.log("mangaId ", mangaId);
         toWait.push(scrapMangaChaptersFunction(mangaId));
       }
       await Promise.all(toWait);
 
-      const DBhasUpdates = toWait.some(async (promise) => {
-        const [status, state] = await promise;
+      // Unwrap promises in results
+      const results = [];
+      for (const item of toWait) {
+        results.push(await item);
+      }
+
+      const DBhasUpdates = results.some(([status, state]) => {
         return status === SUCCEED && state === CHANGED;
       });
+
+      functions.logger.log(`DBhasUpdates ${DBhasUpdates}`);
 
       // ***** 2 - If a changed has been made in the DB, redeploy
       if (DBhasUpdates) {
