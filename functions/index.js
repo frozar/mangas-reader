@@ -669,8 +669,7 @@ exports.scrapAllMangaChapters = functions
 
       // ***** 1 - Scrap chapters for every manga available in DB
       const toWait = [];
-      for (const mangaId of mangas.slice(0, 1)) {
-        console.log("mangaId ", mangaId);
+      for (const mangaId of mangas) {
         toWait.push(scrapMangaChaptersFunction(mangaId));
       }
       await Promise.all(toWait);
