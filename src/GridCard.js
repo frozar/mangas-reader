@@ -72,7 +72,7 @@ const useStyles = makeStyles((theme) => ({
   thumbnailContainer: {
     position: "relative",
     width: "100%",
-    marginTop: "0px",
+    marginTop: "5px",
     marginBottom: "0px",
     height: "170px",
     [theme.breakpoints.down("md")]: {
