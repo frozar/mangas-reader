@@ -1,5 +1,4 @@
 import React from "react";
-import axios from "axios";
 
 import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
@@ -24,37 +23,35 @@ const useStyles = makeStyles((theme) => ({
     },
   },
   card: {
-    background: "#BBC8D4",
-    borderRadius: "20px",
+    display: "block",
+    // background: "#BBC8D4",
+    background: "white",
+    borderRadius: "0px",
     overflow: "hidden",
-    height: "300px",
     width: "150px",
     paddingLeft: "15px",
     paddingRight: "15px",
-    marginBottom: "30px",
+    marginBottom: "0px",
     boxShadow: "0 5px 18px 3px rgba(0, 0, 0,.2)",
     [theme.breakpoints.down("md")]: {
-      height: "250px",
       width: "125px",
       paddingLeft: "12px",
       paddingRight: "12px",
-      marginBottom: "20px",
+      marginBottom: "0px",
       boxShadow: "0 4px 15px 3px rgba(0, 0, 0,.2)",
     },
     [theme.breakpoints.down("sm")]: {
-      height: "200px",
       width: "100px",
       paddingLeft: "10px",
       paddingRight: "10px",
-      marginBottom: "15px",
+      marginBottom: "0px",
       boxShadow: "0 3px 14px 3px rgba(0, 0, 0,.2)",
     },
     [theme.breakpoints.down("xs")]: {
-      height: "175px",
       width: "80px",
       paddingLeft: "8px",
       paddingRight: "8px",
-      marginBottom: "10px",
+      marginBottom: "0px",
       boxShadow: "0 2px 14px 3px rgba(0, 0, 0,.2)",
     },
     cursor: "pointer",
@@ -74,13 +71,31 @@ const useStyles = makeStyles((theme) => ({
   },
   thumbnailContainer: {
     position: "relative",
-    height: "70%",
     width: "100%",
-    marginTop: "15px",
-    marginBottom: "10px",
+    marginTop: "5px",
+    marginBottom: "0px",
+    height: "170px",
+    [theme.breakpoints.down("md")]: {
+      height: "140px",
+    },
+    [theme.breakpoints.down("sm")]: {
+      height: "120px",
+    },
+    [theme.breakpoints.down("xs")]: {
+      height: "100px",
+    },
   },
   cardTitleContainer: {
-    height: "calc(100% - 70% - 15px - 10px)",
+    height: "50px",
+    [theme.breakpoints.down("md")]: {
+      height: "40px",
+    },
+    [theme.breakpoints.down("sm")]: {
+      height: "35px",
+    },
+    [theme.breakpoints.down("xs")]: {
+      height: "28px",
+    },
   },
   cardTitle: {
     textAlign: "center",
@@ -185,7 +200,6 @@ function Portrait(props) {
 export default function GridCard(props) {
   const classes = useStyles();
   const { cards, type, ...other } = props;
-  // console.log("cards", cards);
 
   return (
     <Grid
@@ -195,34 +209,24 @@ export default function GridCard(props) {
       wrap="wrap"
     >
       {cards.map(({ label, picture, link }) => {
-        // console.log("link", link);
         return (
-          <Link key={label} href={link}>
-            <Grid
-              item
-              className={classes.cardItem}
-              value={label}
-              // onClick={(event) => {
-              //   handleOnClick(event, label);
-              // }}
-            >
-              <Box className={classes.card}>
-                <Portrait {...other} picture={picture} type={type} />
-                <Grid
-                  container
-                  direction="column"
-                  justify="center"
-                  className={classes.cardTitleContainer}
-                >
-                  <Grid item>
-                    <Typography className={classes.cardTitle} variant="h2">
-                      {label}
-                    </Typography>
-                  </Grid>
+          <Grid item className={classes.cardItem} value={label} key={label}>
+            <Link href={link} className={classes.card}>
+              <Portrait {...other} picture={picture} type={type} />
+              <Grid
+                container
+                direction="column"
+                justify="center"
+                className={classes.cardTitleContainer}
+              >
+                <Grid item>
+                  <Typography className={classes.cardTitle} variant="h2">
+                    {label}
+                  </Typography>
                 </Grid>
-              </Box>
-            </Grid>
-          </Link>
+              </Grid>
+            </Link>
+          </Grid>
         );
       })}
     </Grid>

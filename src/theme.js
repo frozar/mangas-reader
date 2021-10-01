@@ -111,6 +111,7 @@ export default createMuiTheme({
     width: "100%",
     marginLeft: 0,
     marginRight: 0,
+    marginBottom: "5px",
     marginTop: "30px",
     [defaultTheme.breakpoints.down("md")]: {
       marginTop: "20px",
@@ -121,7 +122,6 @@ export default createMuiTheme({
     [defaultTheme.breakpoints.down("xs")]: {
       marginTop: "10px",
     },
-    marginBottom: "-10px",
   },
   overrides: {
     MuiCssBaseline: {

@@ -299,21 +299,24 @@ function ScanViewer(props) {
 //   }
 // );
 
-const MAX_STATIC_CHAPTER = 5;
+let MAX_STATIC_CHAPTER = 5;
 
 export async function getStaticPaths() {
   // Return a list of possible value for idManga, idChapter, idScan
   const tmpLObjManga = await getMangas();
 
-  // const mangaToGenerateStatically = [
-  //   "one-piece",
-  //   // "one-punch-man",
-  //   // "my-hero-academia",
-  // ];
-  // const mangaToGenerateStatically = ["gantz"];
+  let MAX_STATIC_MANGA = 1000;
+  // if (process.env.DEV_TOKEN !== "") {
+  if (process.env.NODE_ENV === "development") {
+    MAX_STATIC_CHAPTER = 1;
+    MAX_STATIC_MANGA = 1;
+  }
 
   const paths = [];
-  for (const objManga of Object.values(tmpLObjManga)) {
+  for (const objManga of Object.values(tmpLObjManga).slice(
+    0,
+    MAX_STATIC_MANGA
+  )) {
     const idManga = objManga.path;
     // if (!mangaToGenerateStatically.includes(idManga)) {
     //   continue;

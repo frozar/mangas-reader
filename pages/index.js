@@ -230,7 +230,12 @@ export const getStaticProps = wrapper.getStaticProps(async ({ store }) => {
     mangas.sort((obj1, obj2) => {
       return obj1.title.localeCompare(obj2.title);
     });
-    lObjManga = mangas;
+    if (process.env.NODE_ENV === "development") {
+      // lObjManga = mangas;
+      lObjManga = mangas.slice(0, 2);
+    } else {
+      lObjManga = mangas;
+    }
   }
 
   return {
