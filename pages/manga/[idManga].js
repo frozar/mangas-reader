@@ -238,10 +238,24 @@ export const getStaticProps = wrapper.getStaticProps(
 
     // await store.dispatch(retrieveManga(idManga));
 
-    // const manga = store.getState().manga.manga;
-    const chapters = await getMangaChapters(idManga);
+    let chapters = await getMangaChapters(idManga);
     const chaptersJacket = {};
-    for (const [idxChapter, details] of Object.entries(chapters)) {
+    // if (process.env.DEV_TOKEN !== "") {
+    //   let chaptersTmp = {};
+    //   for (const k of Object.keys(chapters).slice(0, 2)) {
+    //     chaptersTmp[k] = chapters[k];
+    //   }
+    //   chapters = chaptersTmp;
+    // }
+    let MAX_STATIC_CHAPTER = 1000;
+    if (process.env.NODE_ENV === "development") {
+      MAX_STATIC_CHAPTER = 1;
+    }
+
+    for (const [idxChapter, details] of Object.entries(chapters).slice(
+      0,
+      MAX_STATIC_CHAPTER
+    )) {
       const { content: imagesURL, thumbnail } = details;
       if (thumbnail.length !== 0) {
         chaptersJacket[idxChapter] = thumbnail;
