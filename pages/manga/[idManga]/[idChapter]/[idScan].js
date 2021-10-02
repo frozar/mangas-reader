@@ -109,7 +109,7 @@ function isUndefinedOrNull(val) {
 }
 
 function ScanViewer(props) {
-  // console.log("[ScanViewer] props", props);
+  console.log("[ScanViewer] props", props);
   if (
     isUndefinedOrNull(props.idManga) ||
     isUndefinedOrNull(props.idChapter) ||
@@ -244,12 +244,11 @@ function ScanViewer(props) {
   //   }
   // }, [imagesURL]);
 
-  // console.log("[ScanViewer] PASS 6");
   if (router.isFallback) {
     return <div>Loading...</div>;
   } else {
     return (
-      <div>
+      <>
         <Helmet>
           <style>{"body { background-color: black; }"}</style>
         </Helmet>
@@ -276,9 +275,33 @@ function ScanViewer(props) {
           previousLink={previousLink}
           nextLink={nextLink}
         />
-      </div>
+      </>
     );
   }
+
+  // return (
+  //   <Router>
+  //     <div>
+  //       <ul>
+  //         <li>
+  //           <Link to="/">Home</Link>
+  //         </li>
+  //         <li>
+  //           <Link to="/about">About</Link>
+  //         </li>
+  //       </ul>
+
+  //       <Switch>
+  //         <Route path="/about">
+  //           <h2>About</h2>
+  //         </Route>
+  //         <Route path="/">
+  //           <h2>Home</h2>
+  //         </Route>
+  //       </Switch>
+  //     </div>
+  //   </Router>
+  // );
 }
 
 // export const getServerSideProps = wrapper.getServerSideProps(

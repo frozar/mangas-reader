@@ -100,6 +100,10 @@ const useStyles = makeStyles((theme) => ({
   cardTitle: {
     textAlign: "center",
   },
+  thumbnailContent: {
+    minWidth: 200,
+    minHeight: 400,
+  },
 }));
 
 const shimmer = (w, h) => `
@@ -188,10 +192,7 @@ function Portrait(props) {
         unoptimized={true}
         placeholder={true}
         blurDataURL={`data:image/svg+xml;base64,${toBase64(shimmer(475, 700))}`}
-        style={{
-          minWidth: 200,
-          minHeight: 400,
-        }}
+        className={classes.thumbnailContent}
       />
     </div>
   );

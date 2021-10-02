@@ -39,7 +39,9 @@ function MyApp(props) {
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <CssBaseline />
         {/* <Provider store={store}> */}
-        <Component {...pageProps} />
+        <div suppressHydrationWarning>
+          {typeof window === "undefined" ? null : <Component {...pageProps} />}
+        </div>
         {/* </Provider> */}
       </ThemeProvider>
     </React.Fragment>
