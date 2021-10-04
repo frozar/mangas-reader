@@ -39,44 +39,6 @@ export default function DisplayImage(props) {
     }
   }, []);
 
-  // const updateLoadingState = useCallback(() => {
-  //   const scans = Array.from(document.querySelectorAll("#scan"));
-  //   if (scans.length === 0) {
-  //     // setLoading(true);
-  //   } else if (scans.length === 1) {
-  //     const scan = scans[0];
-  //     const isLoaded = scan.complete && scan.naturalHeight !== 0;
-  //     // setLoading(!isLoaded);
-
-  //     if (!isMobile && isLoaded) {
-  //       const bodyRect = document.body.getBoundingClientRect();
-  //       const elemRect = scan.getBoundingClientRect();
-  //       const offsetTop = elemRect.top - bodyRect.top;
-  //       window.scrollTo({ top: offsetTop, behavior: "smooth" });
-  //     }
-  //   } else {
-  //     const someScanNotLoaded = scans
-  //       .map((scan) => scan.complete && scan.naturalHeight !== 0)
-  //       .some((bool) => bool === false);
-  //     // setLoading(someScanNotLoaded);
-  //     if (someScanNotLoaded) {
-  //       setTimeout(() => updateLoadingState(), 0);
-  //     }
-
-  //     if (!isMobile && !someScanNotLoaded) {
-  //       const bodyRect = document.body.getBoundingClientRect();
-  //       const elemRect = scans[0].getBoundingClientRect();
-  //       const offsetTop = elemRect.top - bodyRect.top;
-  //       window.scrollTo({ top: offsetTop, behavior: "smooth" });
-  //     }
-  //   }
-  //   // }, [setLoading]);
-  // }, [isMobile]);
-
-  // useEffect(() => {
-  //   updateLoadingState();
-  // }, [updateLoadingState]);
-
   const updateDisplayScroll = useCallback(() => {
     if (!isMobile) {
       const scans = Array.from(document.querySelectorAll("#scan"));
@@ -92,7 +54,6 @@ export default function DisplayImage(props) {
   }, [updateDisplayScroll, isMobile]);
 
   const imageLoaded = () => {
-    // updateLoadingState();
     setLoading(false);
     updateDisplayScroll();
   };

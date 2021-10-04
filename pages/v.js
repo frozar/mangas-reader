@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import _ from "lodash";
 // import { useRouter } from "next/router";
 import { useSpring } from "react-spring";
@@ -15,12 +15,31 @@ import {
   useParams,
   useHistory,
 } from "react-router-dom";
+import { makeStyles } from "@material-ui/core/styles";
 
 import { getMangaChapters } from "../src/db";
 import TopBar from "../src/scanViewer/TopBar";
 import DisplayImage from "../src/scanViewer/DisplayImage";
 import ImageCaption from "../src/scanViewer/ImageCaption";
 import ControlBar from "../src/scanViewer/ControlBar";
+
+const useStyles = makeStyles(() => ({
+  flashScreen: {
+    position: "fixed",
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    height: "100%",
+    zIndex: 1,
+    // Dark background
+    background: "#FFFF",
+  },
+  flashScreenTransition: {
+    transition: "background 0.5s",
+    background: "#FFF0",
+  },
+}));
 
 /**
  * Just hand the first routing access to the 'view' component.
@@ -152,15 +171,6 @@ function computePreviousAndNextLink(idManga, idChapter, idScan, chapters) {
   const isFirstChapter = 0 === currentIdxChapter;
   const isLastChapter = chaptersIdx.length - 1 === currentIdxChapter;
 
-  // console.log("idScan", idScan);
-  // console.log("idChapter", idChapter);
-  // console.log("scanIdx", scanIdx);
-  // console.log("isFirstIdScan", isFirstIdScan);
-  // console.log("isLastIdScan", isLastIdScan);
-  // console.log("chaptersIdx", chaptersIdx);
-  // console.log("isFirstChapter", isFirstChapter);
-  // console.log("isLastChapter", isLastChapter);
-
   // Create the previous and next link considering the current scan
   // Handle the edge cases
   let previousLink = null;
@@ -171,34 +181,26 @@ function computePreviousAndNextLink(idManga, idChapter, idScan, chapters) {
   let nextIdScan = null;
 
   if (!isFirstIdScan) {
-    // console.log("!isFirstIdScan", !isFirstIdScan);
     previousIdChapter = idChapter;
     previousIdScan = Number(idScan) - 1;
     previousLink = `/v/${idManga}/${previousIdChapter}/${previousIdScan}`;
-    // console.log("previousLink", previousLink);
   } else {
     if (!isFirstChapter) {
-      // console.log("!isFirstChapter", !isFirstChapter);
       previousIdChapter = String(chaptersIdx[currentIdxChapter - 1]);
       previousIdScan = chapters[previousIdChapter].content.length - 1;
       previousLink = `/v/${idManga}/${previousIdChapter}/${previousIdScan}`;
-      // console.log("previousLink", previousLink);
     }
   }
 
   if (!isLastIdScan) {
-    // console.log("!isLastIdScan", !isLastIdScan);
     nextIdChapter = idChapter;
     nextIdScan = Number(idScan) + 1;
     nextLink = `/v/${idManga}/${idChapter}/${nextIdScan}`;
-    // console.log("nextLink", nextLink);
   } else {
     if (!isLastChapter) {
-      // console.log("!isLastChapter", !isLastChapter);
       nextIdChapter = String(chaptersIdx[currentIdxChapter + 1]);
       nextIdScan = 0;
       nextLink = `/v/${idManga}/${nextIdChapter}/${nextIdScan}`;
-      // console.log("nextLink", nextLink);
     }
   }
 
@@ -212,9 +214,15 @@ function computePreviousAndNextLink(idManga, idChapter, idScan, chapters) {
   ];
 }
 
+let TIMEOUT_ID = null;
+
 function ViewDetail() {
   // Initially, retrieve input parameters from the route.
   const params = useParams();
+
+  const classes = useStyles();
+
+  const flashScreen = useRef(null);
 
   if (
     isUndefinedOrNull(params.idManga) ||
@@ -229,6 +237,7 @@ function ViewDetail() {
   const [idChapter, setIdChapter] = useState(null);
   const [idScan, setIdScan] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [displayFlashScreen, setDisplayFlashScreen] = useState(false);
 
   // Massive sanity check
   let history = useHistory();
@@ -318,45 +327,39 @@ function ViewDetail() {
   // and trigger all the sanity process and make a call to the DB again.
   const handleKeyDown = useCallback(
     (evt) => {
-      // setDbg(evt.key);
       if (evt.key === "ArrowLeft") {
-        // console.log("ArrowLeft");
         if (!isUndefinedOrNull(previousLink)) {
-          // console.log("previousLink", previousLink);
-          // setPreviousLink("");
-          // if (idChapter !== previousIdChapter || idScan !== previousIdScan) {
-          // }
           setIdChapter(previousIdChapter);
           setIdScan(previousIdScan);
           resetPanAndZoom();
-          // history.push(previousLink);
-          // window.location.pathname = previousLink;
           setLoading(true);
           window.history.replaceState(
             { page: previousLink },
             `Manga ${idManga} - ${previousIdChapter} ${previousIdScan}`,
             previousLink
           );
+        } else {
+          setDisplayFlashScreen(true);
+          setTimeout(() => {
+            duringFlashScreenAnimation();
+          }, 0);
         }
-        // TODO : else, snapbar to feedback the user there's no previous scan
       } else if (evt.key === "ArrowRight") {
-        // console.log("ArrowRight");
         if (!isUndefinedOrNull(nextLink)) {
-          // console.log("nextLink", nextLink);
-          // setNextLink("");
-          // if (idChapter !== nextIdChapter || idScan !== nextIdScan) {
-          // }
           setIdChapter(nextIdChapter);
           setIdScan(nextIdScan);
           resetPanAndZoom();
-          // history.push(nextLink);
-          // window.location.pathname = nextLink;
           setLoading(true);
           window.history.replaceState(
             { page: nextLink },
             `Manga ${idManga} - ${nextIdChapter} ${nextIdScan}`,
             nextLink
           );
+        } else {
+          setDisplayFlashScreen(true);
+          setTimeout(() => {
+            duringFlashScreenAnimation();
+          }, 0);
         }
       } else if (evt.key === "f") {
         if (!document.fullscreenElement) {
@@ -383,6 +386,39 @@ function ViewDetail() {
     };
   }, [handleKeyDown]);
 
+  const duringFlashScreenAnimation = () => {
+    const flashScreenRef = flashScreen.current;
+    if (flashScreenRef !== null && flashScreenRef.classList !== null) {
+      if (!flashScreenRef.classList.contains(classes.flashScreenTransition)) {
+        flashScreenRef.classList.add(classes.flashScreenTransition);
+      } else {
+        // In case of restart of the animation, delete and add the whole
+        // DOM element
+        setDisplayFlashScreen(false);
+        setDisplayFlashScreen(true);
+        if (TIMEOUT_ID !== null) {
+          clearTimeout(TIMEOUT_ID);
+          TIMEOUT_ID = null;
+        }
+        setTimeout(() => {
+          duringFlashScreenAnimation();
+        }, 0);
+      }
+    }
+
+    if (TIMEOUT_ID !== null) {
+      clearTimeout(TIMEOUT_ID);
+      TIMEOUT_ID = null;
+    }
+    TIMEOUT_ID = setTimeout(() => {
+      setDisplayFlashScreen(false);
+      if (TIMEOUT_ID !== null) {
+        clearTimeout(TIMEOUT_ID);
+      }
+      TIMEOUT_ID = null;
+    }, 500);
+  };
+
   if (
     isUndefinedOrNull(chapters) ||
     isUndefinedOrNull(idManga) ||
@@ -404,6 +440,9 @@ function ViewDetail() {
         <Helmet>
           <style>{"body { background-color: black; }"}</style>
         </Helmet>
+        {displayFlashScreen ? (
+          <div ref={flashScreen} className={classes.flashScreen} />
+        ) : null}
         <TopBar
           imagesURL={imagesURL}
           idManga={idManga}
