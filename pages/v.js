@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import _ from "lodash";
 import { useRouter } from "next/router";
 import { useSpring } from "react-spring";
 
@@ -16,11 +17,12 @@ import {
 
 import { getMangaChapters } from "../src/db";
 
-export default function view(props) {
-  console.log("[view] BEGIN");
-  console.log("[view] props", props);
-  const router = useRouter();
-  console.log("[view] router", router);
+export default function view() {
+  // console.log("[view] BEGIN");
+  // console.log("[view] props", props);
+  // const router = useRouter();
+  // console.log("[view] router", router);
+
   // if (typeof window !== "undefined") {
   //   // let match = useRouteMatch();
   //   // console.log("[view] match", match);
@@ -29,140 +31,6 @@ export default function view(props) {
   //   console.log("[view] params");
   // }
   // console.log("[view] ", typeof window);
-
-  // if (
-  //   isUndefinedOrNull(props.idManga) ||
-  //   isUndefinedOrNull(props.idChapter) ||
-  //   isUndefinedOrNull(props.idScan) ||
-  //   isUndefinedOrNull(props.imagesURL) ||
-  //   isUndefinedOrNull(props.imageURL)
-  // ) {
-  //   return <h1>Nothing to show o_O !</h1>;
-  // }
-
-  // let idManga = "one-piece";
-  // let idChapter = "1";
-  // let idScan = "0";
-  // // let manga = null;
-  // let previousLink = null;
-  // let nextLink = null;
-  // let imagesURL = [];
-  // let imageURL = null;
-  // if (!isUndefinedOrNull(props.idManga)) {
-  //   idManga = props.idManga;
-  // }
-  // if (!isUndefinedOrNull(props.idChapter)) {
-  //   idChapter = props.idChapter;
-  // }
-  // if (!isUndefinedOrNull(props.idScan)) {
-  //   idScan = props.idScan;
-  // }
-  // // if (!isUndefinedOrNull(props.manga)) {
-  // //   manga = props.manga;
-  // // }
-  // if (!isUndefinedOrNull(props.previousLink)) {
-  //   previousLink = props.previousLink;
-  // }
-  // if (!isUndefinedOrNull(props.nextLink)) {
-  //   nextLink = props.nextLink;
-  // }
-  // if (!isUndefinedOrNull(props.imagesURL)) {
-  //   imagesURL = props.imagesURL;
-  // }
-  // if (!isUndefinedOrNull(props.imageURL)) {
-  //   imageURL = props.imageURL;
-  // }
-
-  // // console.log("[ScanViewer] PASS 1");
-  // // console.log("[ScanViewer] PASS manga", manga);
-  // // const chapters = manga[idManga];
-  // // const chapter = chapters[idChapter];
-  // // const imagesURL = chapter.content;
-  // // const imageURL = imagesURL[Number(idScan)];
-
-  // // console.log("[ScanViewer] PASS 2");
-  // // const [previousLink, setPreviousLink] = React.useState(null);
-  // // const [nextLink, setNextLink] = React.useState(null);
-
-  // // React.useEffect(() => {
-  // //   // console.log("[ScanViewer] useEffect PASS 0");
-  // //   const [previousLink_, nextLink_] = computePreviousAndNextLink(
-  // //     idManga,
-  // //     idChapter,
-  // //     idScan,
-  // //     chapters
-  // //   );
-  // //   setPreviousLink(previousLink_);
-  // //   setNextLink(nextLink_);
-  // //   // console.log("previousLink", previousLink);
-  // //   // console.log("nextLink", nextLink);
-  // //   // console.log("[ScanViewer] useEffect PASS 1");
-  // // }, [
-  // //   props.idManga,
-  // //   props.idChapter,
-  // //   props.idScan,
-  // //   computePreviousAndNextLink,
-  // // ]);
-
-  // // console.log("[ScanViewer] PASS 3");
-  // const [displayResetButton, setDisplayResetButton] = useState(false);
-
-  // const [{ x, y, zoom, scale }, set] = useSpring(() => ({
-  //   x: 0,
-  //   y: 0,
-  //   zoom: 0,
-  //   scale: 1,
-  //   config: { mass: 5, tension: 1350, friction: 150 },
-  // }));
-
-  // const resetPanAndZoom = useCallback(() => {
-  //   set.start({ x: 0, y: 0, zoom: 0, scale: 1 });
-  //   setDisplayResetButton(false);
-  // }, [set]);
-
-  // // console.log("[ScanViewer] PASS 4");
-  // const router = useRouter();
-  // const handleKeyDown = useCallback(
-  //   (evt) => {
-  //     if (evt.key === "ArrowLeft") {
-  //       // console.log("ArrowLeft");
-  //       if (previousLink !== null) {
-  //         // console.log("previousLink", previousLink);
-  //         router.push(previousLink);
-  //         resetPanAndZoom();
-  //       }
-  //       // TODO : else, snapbar to feekback the user there's no previous scan
-  //     } else if (evt.key === "ArrowRight") {
-  //       // console.log("ArrowRight");
-  //       if (nextLink !== null) {
-  //         // console.log("nextLink", nextLink);
-  //         router.push(nextLink);
-  //         resetPanAndZoom();
-  //       }
-  //     } else if (evt.key === "f") {
-  //       if (!document.fullscreenElement) {
-  //         document.documentElement.requestFullscreen();
-  //       } else {
-  //         document.exitFullscreen();
-  //       }
-  //     }
-  //   },
-  //   [previousLink, nextLink]
-  // );
-
-  // useEffect(() => {
-  //   document.addEventListener("keydown", handleKeyDown);
-  //   return () => {
-  //     document.removeEventListener("keydown", handleKeyDown);
-  //   };
-  // }, [handleKeyDown]);
-
-  // // // console.log("[ScanViewer] PASS 5");
-  // // useEffect(() => {
-  // //   if (imagesURL.length !== 0) {
-  // //     imagesCache.readAll(imagesURL);
-  // //   }
-  // // }, [imagesURL]);
 
   // if (router.isFallback) {
   //   return <div>Loading...</div>;
@@ -201,35 +69,371 @@ export default function view(props) {
 
   return (
     <Router>
-      <div>
-        <ul>
-          <li>
-            <Link to="/v/assassination-classroom/51/0">Home</Link>
-          </li>
-          {/* <li>
-            <Link to="/v/assassination-classroom/51/0/about">About</Link>
-          </li> */}
-        </ul>
-
-        <Switch>
-          {/* <Route exact path="/v/assassination-classroom/51/0">
-            <h2>Home</h2>
-          </Route>
-          <Route exact path="/v/assassination-classroom/51/0/about">
-            <h2>About</h2>
-          </Route> */}
-          <Route
-            path="/v/:idManga/:idChapter/:idScan"
-            children={<ViewDetail />}
-          />
-        </Switch>
-      </div>
+      <Switch>
+        <Route
+          path="/v/:idManga/:idChapter/:idScan"
+          children={<ViewSanityCheck />}
+        />
+      </Switch>
     </Router>
   );
 }
 
 function isUndefinedOrNull(val) {
   return val === undefined || val === null;
+}
+
+const defaultIdManga = "one-piece";
+const defaultIdChapter = "1027";
+const defaultIdScan = "0";
+
+function computeLink(idManga, idChapter, idScan) {
+  return `/v/${idManga}/${idChapter}/${idScan}`;
+}
+
+function getLatestChapterIndex(chapters) {
+  const chaptersIndex = Object.keys(chapters).sort((k0, k1) => {
+    return Number(k0) - Number(k1);
+  });
+  return chaptersIndex[chaptersIndex.length - 1];
+}
+
+async function checkScanAddress(idManga, idChapter, idScan) {
+  let idManga_ = null;
+  let idChapter_ = null;
+  let idScan_ = null;
+
+  // Sanity check on idManga
+  let chapters_ = await getMangaChapters(idManga);
+  if (chapters_ === undefined) {
+    const chaptersDefault = await getMangaChapters(defaultIdManga);
+    const latestChapterIndex = getLatestChapterIndex(chaptersDefault);
+    const idScanDefault = "0";
+    return [chaptersDefault, defaultIdManga, latestChapterIndex, idScanDefault];
+  } else {
+    idManga_ = idManga;
+  }
+
+  // Sanity check on idChapter
+  if (
+    typeof idChapter !== "string" ||
+    isNaN(Number(idChapter)) ||
+    chapters_[idChapter] === undefined
+  ) {
+    const latestChapterIndex = getLatestChapterIndex(chapters_);
+    const idScanDefault = "0";
+    return [chapters_, idManga_, latestChapterIndex, idScanDefault];
+  } else {
+    idChapter_ = idChapter;
+  }
+
+  // Sanity check on idScan
+  if (
+    typeof idScan !== "string" ||
+    isNaN(Number(idScan)) ||
+    chapters_[idChapter_].content[Number(idScan)] === undefined
+  ) {
+    const idScanDefault = "0";
+    return [chapters_, idManga_, idChapter_, idScanDefault];
+  } else {
+    idScan_ = idScan;
+  }
+
+  return [chapters_, idManga_, idChapter_, idScan_];
+}
+
+function ViewSanityCheck() {
+  const params = useParams();
+
+  if (
+    isUndefinedOrNull(params.idManga) ||
+    isUndefinedOrNull(params.idChapter) ||
+    isUndefinedOrNull(params.idScan)
+  ) {
+    return <h1>Nothing to show o_O !</h1>;
+  }
+
+  const [chapters, setChapters] = useState(null);
+  const [idManga, setIdManga] = useState(null);
+  const [idChapter, setIdChapter] = useState(null);
+  const [idScan, setIdScan] = useState(null);
+
+  // Massive sanity check
+  let history = useHistory();
+  useEffect(() => {
+    const computeScanAddress = async () => {
+      const [chapters_, idManga_, idChapter_, idScan_] = await checkScanAddress(
+        params.idManga,
+        params.idChapter,
+        params.idScan
+      );
+      if (
+        !_.isEqual(chapters, chapters_) ||
+        idManga !== idManga_ ||
+        idChapter !== idChapter_ ||
+        idScan !== idScan_
+      ) {
+        setChapters(chapters_);
+        setIdManga(idManga_);
+        setIdChapter(idChapter_);
+        setIdScan(idScan_);
+      }
+      const link = computeLink(idManga_, idChapter_, idScan_);
+      if (history.location.pathname !== link) {
+        history.push(link);
+      }
+    };
+    computeScanAddress();
+  }, [params.idManga, params.idChapter, params.idScan]);
+
+  // const [previousLink, setPreviousLink] = useState("");
+  // const [nextLink, setNextLink] = useState("");
+  // const [previousIdChapter, setPreviousIdChapter] = useState("");
+  // const [previousIdScan, setPreviousIdScan] = useState("");
+  // const [nextIdChapter, setNextIdChapter] = useState("");
+  // const [nextIdScan, setNextIdScan] = useState("");
+  // const [imagesURL, setImagesURL] = useState([]);
+  // const [imageURL, setImageURL] = useState("");
+
+  // useEffect(() => {
+  //   const computePreviousNextLink = async () => {
+  //     console.log("[ViewSanityCheck] Differ begin");
+
+  //     if (
+  //       isUndefinedOrNull(chapters) ||
+  //       isUndefinedOrNull(idManga) ||
+  //       isUndefinedOrNull(idChapter) ||
+  //       isUndefinedOrNull(idScan)
+  //     ) {
+  //       return;
+  //     }
+
+  //     let imagesURL_ = [];
+  //     if (
+  //       !isUndefinedOrNull(chapters) &&
+  //       chapters[idChapter] !== undefined &&
+  //       chapters[idChapter].content !== undefined
+  //     ) {
+  //       imagesURL_ = chapters[idChapter].content;
+  //     }
+  //     let imageURL_ = "";
+  //     if (imagesURL_[Number(idScan)] !== undefined) {
+  //       imageURL_ = imagesURL_[Number(idScan)];
+  //     }
+
+  //     const [
+  //       previousLink_,
+  //       nextLink_,
+  //       previousIdChapter_,
+  //       previousIdScan_,
+  //       nextIdChapter_,
+  //       nextIdScan_,
+  //     ] = computePreviousAndNextLink(idManga, idChapter, idScan, chapters);
+
+  //     // if (previousLink !== previousLink_) {
+  //     //   setPreviousLink(previousLink_);
+  //     // }
+  //     // if (previousIdChapter !== previousIdChapter_) {
+  //     //   setPreviousIdChapter(previousIdChapter_);
+  //     // }
+  //     // if (previousIdScan !== previousIdScan_) {
+  //     //   setPreviousIdScan(previousIdScan_);
+  //     // }
+  //     // if (nextLink !== nextLink_) {
+  //     //   setNextLink(nextLink_);
+  //     // }
+  //     // if (nextIdChapter !== nextIdChapter_) {
+  //     //   setNextIdChapter(nextIdChapter_);
+  //     // }
+  //     // if (nextIdScan !== nextIdScan_) {
+  //     //   setNextIdScan(nextIdScan_);
+  //     // }
+  //     // if (!_.isEqual(imagesURL, imagesURL_)) {
+  //     //   setImagesURL(imagesURL_);
+  //     // }
+  //     // if (imageURL !== imageURL_) {
+  //     //   setImageURL(imageURL_);
+  //     // }
+  //     if (
+  //       previousLink !== previousLink_ ||
+  //       previousIdChapter !== previousIdChapter_ ||
+  //       previousIdScan !== previousIdScan_ ||
+  //       nextLink !== nextLink_ ||
+  //       nextIdChapter !== nextIdChapter_ ||
+  //       nextIdScan !== nextIdScan_ ||
+  //       !_.isEqual(imagesURL, imagesURL_) ||
+  //       imageURL !== imageURL_
+  //     ) {
+  //       setPreviousLink(previousLink_);
+  //       setPreviousIdChapter(previousIdChapter_);
+  //       setPreviousIdScan(previousIdScan_);
+  //       setNextLink(nextLink_);
+  //       setNextIdChapter(nextIdChapter_);
+  //       setNextIdScan(nextIdScan_);
+  //       setImagesURL(imagesURL_);
+  //       setImageURL(imageURL_);
+  //     }
+  //   };
+
+  //   computePreviousNextLink();
+  // }, [idManga, idChapter, idScan, chapters]);
+
+  let previousLink = "";
+  let nextLink = "";
+  let previousIdChapter = "";
+  let previousIdScan = "";
+  let nextIdChapter = "";
+  let nextIdScan = "";
+  let imagesURL = [];
+  let imageURL = "";
+
+  if (
+    !(
+      isUndefinedOrNull(chapters) ||
+      isUndefinedOrNull(idManga) ||
+      isUndefinedOrNull(idChapter) ||
+      isUndefinedOrNull(idScan)
+    )
+  ) {
+    if (
+      !isUndefinedOrNull(chapters) &&
+      chapters[idChapter] !== undefined &&
+      chapters[idChapter].content !== undefined
+    ) {
+      imagesURL = chapters[idChapter].content;
+    }
+    if (imagesURL[Number(idScan)] !== undefined) {
+      imageURL = imagesURL[Number(idScan)];
+    }
+
+    [
+      previousLink,
+      nextLink,
+      previousIdChapter,
+      previousIdScan,
+      nextIdChapter,
+      nextIdScan,
+    ] = computePreviousAndNextLink(idManga, idChapter, idScan, chapters);
+  }
+
+  const [displayResetButton, setDisplayResetButton] = useState(false);
+
+  const [{ x, y, zoom, scale }, set] = useSpring(() => ({
+    x: 0,
+    y: 0,
+    zoom: 0,
+    scale: 1,
+    config: { mass: 5, tension: 1350, friction: 150 },
+  }));
+
+  const resetPanAndZoom = useCallback(() => {
+    set.start({ x: 0, y: 0, zoom: 0, scale: 1 });
+    setDisplayResetButton(false);
+  }, [set]);
+
+  // Replace the URL without using the React 'history' object, in a hacky way :
+  // https://stackoverflow.com/questions/824349/how-do-i-modify-the-url-without-reloading-the-page
+  // The use of the React 'history' object will pass throught the React Router
+  // and trigger all the sanity process and make a call to the DB again.
+  const handleKeyDown = useCallback(
+    (evt) => {
+      // setDbg(evt.key);
+      if (evt.key === "ArrowLeft") {
+        // console.log("ArrowLeft");
+        if (!isUndefinedOrNull(previousLink)) {
+          // console.log("previousLink", previousLink);
+          // setPreviousLink("");
+          // if (idChapter !== previousIdChapter || idScan !== previousIdScan) {
+          // }
+          setIdChapter(previousIdChapter);
+          setIdScan(previousIdScan);
+          resetPanAndZoom();
+          // history.push(previousLink);
+          // window.location.pathname = previousLink;
+          window.history.replaceState(
+            { page: previousLink },
+            `Manga ${idManga} - ${previousIdChapter} ${previousIdScan}`,
+            previousLink
+          );
+        }
+        // TODO : else, snapbar to feedback the user there's no previous scan
+      } else if (evt.key === "ArrowRight") {
+        // console.log("ArrowRight");
+        if (!isUndefinedOrNull(nextLink)) {
+          // console.log("nextLink", nextLink);
+          // setNextLink("");
+          // if (idChapter !== nextIdChapter || idScan !== nextIdScan) {
+          // }
+          setIdChapter(nextIdChapter);
+          setIdScan(nextIdScan);
+          resetPanAndZoom();
+          // history.push(nextLink);
+          // window.location.pathname = nextLink;
+          window.history.replaceState(
+            { page: nextLink },
+            `Manga ${idManga} - ${nextIdChapter} ${nextIdScan}`,
+            nextLink
+          );
+        }
+      } else if (evt.key === "f") {
+        if (!document.fullscreenElement) {
+          document.documentElement.requestFullscreen();
+        } else {
+          document.exitFullscreen();
+        }
+      }
+    },
+    [
+      previousLink,
+      previousIdChapter,
+      previousIdScan,
+      nextLink,
+      nextIdChapter,
+      nextIdScan,
+    ]
+  );
+
+  useEffect(() => {
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleKeyDown]);
+
+  if (
+    isUndefinedOrNull(chapters) ||
+    isUndefinedOrNull(idManga) ||
+    isUndefinedOrNull(idChapter) ||
+    isUndefinedOrNull(idScan)
+  ) {
+    return (
+      <>
+        <h3>
+          ID: params {params.idManga} {params.idChapter} {params.idScan}
+        </h3>
+        <h3>As long as I'm living, i'll be waiting</h3>
+      </>
+    );
+  } else {
+    return (
+      <>
+        <h3>
+          ID: params {params.idManga} {params.idChapter} {params.idScan}
+        </h3>
+        <h3>
+          ID: local variable {idManga} {idChapter} {idScan}
+        </h3>
+        <h3>previousLink: {previousLink}</h3>
+        <h3>nextLink: {nextLink}</h3>
+        <h3>imagesURL: {imagesURL}</h3>
+        <h3>imageURL: {imageURL}</h3>
+        <h3>previousIdChapter: {previousIdChapter}</h3>
+        <h3>previousIdScan: {previousIdScan}</h3>
+        <h3>nextIdChapter: {nextIdChapter}</h3>
+        <h3>nextIdScan: {nextIdScan}</h3>
+      </>
+    );
+  }
 }
 
 function computePreviousAndNextLink(idManga, idChapter, idScan, chapters) {
@@ -309,13 +513,13 @@ function computePreviousAndNextLink(idManga, idChapter, idScan, chapters) {
   ];
 }
 
-function ViewDetail(props) {
+function ViewDetail() {
   // We can use the `useParams` hook here to access
   // the dynamic pieces of the URL.
-  console.log("[ViewDetail] props", props);
+  // console.log("[ViewDetail] props", props);
 
   const params = useParams();
-  console.log("params", params);
+  console.log("[ViewDetail] params", params);
 
   if (
     isUndefinedOrNull(params.idManga) ||
@@ -325,15 +529,14 @@ function ViewDetail(props) {
     return <h1>Nothing to show o_O !</h1>;
   }
 
-  let idManga = "one-piece";
-  // let idChapter = "1";
-  // let idScan = "0";
-  // const [idManga, setIdManga] = useState("one-piece");
-  const [idChapter, setIdChapter] = useState("1");
-  const [idScan, setIdScan] = useState("0");
+  const [idManga, setIdManga] = useState(null);
+  const [idChapter, setIdChapter] = useState(null);
+  const [idScan, setIdScan] = useState(null);
   if (!isUndefinedOrNull(params.idManga)) {
-    idManga = params.idManga;
-    // setIdManga(params.idManga);
+    //idManga = params.idManga;
+    if (idManga !== params.idManga) {
+      setIdManga(params.idManga);
+    }
   }
   if (!isUndefinedOrNull(params.idChapter)) {
     // idChapter = params.idChapter;
@@ -347,29 +550,12 @@ function ViewDetail(props) {
       setIdScan(params.idScan);
     }
   }
+  console.log("[ViewDetail] {idManga, idChapter, idScan}", {
+    idManga,
+    idChapter,
+    idScan,
+  });
 
-  // // let manga = null;
-  // let previousLink = null;
-  // let nextLink = null;
-  // let imagesURL = [];
-  // let imageURL = null;
-  // // if (!isUndefinedOrNull(props.manga)) {
-  // //   manga = props.manga;
-  // // }
-  // if (!isUndefinedOrNull(props.previousLink)) {
-  //   previousLink = props.previousLink;
-  // }
-  // if (!isUndefinedOrNull(props.nextLink)) {
-  //   nextLink = props.nextLink;
-  // }
-  // if (!isUndefinedOrNull(props.imagesURL)) {
-  //   imagesURL = props.imagesURL;
-  // }
-  // if (!isUndefinedOrNull(props.imageURL)) {
-  //   imageURL = props.imageURL;
-  // }
-
-  // const [touch, setTouch] = React.useState(0);
   const [previousLink, setPreviousLink] = React.useState("");
   const [nextLink, setNextLink] = React.useState("");
   const [previousIdChapter, setPreviousIdChapter] = React.useState("");
@@ -380,23 +566,82 @@ function ViewDetail(props) {
   const [imageURL, setImageURL] = React.useState("");
   const [chapters, setChapters] = React.useState(null);
 
+  // useEffect(() => {
+  //   const differ = async () => {
+  //     const inspect = await getMangaChapters("gantz");
+  //     // console.log("inspect", inspect);
+  //     // console.log("Object.keys(inspect)[0]", Object.keys(inspect)[0]);
+  //     // console.log(
+  //     //   "typeof Object.keys(inspect)[0]",
+  //     //   typeof Object.keys(inspect)[0]
+  //     // );
+  //     console.log(
+  //       "Object.keys(inspect)",
+  //       Object.keys(inspect).sort((k0, k1) => {
+  //         return Number(k0) - Number(k1);
+  //       })
+  //     );
+  //   };
+  //   differ();
+  // }, []);
+
   useEffect(() => {
-    // console.log("[ScanViewer] useEffect PASS 0");
+    console.log("[ViewDetail] useEffect begin");
     const differ = async () => {
-      // let chapters_ = await getMangaChapters(params.idManga);
+      console.log("[ViewDetail] Differ begin");
+      console.log({ idManga, idChapter, idScan });
       let chapters_ = null;
-      if (!isUndefinedOrNull(chapters)) {
-        chapters_ = chapters;
+      // Sanity check on idManga
+      if (isUndefinedOrNull(chapters) || typeof chapters !== "object") {
+        chapters_ = await getMangaChapters(idManga);
+        if (chapters_ === undefined) {
+          setIdManga(defaultIdManga);
+          return;
+        }
       } else {
-        chapters_ = await getMangaChapters(params.idManga);
+        chapters_ = chapters;
       }
 
-      // let chapters_ = null;
-      // if (!isUndefinedOrNull(chapters)) {
-      //   chapters_ = await getMangaChapters(params.idManga);
-      //   setChapters(chapters_);
+      // if(chapters_[idManga] === "undefined") {
+      //   setIdManga(defaultIdManga);
       // }
-      // const chaptersWk = !isUndefinedOrNull(chapters) ? chapters : chapters_;
+
+      // Sanity check on idChapter
+      if (typeof idChapter !== "string" || isNaN(Number(idChapter))) {
+        setIdChapter(defaultIdChapter);
+        return;
+      }
+      // Sanity check on idScan
+      if (typeof idScan !== "string" || isNaN(Number(idScan))) {
+        setIdScan(defaultIdScan);
+        return;
+      }
+
+      // If the current idChapter is not found, set the idChapter to the
+      // lastest chapter
+      if (chapters_[idChapter] === undefined) {
+        const chaptersIndex = Object.keys(chapters_).sort((k0, k1) => {
+          return Number(k0) - Number(k1);
+        });
+        const lastIndex = chaptersIndex[chaptersIndex.length - 1];
+        setIdChapter(lastIndex);
+        return;
+      }
+
+      // Nearest scan, maybe ?
+      console.log(
+        "[ViewDetail] chapters_[idChapter].content[Number(idScan)] === undefined",
+        chapters_[idChapter].content[Number(idScan)] === undefined
+      );
+      if (chapters_[idChapter].content[Number(idScan)] === undefined) {
+        setIdScan(defaultIdScan);
+        // return;
+      }
+
+      const imagesURL_ = chapters_[idChapter].content;
+      const imageURL_ = imagesURL_[Number(idScan)];
+      console.log("[ViewDetail] Number(idScan)", Number(idScan));
+      console.log("[ViewDetail] imageURL_", imageURL_);
 
       // console.log("chapters", chapters);
       const [
@@ -406,18 +651,9 @@ function ViewDetail(props) {
         previousIdScan_,
         nextIdChapter_,
         nextIdScan_,
-      ] = computePreviousAndNextLink(
-        params.idManga,
-        params.idChapter,
-        params.idScan,
-        // chaptersWk
-        chapters_
-      );
-      const imagesURL_ = chapters_[params.idChapter].content;
-      const imageURL_ = imagesURL_[Number(params.idScan)];
-      // const imageURL_ = imagesURL_[0];
+      ] = computePreviousAndNextLink(idManga, idChapter, idScan, chapters_);
+
       if (imageURL !== imageURL_) {
-        // setTouch(previousLink_);
         setPreviousLink(previousLink_);
         setNextLink(nextLink_);
         setPreviousIdChapter(previousIdChapter_);
@@ -427,45 +663,24 @@ function ViewDetail(props) {
         setImagesURL(imagesURL_);
         setImageURL(imageURL_);
       }
-      if (isUndefinedOrNull(chapters)) {
+      if (isUndefinedOrNull(chapters) || !_.isEqual(chapters, chapters_)) {
         setChapters(chapters_);
       }
     };
 
     differ();
-
-    // setPreviousLink(previousLink_);
-    // setNextLink(nextLink_);
-    // console.log("previousLink", previousLink);
-    // console.log("nextLink", nextLink);
-    // console.log("[ScanViewer] useEffect PASS 1");
-  }, [
-    // params.idManga, params.idChapter, params.idScan,
-    idManga,
-    idChapter,
-    idScan,
-  ]);
-
-  const [displayResetButton, setDisplayResetButton] = useState(false);
-
-  const [{ x, y, zoom, scale }, set] = useSpring(() => ({
-    x: 0,
-    y: 0,
-    zoom: 0,
-    scale: 1,
-    config: { mass: 5, tension: 1350, friction: 150 },
-  }));
+  }, [idManga, idChapter, idScan, chapters]);
 
   const resetPanAndZoom = useCallback(() => {
     set.start({ x: 0, y: 0, zoom: 0, scale: 1 });
     setDisplayResetButton(false);
   }, [set]);
 
-  const [dbg, setDbg] = useState("");
+  // const [dbg, setDbg] = useState("");
   let history = useHistory();
   const handleKeyDown = useCallback(
     (evt) => {
-      setDbg(evt.key);
+      // setDbg(evt.key);
       if (evt.key === "ArrowLeft") {
         // console.log("ArrowLeft");
         if (!isUndefinedOrNull(previousLink)) {
@@ -497,13 +712,11 @@ function ViewDetail(props) {
     },
     [
       previousLink,
-      nextLink,
       previousIdChapter,
       previousIdScan,
+      nextLink,
       nextIdChapter,
       nextIdScan,
-      // idChapter,
-      // idScan,
     ]
   );
 
@@ -513,6 +726,16 @@ function ViewDetail(props) {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [handleKeyDown]);
+
+  const [displayResetButton, setDisplayResetButton] = useState(false);
+
+  const [{ x, y, zoom, scale }, set] = useSpring(() => ({
+    x: 0,
+    y: 0,
+    zoom: 0,
+    scale: 1,
+    config: { mass: 5, tension: 1350, friction: 150 },
+  }));
 
   return (
     <>
@@ -530,7 +753,7 @@ function ViewDetail(props) {
       <h3>previousIdScan: {previousIdScan}</h3>
       <h3>nextIdChapter: {nextIdChapter}</h3>
       <h3>nextIdScan: {nextIdScan}</h3>
-      <h3>dbg: {dbg}</h3>
+      {/* <h3>dbg: {dbg}</h3> */}
     </>
   );
 }
