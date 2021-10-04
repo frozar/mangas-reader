@@ -228,6 +228,7 @@ function ViewDetail() {
   const [idManga, setIdManga] = useState(null);
   const [idChapter, setIdChapter] = useState(null);
   const [idScan, setIdScan] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   // Massive sanity check
   let history = useHistory();
@@ -248,6 +249,7 @@ function ViewDetail() {
         setIdManga(idManga_);
         setIdChapter(idChapter_);
         setIdScan(idScan_);
+        setLoading(true);
       }
       const link = computeLink(idManga_, idChapter_, idScan_);
       if (history.location.pathname !== link) {
@@ -329,6 +331,7 @@ function ViewDetail() {
           resetPanAndZoom();
           // history.push(previousLink);
           // window.location.pathname = previousLink;
+          setLoading(true);
           window.history.replaceState(
             { page: previousLink },
             `Manga ${idManga} - ${previousIdChapter} ${previousIdScan}`,
@@ -348,6 +351,7 @@ function ViewDetail() {
           resetPanAndZoom();
           // history.push(nextLink);
           // window.location.pathname = nextLink;
+          setLoading(true);
           window.history.replaceState(
             { page: nextLink },
             `Manga ${idManga} - ${nextIdChapter} ${nextIdScan}`,
@@ -411,6 +415,8 @@ function ViewDetail() {
           set={set}
           setDisplayResetButton={setDisplayResetButton}
           springDict={{ x, y, zoom, scale }}
+          loading={loading}
+          setLoading={setLoading}
         />
         <ImageCaption
           displayResetButton={displayResetButton}

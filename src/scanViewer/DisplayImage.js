@@ -4,7 +4,7 @@ import { useGesture } from "react-use-gesture";
 
 import Grid from "@material-ui/core/Grid";
 
-// import WaitingComponent from "../WaitingComponent";
+import WaitingComponent from "../WaitingComponent";
 
 const isMobileFunc = function (a) {
   const res =
@@ -18,11 +18,19 @@ const isMobileFunc = function (a) {
 };
 
 export default function DisplayImage(props) {
-  const { imageURL, set, setDisplayResetButton, springDict } = props;
+  const {
+    imageURL,
+    set,
+    setDisplayResetButton,
+    springDict,
+    loading,
+    setLoading,
+  } = props;
   const { x, y, zoom, scale } = springDict;
   const domTarget = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
   // const loading = false;
+  // const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (isMobileFunc(navigator.userAgent || navigator.vendor || window.opera)) {
@@ -85,6 +93,7 @@ export default function DisplayImage(props) {
 
   const imageLoaded = () => {
     // updateLoadingState();
+    setLoading(false);
     updateDisplayScroll();
   };
 
@@ -179,6 +188,32 @@ export default function DisplayImage(props) {
           }}
           onLoad={imageLoaded}
         />
+        {loading ? (
+          <>
+            <div
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                height: "100%",
+                // Dark background
+                background: "#0008",
+              }}
+            />
+            <WaitingComponent
+              loading={true}
+              style={{
+                color: "white",
+                position: "absolute",
+                top: "30%",
+                left: "50%",
+                right: "50%",
+              }}
+            />
+          </>
+        ) : null}
       </Grid>
     </Grid>
   );
