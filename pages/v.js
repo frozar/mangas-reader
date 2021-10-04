@@ -1,17 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import _ from "lodash";
-// import { useRouter } from "next/router";
 import { useSpring } from "react-spring";
 import { Helmet } from "react-helmet";
-
-// import { BrowserRouter as Router, Switch, Route, Link } from "react-router-dom";
 
 import {
   BrowserRouter as Router,
   Switch,
   Route,
-  // Link,
-  // useRouteMatch,
   useParams,
   useHistory,
 } from "react-router-dom";
@@ -138,6 +133,76 @@ async function checkScanAddress(idManga, idChapter, idScan) {
   return [chapters_, idManga_, idChapter_, idScan_];
 }
 
+function computePreviousLink(idManga, idChapter, idScan, chapters) {
+  const chapter = chapters[idChapter];
+
+  const scanIdx = Object.keys(chapter.content)
+    .map((n) => Number(n))
+    .sort((a, b) => a - b);
+  const isFirstIdScan = scanIdx[0] === Number(idScan);
+
+  const chaptersIdx = Object.keys(chapters)
+    .map((n) => Number(n))
+    .sort((a, b) => a - b);
+  const currentIdxChapter = chaptersIdx.indexOf(Number(idChapter));
+  const isFirstChapter = 0 === currentIdxChapter;
+
+  // Create the previous and next link considering the current scan
+  // Handle the edge cases
+  let previousLink = null;
+  let previousIdChapter = null;
+  let previousIdScan = null;
+
+  if (!isFirstIdScan) {
+    previousIdChapter = idChapter;
+    previousIdScan = Number(idScan) - 1;
+    previousLink = `/v/${idManga}/${previousIdChapter}/${previousIdScan}`;
+  } else {
+    if (!isFirstChapter) {
+      previousIdChapter = String(chaptersIdx[currentIdxChapter - 1]);
+      previousIdScan = chapters[previousIdChapter].content.length - 1;
+      previousLink = `/v/${idManga}/${previousIdChapter}/${previousIdScan}`;
+    }
+  }
+
+  return [previousLink, previousIdChapter, previousIdScan];
+}
+
+function computeNextLink(idManga, idChapter, idScan, chapters) {
+  const chapter = chapters[idChapter];
+
+  const scanIdx = Object.keys(chapter.content)
+    .map((n) => Number(n))
+    .sort((a, b) => a - b);
+  const isLastIdScan = scanIdx[scanIdx.length - 1] === Number(idScan);
+
+  const chaptersIdx = Object.keys(chapters)
+    .map((n) => Number(n))
+    .sort((a, b) => a - b);
+  const currentIdxChapter = chaptersIdx.indexOf(Number(idChapter));
+  const isLastChapter = chaptersIdx.length - 1 === currentIdxChapter;
+
+  // Create the previous and next link considering the current scan
+  // Handle the edge cases
+  let nextLink = null;
+  let nextIdChapter = null;
+  let nextIdScan = null;
+
+  if (!isLastIdScan) {
+    nextIdChapter = idChapter;
+    nextIdScan = Number(idScan) + 1;
+    nextLink = `/v/${idManga}/${idChapter}/${nextIdScan}`;
+  } else {
+    if (!isLastChapter) {
+      nextIdChapter = String(chaptersIdx[currentIdxChapter + 1]);
+      nextIdScan = 0;
+      nextLink = `/v/${idManga}/${nextIdChapter}/${nextIdScan}`;
+    }
+  }
+
+  return [nextLink, nextIdChapter, nextIdScan];
+}
+
 /**
  * For a given scan address and an hashmap of chapters, compute when it's 
  * possible the previous and the next link.
@@ -156,53 +221,19 @@ async function checkScanAddress(idManga, idChapter, idScan) {
   ]
  */
 function computePreviousAndNextLink(idManga, idChapter, idScan, chapters) {
-  const chapter = chapters[idChapter];
+  const [previousLink, previousIdChapter, previousIdScan] = computePreviousLink(
+    idManga,
+    idChapter,
+    idScan,
+    chapters
+  );
 
-  const scanIdx = Object.keys(chapter.content)
-    .map((n) => Number(n))
-    .sort((a, b) => a - b);
-  const isFirstIdScan = scanIdx[0] === Number(idScan);
-  const isLastIdScan = scanIdx[scanIdx.length - 1] === Number(idScan);
-
-  const chaptersIdx = Object.keys(chapters)
-    .map((n) => Number(n))
-    .sort((a, b) => a - b);
-  const currentIdxChapter = chaptersIdx.indexOf(Number(idChapter));
-  const isFirstChapter = 0 === currentIdxChapter;
-  const isLastChapter = chaptersIdx.length - 1 === currentIdxChapter;
-
-  // Create the previous and next link considering the current scan
-  // Handle the edge cases
-  let previousLink = null;
-  let previousIdChapter = null;
-  let previousIdScan = null;
-  let nextLink = null;
-  let nextIdChapter = null;
-  let nextIdScan = null;
-
-  if (!isFirstIdScan) {
-    previousIdChapter = idChapter;
-    previousIdScan = Number(idScan) - 1;
-    previousLink = `/v/${idManga}/${previousIdChapter}/${previousIdScan}`;
-  } else {
-    if (!isFirstChapter) {
-      previousIdChapter = String(chaptersIdx[currentIdxChapter - 1]);
-      previousIdScan = chapters[previousIdChapter].content.length - 1;
-      previousLink = `/v/${idManga}/${previousIdChapter}/${previousIdScan}`;
-    }
-  }
-
-  if (!isLastIdScan) {
-    nextIdChapter = idChapter;
-    nextIdScan = Number(idScan) + 1;
-    nextLink = `/v/${idManga}/${idChapter}/${nextIdScan}`;
-  } else {
-    if (!isLastChapter) {
-      nextIdChapter = String(chaptersIdx[currentIdxChapter + 1]);
-      nextIdScan = 0;
-      nextLink = `/v/${idManga}/${nextIdChapter}/${nextIdScan}`;
-    }
-  }
+  const [nextLink, nextIdChapter, nextIdScan] = computeNextLink(
+    idManga,
+    idChapter,
+    idScan,
+    chapters
+  );
 
   return [
     previousLink,
@@ -215,6 +246,14 @@ function computePreviousAndNextLink(idManga, idChapter, idScan, chapters) {
 }
 
 let TIMEOUT_ID = null;
+let cacheImages = {};
+
+function populateCacheImages(url) {
+  if (cacheImages[url] === undefined) {
+    cacheImages[url] = new Image();
+    cacheImages[url].src = url;
+  }
+}
 
 function ViewDetail() {
   // Initially, retrieve input parameters from the route.
@@ -419,6 +458,48 @@ function ViewDetail() {
     }, 500);
   };
 
+  // When it's possible, preload 10 images next to the current position,
+  // and 10 images before.
+  if (
+    !(
+      isUndefinedOrNull(chapters) ||
+      isUndefinedOrNull(idManga) ||
+      isUndefinedOrNull(idChapter) ||
+      isUndefinedOrNull(idScan)
+    )
+  ) {
+    const iterateFunc = (
+      idManga,
+      startIdChapter,
+      startIdScan,
+      chapters,
+      computeNextOrPeviousLink,
+      nbIter
+    ) => {
+      let iterLink_;
+      let iterIdChapter_;
+      let iterIdScan_;
+      let currentIdChapter_ = startIdChapter;
+      let currentIdScan_ = startIdScan;
+      for (const x of Array(nbIter).keys()) {
+        [iterLink_, iterIdChapter_, iterIdScan_] = computeNextOrPeviousLink(
+          idManga,
+          currentIdChapter_,
+          currentIdScan_,
+          chapters
+        );
+        if (iterLink_ === null) {
+          break;
+        }
+        [currentIdChapter_, currentIdScan_] = [iterIdChapter_, iterIdScan_];
+        let imageURL = chapters[iterIdChapter_].content[Number(iterIdScan_)];
+        populateCacheImages(imageURL);
+      }
+    };
+    iterateFunc(idManga, idChapter, idScan, chapters, computeNextLink, 10);
+    iterateFunc(idManga, idChapter, idScan, chapters, computePreviousLink, 10);
+  }
+
   if (
     isUndefinedOrNull(chapters) ||
     isUndefinedOrNull(idManga) ||
@@ -428,10 +509,15 @@ function ViewDetail() {
     // TODO: make something better
     return (
       <>
-        <h3>
+        <Helmet>
+          <style>{"body { background-color: black; }"}</style>
+        </Helmet>
+        <h3 style={{ color: "white" }}>
           ID: params {params.idManga} {params.idChapter} {params.idScan}
         </h3>
-        <h3>As long as I'm living, i'll be waiting</h3>
+        <h3 style={{ color: "white" }}>
+          As long as I'm living, i'll be waiting
+        </h3>
       </>
     );
   } else {
