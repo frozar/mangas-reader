@@ -3,10 +3,10 @@ import { useRouter } from "next/router";
 import { useSpring } from "react-spring";
 import { Helmet } from "react-helmet";
 
-import DisplayImage from "../../../../src/scanViewer/DisplayImage";
 import TopBar from "../../../../src/scanViewer/TopBar";
-import ControlBar from "../../../../src/scanViewer/ControlBar";
+import DisplayImage from "../../../../src/scanViewer/DisplayImage";
 import ImageCaption from "../../../../src/scanViewer/ImageCaption";
+import ControlBar from "../../../../src/scanViewer/ControlBar";
 // import WaitingComponent from "../../../../src/WaitingComponent.js";
 import { getMangas, getMangaChapters } from "../../../../src/db.js";
 import { wrapper } from "../../../../store/store";
