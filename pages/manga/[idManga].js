@@ -147,7 +147,7 @@ function SelectChapter(props) {
       return {
         label: idChapter,
         picture: chaptersJacket[idChapter],
-        link: `/manga/${idManga}/${idChapter}/0`,
+        link: `/v/${idManga}/${idChapter}/0`,
       };
     })
     .sort(({ label: idxA }, { label: idxB }) => {
