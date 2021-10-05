@@ -117,27 +117,34 @@ export default function Gallery(props) {
                   toggleGallery();
                 }}
               >
-                <div
-                  className={classes.imageContainer}
-                  onClick={() => {
-                    goScanAddress(idManga, idChapter, idx);
+                <a
+                  href={`/v/${idManga}/${idChapter}/${idx}`}
+                  onClick={(e) => {
+                    e.preventDefault();
                   }}
                 >
-                  <img
-                    src={imageURL}
-                    alt={`${idx}`}
-                    className={classes.image}
-                  />
                   <div
-                    className={classes.label}
-                    style={{
-                      color:
-                        Number(idScan) === Number(idx) ? "lime" : "undefined",
+                    className={classes.imageContainer}
+                    onClick={() => {
+                      goScanAddress(idManga, idChapter, idx);
                     }}
                   >
-                    {idx + 1}
+                    <img
+                      src={imageURL}
+                      alt={`${idx}`}
+                      className={classes.image}
+                    />
+                    <div
+                      className={classes.label}
+                      style={{
+                        color:
+                          Number(idScan) === Number(idx) ? "lime" : "undefined",
+                      }}
+                    >
+                      {idx + 1}
+                    </div>
                   </div>
-                </div>
+                </a>
               </Grid>
             );
           })}
