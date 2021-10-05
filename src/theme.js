@@ -6,10 +6,12 @@ const lightGrey = "#BBC8D4";
 const defaultTheme = createMuiTheme({
   palette: {
     background: {
-      default: "#e3e8ed",
+      // default: "#e3e8ed",
+      default: "#0D2622",
     },
     primary: { main: "#e3e8ed" },
-    containerBackground: "white",
+    // containerBackground: "white",
+    containerBackground: "#e8ab30",
     cardBackground: lightGrey,
     dark: dark,
   },

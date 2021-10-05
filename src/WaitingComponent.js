@@ -22,7 +22,7 @@ const useStyles = makeStyles((theme) => {
 
 export default function WaitingComponent(props) {
   const classes = useStyles();
-  const { loading, color, marginTop } = props;
+  const { loading, color, marginTop, ...other } = props;
 
   if (loading) {
     return (
@@ -32,6 +32,7 @@ export default function WaitingComponent(props) {
           color: color ? color : undefined,
           marginTop: marginTop ? marginTop : undefined,
         }}
+        {...other}
       >
         <div>Loading...</div>
         <br />

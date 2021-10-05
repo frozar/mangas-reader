@@ -4,7 +4,6 @@ import { makeStyles } from "@material-ui/core/styles";
 import Grid from "@material-ui/core/Grid";
 import Drawer from "@material-ui/core/Drawer";
 import Typography from "@material-ui/core/Typography";
-import Link from "../Link";
 
 const useStyles = makeStyles((theme) => ({
   drawerContainer: {
@@ -81,8 +80,15 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Gallery(props) {
   const classes = useStyles();
-  const { imagesURL, openGallery, toggleGallery, idManga, idChapter, idScan } =
-    props;
+  const {
+    imagesURL,
+    openGallery,
+    toggleGallery,
+    idManga,
+    idChapter,
+    idScan,
+    goScanAddress,
+  } = props;
 
   return (
     <Drawer anchor={"right"} open={openGallery} onClose={toggleGallery}>
@@ -108,12 +114,21 @@ export default function Gallery(props) {
                 item
                 className={classes.cardItem}
                 onClick={(_) => {
-                  // setIdxImage(idx);
                   toggleGallery();
                 }}
               >
-                <Link href={`/manga/${idManga}/${idChapter}/${idx}`}>
-                  <div className={classes.imageContainer}>
+                <a
+                  href={`/v/${idManga}/${idChapter}/${idx}`}
+                  onClick={(e) => {
+                    e.preventDefault();
+                  }}
+                >
+                  <div
+                    className={classes.imageContainer}
+                    onClick={() => {
+                      goScanAddress(idManga, idChapter, idx);
+                    }}
+                  >
                     <img
                       src={imageURL}
                       alt={`${idx}`}
@@ -129,7 +144,7 @@ export default function Gallery(props) {
                       {idx + 1}
                     </div>
                   </div>
-                </Link>
+                </a>
               </Grid>
             );
           })}

@@ -18,4 +18,20 @@ module.exports = {
   images: {
     domains: ["storage.googleapis.com", "lelscans.net"],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/v",
+        destination: "/v",
+      },
+      {
+        source: "/v/:idManga/:idChapter/:idScan",
+        destination: "/v",
+      },
+      {
+        source: "/v/:idManga/:idChapter/:idScan/:any",
+        destination: "/v",
+      },
+    ];
+  },
 };

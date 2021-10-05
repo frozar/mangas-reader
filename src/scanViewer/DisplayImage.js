@@ -4,7 +4,7 @@ import { useGesture } from "react-use-gesture";
 
 import Grid from "@material-ui/core/Grid";
 
-// import WaitingComponent from "../WaitingComponent";
+import WaitingComponent from "../WaitingComponent";
 
 const isMobileFunc = function (a) {
   const res =
@@ -18,11 +18,19 @@ const isMobileFunc = function (a) {
 };
 
 export default function DisplayImage(props) {
-  const { imageURL, set, setDisplayResetButton, springDict } = props;
+  const {
+    imageURL,
+    set,
+    setDisplayResetButton,
+    springDict,
+    loading,
+    setLoading,
+  } = props;
   const { x, y, zoom, scale } = springDict;
   const domTarget = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
   // const loading = false;
+  // const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (isMobileFunc(navigator.userAgent || navigator.vendor || window.opera)) {
@@ -30,44 +38,6 @@ export default function DisplayImage(props) {
       setIsMobile(true);
     }
   }, []);
-
-  // const updateLoadingState = useCallback(() => {
-  //   const scans = Array.from(document.querySelectorAll("#scan"));
-  //   if (scans.length === 0) {
-  //     // setLoading(true);
-  //   } else if (scans.length === 1) {
-  //     const scan = scans[0];
-  //     const isLoaded = scan.complete && scan.naturalHeight !== 0;
-  //     // setLoading(!isLoaded);
-
-  //     if (!isMobile && isLoaded) {
-  //       const bodyRect = document.body.getBoundingClientRect();
-  //       const elemRect = scan.getBoundingClientRect();
-  //       const offsetTop = elemRect.top - bodyRect.top;
-  //       window.scrollTo({ top: offsetTop, behavior: "smooth" });
-  //     }
-  //   } else {
-  //     const someScanNotLoaded = scans
-  //       .map((scan) => scan.complete && scan.naturalHeight !== 0)
-  //       .some((bool) => bool === false);
-  //     // setLoading(someScanNotLoaded);
-  //     if (someScanNotLoaded) {
-  //       setTimeout(() => updateLoadingState(), 0);
-  //     }
-
-  //     if (!isMobile && !someScanNotLoaded) {
-  //       const bodyRect = document.body.getBoundingClientRect();
-  //       const elemRect = scans[0].getBoundingClientRect();
-  //       const offsetTop = elemRect.top - bodyRect.top;
-  //       window.scrollTo({ top: offsetTop, behavior: "smooth" });
-  //     }
-  //   }
-  //   // }, [setLoading]);
-  // }, [isMobile]);
-
-  // useEffect(() => {
-  //   updateLoadingState();
-  // }, [updateLoadingState]);
 
   const updateDisplayScroll = useCallback(() => {
     if (!isMobile) {
@@ -84,8 +54,16 @@ export default function DisplayImage(props) {
   }, [updateDisplayScroll, isMobile]);
 
   const imageLoaded = () => {
-    // updateLoadingState();
+    // console.log("imageLoaded");
+    setLoading(false);
     updateDisplayScroll();
+    // const timeoutID = setInterval(() => {
+    //   console.log("setInterval loading", loading);
+    //   if (loading) {
+    //     setLoading(false);
+    //     clearTimeout(timeoutID);
+    //   }
+    // }, 1000);
   };
 
   useGesture(
@@ -179,6 +157,32 @@ export default function DisplayImage(props) {
           }}
           onLoad={imageLoaded}
         />
+        {loading ? (
+          <>
+            <div
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                height: "100%",
+                // Dark background
+                background: "#0008",
+              }}
+            />
+            <WaitingComponent
+              loading={true}
+              style={{
+                color: "white",
+                position: "absolute",
+                top: "30%",
+                left: "50%",
+                right: "50%",
+              }}
+            />
+          </>
+        ) : null}
       </Grid>
     </Grid>
   );
