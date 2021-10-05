@@ -54,8 +54,16 @@ export default function DisplayImage(props) {
   }, [updateDisplayScroll, isMobile]);
 
   const imageLoaded = () => {
+    // console.log("imageLoaded");
     setLoading(false);
     updateDisplayScroll();
+    // const timeoutID = setInterval(() => {
+    //   console.log("setInterval loading", loading);
+    //   if (loading) {
+    //     setLoading(false);
+    //     clearTimeout(timeoutID);
+    //   }
+    // }, 1000);
   };
 
   useGesture(

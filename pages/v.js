@@ -278,6 +278,10 @@ function ViewDetail() {
   const [loading, setLoading] = useState(true);
   const [displayFlashScreen, setDisplayFlashScreen] = useState(false);
 
+  // const setLoading = useCallback((val) => {
+  //   loading = val;
+  // });
+
   // Massive sanity check
   let history = useHistory();
   useEffect(() => {
@@ -360,6 +364,38 @@ function ViewDetail() {
     setDisplayResetButton(false);
   }, [set]);
 
+  const goPreviousLink = useCallback(() => {
+    // console.log("goPreviousLink BEGIN");
+    if (!isUndefinedOrNull(previousLink)) {
+      // console.log("goPreviousLink IN IF");
+      setIdChapter(previousIdChapter);
+      setIdScan(previousIdScan);
+      resetPanAndZoom();
+      window.history.replaceState(
+        { page: previousLink },
+        `Manga ${idManga} - ${previousIdChapter} ${previousIdScan}`,
+        previousLink
+      );
+    }
+    // console.log("goPreviousLink END");
+  }, [previousLink, previousIdChapter, previousIdScan]);
+
+  const goNextLink = useCallback(() => {
+    // console.log("goNextLink BEGIN");
+    if (!isUndefinedOrNull(nextLink)) {
+      // console.log("goNextLink IN IF");
+      setIdChapter(nextIdChapter);
+      setIdScan(nextIdScan);
+      resetPanAndZoom();
+      window.history.replaceState(
+        { page: nextLink },
+        `Manga ${idManga} - ${nextIdChapter} ${nextIdScan}`,
+        nextLink
+      );
+    }
+    // console.log("goNextLink END");
+  }, [nextLink, nextIdChapter, nextIdScan]);
+
   // Replace the URL without using the React 'history' object, in a hacky way :
   // https://stackoverflow.com/questions/824349/how-do-i-modify-the-url-without-reloading-the-page
   // The use of the React 'history' object will pass throught the React Router
@@ -368,15 +404,8 @@ function ViewDetail() {
     (evt) => {
       if (evt.key === "ArrowLeft") {
         if (!isUndefinedOrNull(previousLink)) {
-          setIdChapter(previousIdChapter);
-          setIdScan(previousIdScan);
-          resetPanAndZoom();
+          goPreviousLink();
           setLoading(true);
-          window.history.replaceState(
-            { page: previousLink },
-            `Manga ${idManga} - ${previousIdChapter} ${previousIdScan}`,
-            previousLink
-          );
         } else {
           setDisplayFlashScreen(true);
           setTimeout(() => {
@@ -385,15 +414,8 @@ function ViewDetail() {
         }
       } else if (evt.key === "ArrowRight") {
         if (!isUndefinedOrNull(nextLink)) {
-          setIdChapter(nextIdChapter);
-          setIdScan(nextIdScan);
-          resetPanAndZoom();
+          goNextLink();
           setLoading(true);
-          window.history.replaceState(
-            { page: nextLink },
-            `Manga ${idManga} - ${nextIdChapter} ${nextIdScan}`,
-            nextLink
-          );
         } else {
           setDisplayFlashScreen(true);
           setTimeout(() => {
@@ -553,6 +575,8 @@ function ViewDetail() {
           displayResetButton={displayResetButton}
           previousLink={previousLink}
           nextLink={nextLink}
+          goNextLink={goNextLink}
+          goPreviousLink={goPreviousLink}
         />
       </>
     );
