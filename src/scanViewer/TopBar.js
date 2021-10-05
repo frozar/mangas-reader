@@ -10,7 +10,7 @@ import NavigationButton from "../NavigationButton";
 import Link from "../Link";
 
 export default function TopBar(props) {
-  const { imagesURL, idManga, idChapter, idScan } = props;
+  const { imagesURL, idManga, idChapter, idScan, goScanAddress } = props;
   const [openGallery, setOpenGallery] = useState(false);
 
   const toggleGallery = () => {
@@ -106,6 +106,7 @@ export default function TopBar(props) {
         idManga={idManga}
         idChapter={idChapter}
         idScan={idScan}
+        goScanAddress={goScanAddress}
       />
     </>
   );

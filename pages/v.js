@@ -365,9 +365,7 @@ function ViewDetail() {
   }, [set]);
 
   const goPreviousLink = useCallback(() => {
-    // console.log("goPreviousLink BEGIN");
     if (!isUndefinedOrNull(previousLink)) {
-      // console.log("goPreviousLink IN IF");
       setIdChapter(previousIdChapter);
       setIdScan(previousIdScan);
       resetPanAndZoom();
@@ -377,13 +375,10 @@ function ViewDetail() {
         previousLink
       );
     }
-    // console.log("goPreviousLink END");
   }, [previousLink, previousIdChapter, previousIdScan]);
 
   const goNextLink = useCallback(() => {
-    // console.log("goNextLink BEGIN");
     if (!isUndefinedOrNull(nextLink)) {
-      // console.log("goNextLink IN IF");
       setIdChapter(nextIdChapter);
       setIdScan(nextIdScan);
       resetPanAndZoom();
@@ -393,7 +388,6 @@ function ViewDetail() {
         nextLink
       );
     }
-    // console.log("goNextLink END");
   }, [nextLink, nextIdChapter, nextIdScan]);
 
   // Replace the URL without using the React 'history' object, in a hacky way :
@@ -446,6 +440,18 @@ function ViewDetail() {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [handleKeyDown]);
+
+  const goScanAddress = useCallback((idManga_, idChapter_, idScan_) => {
+    setIdChapter(idChapter_);
+    setIdScan(idScan_);
+    resetPanAndZoom();
+    const newLink = computeLink(idManga_, idChapter_, idScan_);
+    window.history.replaceState(
+      { page: newLink },
+      `Manga ${idManga_} - ${idChapter_} ${idScan_}`,
+      newLink
+    );
+  }, []);
 
   const duringFlashScreenAnimation = () => {
     const flashScreenRef = flashScreen.current;
@@ -556,6 +562,7 @@ function ViewDetail() {
           idManga={idManga}
           idChapter={idChapter}
           idScan={idScan}
+          goScanAddress={goScanAddress}
         />
         <DisplayImage
           imageURL={imageURL}
