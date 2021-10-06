@@ -7,16 +7,6 @@ import { applicationBaseUrl } from "../../../utils/serverSide/url";
 
 const LELSCANS_ROOT = "lelscans";
 
-async function getMangaChapters(queryPath) {
-  // ***** 0 - Read DB to retrieve manga URL and chapters already scraped
-  const docRef = db.collection(LELSCANS_ROOT).doc(queryPath);
-  const docChapterRef = docRef.collection("chapters").doc("data");
-
-  const docChapters = await docChapterRef.get();
-  const chapters = docChapters.data();
-  return { [queryPath]: chapters };
-}
-
 function oneThumbnailAtLeastIsMissing(chapters) {
   const oneAtLeastIsMissing = Object.values(chapters).some(
     ({ thumbnail }) => thumbnail.length === 0

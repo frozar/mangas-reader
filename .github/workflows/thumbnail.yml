@@ -27,4 +27,4 @@ jobs:
 
       # Runs a single command using the runners shell
       - name: Check thumbnails and recompute if missing or unfetchable
-        run: curl https://manga-scan-reader.vercel.app/api/thumbnails/check
+        run: curl https://europe-west1-manga-b8fb3.cloudfunctions.net/checkThumbnails

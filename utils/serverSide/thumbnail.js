@@ -57,7 +57,10 @@ export async function createThumbnail(uri) {
     if (stats.size === 0) {
       functions.logger.error(`[createThumbnail] ${uri} : file size = 0`);
       fs.unlinkSync(tempFilePath);
-      return [null, "/img/imagePlaceholder.png"];
+      return [
+        null,
+        "https://manga-scan-reader.vercel.app//img/imagePlaceholder.png",
+      ];
     }
     // var fileSizeInBytes = stats.size;
 
