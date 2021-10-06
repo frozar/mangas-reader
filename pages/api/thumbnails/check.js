@@ -92,49 +92,49 @@ export default async (req, res) => {
     }
 
     functions.logger.log(`DBG applicationBaseUrl ${applicationBaseUrl}`);
-    // Limit the number of thumbnail to (re)generate
-    const LIMIT_MAX_THUMBNAIL = 10;
-    // ***** 2 - Check every thumbnail
-    for (const [idManga, chapters] of Object.entries(mangas)) {
-      functions.logger.log(`Check thumbnails for ${idManga}`);
-      if (chapters !== {}) {
-        if (oneThumbnailAtLeastIsMissing(chapters)) {
-          const chapterIndexes = computeMissingThumbnails(chapters).slice(
-            0,
-            LIMIT_MAX_THUMBNAIL
-          );
-          axios.post(
-            applicationBaseUrl + "/api/thumbnails/create",
-            {
-              mangaPath: idManga,
-              chapterIndexes,
-            },
-            {
-              headers: {
-                "Content-Type": "application/json",
-              },
-            }
-          );
-        } else {
-          let chapterIndexes = await fetchableThumbnail(chapters);
-          chapterIndexes = chapterIndexes.slice(0, LIMIT_MAX_THUMBNAIL);
-          if (chapterIndexes.length !== 0) {
-            axios.post(
-              applicationBaseUrl + "/api/thumbnails/recreate",
-              {
-                mangaPath: idManga,
-                chapterIndexes,
-              },
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-          }
-        }
-      }
-    }
+    // // Limit the number of thumbnail to (re)generate
+    // const LIMIT_MAX_THUMBNAIL = 10;
+    // // ***** 2 - Check every thumbnail
+    // for (const [idManga, chapters] of Object.entries(mangas)) {
+    //   functions.logger.log(`Check thumbnails for ${idManga}`);
+    //   if (chapters !== {}) {
+    //     if (oneThumbnailAtLeastIsMissing(chapters)) {
+    //       const chapterIndexes = computeMissingThumbnails(chapters).slice(
+    //         0,
+    //         LIMIT_MAX_THUMBNAIL
+    //       );
+    //       axios.post(
+    //         applicationBaseUrl + "/api/thumbnails/create",
+    //         {
+    //           mangaPath: idManga,
+    //           chapterIndexes,
+    //         },
+    //         {
+    //           headers: {
+    //             "Content-Type": "application/json",
+    //           },
+    //         }
+    //       );
+    //     } else {
+    //       let chapterIndexes = await fetchableThumbnail(chapters);
+    //       chapterIndexes = chapterIndexes.slice(0, LIMIT_MAX_THUMBNAIL);
+    //       if (chapterIndexes.length !== 0) {
+    //         axios.post(
+    //           applicationBaseUrl + "/api/thumbnails/recreate",
+    //           {
+    //             mangaPath: idManga,
+    //             chapterIndexes,
+    //           },
+    //           {
+    //             headers: {
+    //               "Content-Type": "application/json",
+    //             },
+    //           }
+    //         );
+    //       }
+    //     }
+    //   }
+    // }
 
     return res.status(200).send("Check thumbnails DONE\n");
   } catch (error) {
