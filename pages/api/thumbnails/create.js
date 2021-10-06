@@ -62,9 +62,15 @@ export default async (req, res) => {
         indexNThumbnail.push([idx, url]);
       };
 
-      const destFileName = "thumbnails/" + thumbnailFileName;
-      await uploadFile(thumbnailPath, destFileName);
-      fs.unlinkSync(thumbnailPath);
+      if (thumbnailFileName !== null && thumbnailPath !== null) {
+        const destFileName = "thumbnails/" + thumbnailFileName;
+        await uploadFile(thumbnailPath, destFileName);
+        fs.unlinkSync(thumbnailPath);
+      }
+      if (thumbnailFileName === null && thumbnailPath !== null) {
+        functions.logger.log(`[create] ${idx} : thumbnail placeholder`);
+        indexNThumbnail.push([idx, thumbnailPath]);
+      }
     };
 
     // 2.0 - Trigger the creation of all thumbnails
@@ -76,6 +82,7 @@ export default async (req, res) => {
 
     // ***** 3 - Update the chapter field in DB to write
     for (const [idx, url] of indexNThumbnail) {
+      console.log(`[create] ${idx}`);
       chapters[idx].thumbnail = url;
     }
 
@@ -84,7 +91,8 @@ export default async (req, res) => {
 
     return res.status(200).end("OK");
   } catch (error) {
-    functions.error.log("Error", error);
+    functions.logger.error("Error", error);
+    console.error("[create]", error);
     return res.status(400).send(error);
   }
 };

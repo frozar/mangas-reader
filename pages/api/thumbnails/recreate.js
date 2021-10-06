@@ -105,7 +105,8 @@ export default async (req, res) => {
 
     return res.status(200).end("OK");
   } catch (error) {
-    functions.error.log("Error", error);
+    functions.logger.error("Error", error);
+    console.error("[thumbnails-recreate]", error);
     return res.status(400).send(error);
   }
 };

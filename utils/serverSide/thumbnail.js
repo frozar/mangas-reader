@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const spawn = require("child-process-promise").spawn;
+import { functions } from "./firebase";
 
 /**
  * Return he path of a file in storage from a public URL generated
@@ -51,6 +52,14 @@ export async function createThumbnail(uri) {
     const fileName = getFileName(uri);
     const tempFilePath = path.join(os.tmpdir(), fileName);
     await download(uri, tempFilePath);
+    var stats = fs.statSync(tempFilePath);
+    // console.log("stats", stats);
+    if (stats.size === 0) {
+      functions.logger.error(`[createThumbnail] ${uri} : file size = 0`);
+      fs.unlinkSync(tempFilePath);
+      return [null, "/img/imagePlaceholder.png"];
+    }
+    // var fileSizeInBytes = stats.size;
 
     const subDimensions = "200x200>";
     const thumbFileName = `thumbnail_${fileName}`;
@@ -65,7 +74,13 @@ export async function createThumbnail(uri) {
 
     return [thumbFileName, thumbFilePath];
   } catch (error) {
-    functions.logger.error("[createThumbnail] error", error);
+    if (error.response && error.response.status === 403) {
+      functions.logger.error(`[createThumbnail] ${uri} : 403 Forbidden`);
+      return [null, "/img/imagePlaceholder.png"];
+    }
+
+    functions.logger.error(`[createThumbnail] ${uri}`);
+    console.error("[createThumbnail]", error);
     return [null, null];
   }
 }

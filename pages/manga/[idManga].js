@@ -249,7 +249,7 @@ export const getStaticProps = wrapper.getStaticProps(
     // }
     let MAX_STATIC_CHAPTER = 1000;
     if (process.env.NODE_ENV === "development") {
-      MAX_STATIC_CHAPTER = 1;
+      // MAX_STATIC_CHAPTER = 1000;
     }
 
     for (const [idxChapter, details] of Object.entries(chapters).slice(
