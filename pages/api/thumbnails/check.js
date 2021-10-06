@@ -91,6 +91,7 @@ export default async (req, res) => {
       }
     }
 
+    functions.logger.log(`DBG applicationBaseUrl ${applicationBaseUrl}`);
     // Limit the number of thumbnail to (re)generate
     const LIMIT_MAX_THUMBNAIL = 10;
     // ***** 2 - Check every thumbnail
