@@ -81,7 +81,8 @@ export default async (req, res) => {
 
     return res.status(200).send("OK");
   } catch (error) {
-    functions.error.log("Error", error);
+    functions.logger.error("Error", error);
+    console.error("[thumbnail-recreate]", error);
     return res.status(400).send(error);
   }
 };

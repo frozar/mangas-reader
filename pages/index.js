@@ -257,7 +257,7 @@ export const getStaticProps = wrapper.getStaticProps(async ({ store }) => {
       return obj1.title.localeCompare(obj2.title);
     });
     if (process.env.NODE_ENV === "development") {
-      lObjManga = mangas.slice(0, 2);
+      lObjManga = mangas;
     } else {
       lObjManga = mangas;
     }
