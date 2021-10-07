@@ -36,6 +36,8 @@ const useStyles = makeStyles(() => ({
   },
 }));
 
+let nbViewRendering = 0;
+
 /**
  * Just hand the first routing access to the 'view' component.
  *
@@ -271,16 +273,15 @@ function ViewDetail() {
     return <h1>Nothing to show o_O !</h1>;
   }
 
-  const [chapters, setChapters] = useState(null);
-  const [idManga, setIdManga] = useState(null);
-  const [idChapter, setIdChapter] = useState(null);
-  const [idScan, setIdScan] = useState(null);
+  const [state, setState] = useState({
+    chapters: null,
+    idManga: null,
+    idChapter: null,
+    idScan: null,
+  });
+
   const [loading, setLoading] = useState(true);
   const [displayFlashScreen, setDisplayFlashScreen] = useState(false);
-
-  // const setLoading = useCallback((val) => {
-  //   loading = val;
-  // });
 
   // Massive sanity check
   let history = useHistory();
@@ -292,15 +293,17 @@ function ViewDetail() {
         params.idScan
       );
       if (
-        !_.isEqual(chapters, chapters_) ||
-        idManga !== idManga_ ||
-        idChapter !== idChapter_ ||
-        idScan !== idScan_
+        !_.isEqual(state.chapters, chapters_) ||
+        state.idManga !== idManga_ ||
+        state.idChapter !== idChapter_ ||
+        state.idScan !== idScan_
       ) {
-        setChapters(chapters_);
-        setIdManga(idManga_);
-        setIdChapter(idChapter_);
-        setIdScan(idScan_);
+        setState({
+          chapters: chapters_,
+          idManga: idManga_,
+          idChapter: idChapter_,
+          idScan: idScan_,
+        });
         setLoading(true);
       }
       const link = computeLink(idManga_, idChapter_, idScan_);
@@ -322,21 +325,22 @@ function ViewDetail() {
 
   if (
     !(
-      isUndefinedOrNull(chapters) ||
-      isUndefinedOrNull(idManga) ||
-      isUndefinedOrNull(idChapter) ||
-      isUndefinedOrNull(idScan)
+      isUndefinedOrNull(state.chapters) ||
+      isUndefinedOrNull(state.idManga) ||
+      isUndefinedOrNull(state.idChapter) ||
+      isUndefinedOrNull(state.idScan)
     )
   ) {
     if (
-      !isUndefinedOrNull(chapters) &&
-      chapters[idChapter] !== undefined &&
-      chapters[idChapter].content !== undefined
+      !isUndefinedOrNull(state.chapters) &&
+      state.chapters[state.idChapter] !== undefined &&
+      state.chapters[state.idChapter].content !== undefined
     ) {
-      imagesURL = chapters[idChapter].content;
+      imagesURL = state.chapters[state.idChapter].content;
     }
-    if (imagesURL[Number(idScan)] !== undefined) {
-      imageURL = imagesURL[Number(idScan)];
+    if (imagesURL[Number(state.idScan)] !== undefined) {
+      imageURL = imagesURL[Number(state.idScan)];
+      nbViewRendering += 1;
     }
 
     [
@@ -346,7 +350,12 @@ function ViewDetail() {
       previousIdScan,
       nextIdChapter,
       nextIdScan,
-    ] = computePreviousAndNextLink(idManga, idChapter, idScan, chapters);
+    ] = computePreviousAndNextLink(
+      state.idManga,
+      state.idChapter,
+      state.idScan,
+      state.chapters
+    );
   }
 
   const [displayResetButton, setDisplayResetButton] = useState(false);
@@ -366,12 +375,15 @@ function ViewDetail() {
 
   const goPreviousLink = useCallback(() => {
     if (!isUndefinedOrNull(previousLink)) {
-      setIdChapter(previousIdChapter);
-      setIdScan(previousIdScan);
+      setState({
+        ...state,
+        idChapter: previousIdChapter,
+        idScan: previousIdScan,
+      });
       resetPanAndZoom();
       window.history.replaceState(
         { page: previousLink },
-        `Manga ${idManga} - ${previousIdChapter} ${previousIdScan}`,
+        `Manga ${state.idManga} - ${previousIdChapter} ${previousIdScan}`,
         previousLink
       );
     }
@@ -379,12 +391,11 @@ function ViewDetail() {
 
   const goNextLink = useCallback(() => {
     if (!isUndefinedOrNull(nextLink)) {
-      setIdChapter(nextIdChapter);
-      setIdScan(nextIdScan);
+      setState({ ...state, idChapter: nextIdChapter, idScan: nextIdScan });
       resetPanAndZoom();
       window.history.replaceState(
         { page: nextLink },
-        `Manga ${idManga} - ${nextIdChapter} ${nextIdScan}`,
+        `Manga ${state.idManga} - ${nextIdChapter} ${nextIdScan}`,
         nextLink
       );
     }
@@ -442,8 +453,9 @@ function ViewDetail() {
   }, [handleKeyDown]);
 
   const goScanAddress = useCallback((idManga_, idChapter_, idScan_) => {
-    setIdChapter(idChapter_);
-    setIdScan(idScan_);
+    // setIdChapter(idChapter_);
+    // setIdScan(idScan_);
+    setState({ ...state, idChapter: idChapter_, idScan: idScan_ });
     resetPanAndZoom();
     const newLink = computeLink(idManga_, idChapter_, idScan_);
     window.history.replaceState(
@@ -490,10 +502,10 @@ function ViewDetail() {
   // and 10 images before.
   if (
     !(
-      isUndefinedOrNull(chapters) ||
-      isUndefinedOrNull(idManga) ||
-      isUndefinedOrNull(idChapter) ||
-      isUndefinedOrNull(idScan)
+      isUndefinedOrNull(state.chapters) ||
+      isUndefinedOrNull(state.idManga) ||
+      isUndefinedOrNull(state.idChapter) ||
+      isUndefinedOrNull(state.idScan)
     )
   ) {
     const iterateFunc = (
@@ -524,15 +536,33 @@ function ViewDetail() {
         populateCacheImages(imageURL);
       }
     };
-    iterateFunc(idManga, idChapter, idScan, chapters, computeNextLink, 10);
-    iterateFunc(idManga, idChapter, idScan, chapters, computePreviousLink, 10);
+    let nbPrefetch = 1;
+    if (4 < nbViewRendering) {
+      nbPrefetch = 5;
+    }
+    iterateFunc(
+      state.idManga,
+      state.idChapter,
+      state.idScan,
+      state.chapters,
+      computeNextLink,
+      nbPrefetch
+    );
+    iterateFunc(
+      state.idManga,
+      state.idChapter,
+      state.idScan,
+      state.chapters,
+      computePreviousLink,
+      1
+    );
   }
 
   if (
-    isUndefinedOrNull(chapters) ||
-    isUndefinedOrNull(idManga) ||
-    isUndefinedOrNull(idChapter) ||
-    isUndefinedOrNull(idScan)
+    isUndefinedOrNull(state.chapters) ||
+    isUndefinedOrNull(state.idManga) ||
+    isUndefinedOrNull(state.idChapter) ||
+    isUndefinedOrNull(state.idScan)
   ) {
     // TODO: make something better
     return (
@@ -559,9 +589,9 @@ function ViewDetail() {
         ) : null}
         <TopBar
           imagesURL={imagesURL}
-          idManga={idManga}
-          idChapter={idChapter}
-          idScan={idScan}
+          idManga={state.idManga}
+          idChapter={state.idChapter}
+          idScan={state.idScan}
           goScanAddress={goScanAddress}
         />
         <DisplayImage
@@ -574,7 +604,7 @@ function ViewDetail() {
         />
         <ImageCaption
           displayResetButton={displayResetButton}
-          idScan={idScan}
+          idScan={state.idScan}
           totalIdScan={imagesURL.length}
         />
         <ControlBar

@@ -45,7 +45,7 @@ export default function DisplayImage(props) {
       const bodyRect = document.body.getBoundingClientRect();
       const elemRect = scans[0].getBoundingClientRect();
       const offsetTop = elemRect.top - bodyRect.top;
-      window.scrollTo({ top: offsetTop, behavior: "smooth" });
+      window.scrollTo({ top: offsetTop, behavior: "instant" });
     }
   });
 
