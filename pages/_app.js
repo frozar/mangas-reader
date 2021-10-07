@@ -34,6 +34,10 @@ function MyApp(props) {
           name="viewport"
           content="minimum-scale=1, initial-scale=1, width=device-width"
         />
+        <meta
+          name="google-site-verification"
+          content="LuW7fkAHNvmjwwIpthYGrez5cDAHydnuFdQmsKa6ra0"
+        />
       </Head>
       <ThemeProvider theme={theme}>
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
