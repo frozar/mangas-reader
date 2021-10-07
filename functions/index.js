@@ -874,7 +874,6 @@ exports.checkThumbnails = functions
 
       // ***** 1 - Scrap chapters for every manga available in DB
       const toWait = [];
-      idsManga = idsManga.filter((x) => x === "gintama");
       for (const idManga of idsManga) {
         toWait.push(getMangaChapters(idManga));
       }
