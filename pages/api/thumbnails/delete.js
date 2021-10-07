@@ -1,6 +1,6 @@
-import { db, storage, functions } from "../../../utils/serverSide/firebase";
+import { db, functions } from "../../../utils/serverSide/firebase";
 import { setCORSHeader } from "../../../utils/serverSide/request";
-import { thumbnailURLtoStoragePath } from "../../../utils/serverSide/thumbnail";
+import { deleteThumbnailFromStorage } from "../../../utils/serverSide/thumbnail";
 
 const LELSCANS_ROOT = "lelscans";
 
@@ -46,17 +46,10 @@ export default async (req, res) => {
     }
 
     // ***** 2 - Delete thumbnail in bucket
-    const storageBucket = storage.bucket();
     try {
       const toWait = [];
       chapterIndexes.forEach((idx) => {
-        const process = async (idx) => {
-          const thumbnailPath = thumbnailURLtoStoragePath(
-            chapters[idx].thumbnail
-          );
-          await storageBucket.file(thumbnailPath).delete();
-        };
-        toWait.push(process(idx));
+        toWait.push(deleteThumbnailFromStorage(chapters, idx));
       });
       await Promise.all(toWait);
     } catch (error) {

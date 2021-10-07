@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const os = require("os");
 const spawn = require("child-process-promise").spawn;
-import { functions } from "./firebase";
+import { functions, storage } from "./firebase";
 
 /**
  * Return he path of a file in storage from a public URL generated
@@ -12,7 +12,7 @@ import { functions } from "./firebase";
  * @returns path in storage of a thumbnail
  *          ex: thumbnails/thumbnail_gantz_377_RS_gantz_c377_p00.jpg
  */
-export function thumbnailURLtoStoragePath(url) {
+function thumbnailURLtoStoragePath(url) {
   return url.split("?")[0].split("/")[9].replace("%2F", "/");
 }
 
@@ -47,8 +47,9 @@ function getFileName(uri) {
   return fileName;
 }
 
-export async function createThumbnail(uri) {
+async function createThumbnail(uri) {
   try {
+    console.log("[createThumbnail] uri", uri);
     const fileName = getFileName(uri);
     const tempFilePath = path.join(os.tmpdir(), fileName);
     await download(uri, tempFilePath);
@@ -59,7 +60,7 @@ export async function createThumbnail(uri) {
       fs.unlinkSync(tempFilePath);
       return [
         null,
-        "https://manga-scan-reader.vercel.app//img/imagePlaceholder.png",
+        "https://manga-scan-reader.vercel.app/img/imagePlaceholder.png",
       ];
     }
     // var fileSizeInBytes = stats.size;
@@ -85,5 +86,48 @@ export async function createThumbnail(uri) {
     functions.logger.error(`[createThumbnail] ${uri}`);
     console.error("[createThumbnail]", error);
     return [null, null];
+  }
+}
+
+export async function createAndUploadThumbnail(chapters, idx, indexNThumbnail) {
+  const uri = chapters[idx].content[0];
+  const [thumbnailFileName, thumbnailPath] = await createThumbnail(uri);
+
+  const uploadFile = async (filePath, destFileName) => {
+    const storageBucket = storage.bucket();
+    const [resUpload] = await storageBucket.upload(filePath, {
+      destination: destFileName,
+      public: true,
+    });
+
+    const [metadata] = await resUpload.getMetadata();
+    const url = metadata.mediaLink;
+    functions.logger.log("[create] new thumbnail", url);
+    indexNThumbnail.push([idx, url]);
+  };
+
+  if (thumbnailFileName !== null && thumbnailPath !== null) {
+    const destFileName = "thumbnails/" + thumbnailFileName;
+    await uploadFile(thumbnailPath, destFileName);
+    fs.unlinkSync(thumbnailPath);
+  }
+  if (thumbnailFileName === null && thumbnailPath !== null) {
+    functions.logger.log(`[create] ${idx} : thumbnail placeholder`);
+    indexNThumbnail.push([idx, thumbnailPath]);
+  }
+}
+
+export async function deleteThumbnailFromStorage(chapters, idx) {
+  if (chapters[idx].thumbnail !== "") {
+    const storageBucket = storage.bucket();
+    let thumbnailPath;
+    try {
+      thumbnailPath = thumbnailURLtoStoragePath(chapters[idx].thumbnail);
+      await storageBucket.file(thumbnailPath).delete();
+    } catch (error) {
+      functions.logger.error(
+        `[deleteThumbnailFromStorage] Cannot delete "${thumbnailPath}"`
+      );
+    }
   }
 }

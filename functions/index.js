@@ -874,6 +874,7 @@ exports.checkThumbnails = functions
 
       // ***** 1 - Scrap chapters for every manga available in DB
       const toWait = [];
+      idsManga = idsManga.filter((x) => x === "gintama");
       for (const idManga of idsManga) {
         toWait.push(getMangaChapters(idManga));
       }
@@ -893,8 +894,6 @@ exports.checkThumbnails = functions
         }
       }
 
-      functions.logger.log(`DBG applicationBaseUrl ${applicationBaseUrl}`);
-      console.log("DBG", process.env);
       // Limit the number of thumbnail to (re)generate
       const LIMIT_MAX_THUMBNAIL = 10;
       // ***** 2 - Check every thumbnail
@@ -906,24 +905,12 @@ exports.checkThumbnails = functions
               0,
               LIMIT_MAX_THUMBNAIL
             );
-            axios.post(
-              applicationBaseUrl + "/api/thumbnails/create",
-              {
-                mangaPath: idManga,
-                chapterIndexes,
-              },
-              {
-                headers: {
-                  "Content-Type": "application/json",
-                },
-              }
+            functions.logger.log(
+              `${idManga} - computeMissingThumbnails ${chapterIndexes}`
             );
-          } else {
-            let chapterIndexes = await fetchableThumbnail(chapters);
-            chapterIndexes = chapterIndexes.slice(0, LIMIT_MAX_THUMBNAIL);
-            if (chapterIndexes.length !== 0) {
-              axios.post(
-                applicationBaseUrl + "/api/thumbnails/recreate",
+            axios
+              .post(
+                applicationBaseUrl + "/api/thumbnails/create",
                 {
                   mangaPath: idManga,
                   chapterIndexes,
@@ -933,7 +920,44 @@ exports.checkThumbnails = functions
                     "Content-Type": "application/json",
                   },
                 }
+              )
+              .then(() => {
+                functions.logger.log(
+                  "[check - oneThumbnailAtLeastIsMissing] OK"
+                );
+              })
+              .catch((error) => {
+                functions.logger.error(
+                  "[check - oneThumbnailAtLeastIsMissing]",
+                  error
+                );
+              });
+          } else {
+            let chapterIndexes = await fetchableThumbnail(chapters);
+            chapterIndexes = chapterIndexes.slice(0, LIMIT_MAX_THUMBNAIL);
+            if (chapterIndexes.length !== 0) {
+              functions.logger.log(
+                `${idManga} - unfetchableThumbnail ${chapterIndexes}`
               );
+              axios
+                .post(
+                  applicationBaseUrl + "/api/thumbnails/recreate",
+                  {
+                    mangaPath: idManga,
+                    chapterIndexes,
+                  },
+                  {
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                  }
+                )
+                .then(() => {
+                  functions.logger.log("[check - fetchableThumbnail] OK");
+                })
+                .catch((error) => {
+                  functions.logger.error("[check - fetchableThumbnail]", error);
+                });
             }
           }
         }

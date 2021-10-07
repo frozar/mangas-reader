@@ -1,8 +1,6 @@
-const fs = require("fs");
-
-import { db, storage, functions } from "../../../utils/serverSide/firebase";
+import { db, functions } from "../../../utils/serverSide/firebase";
 import { setCORSHeader } from "../../../utils/serverSide/request";
-import { createThumbnail } from "../../../utils/serverSide/thumbnail";
+import { createAndUploadThumbnail } from "../../../utils/serverSide/thumbnail";
 
 const LELSCANS_ROOT = "lelscans";
 
@@ -44,45 +42,17 @@ export default async (req, res) => {
     }
 
     // ***** 2 - Compute thumbnail
-    const indexNThumbnail = [];
-    const process = async (idx) => {
-      const uri = chapters[idx].content[0];
-      const [thumbnailFileName, thumbnailPath] = await createThumbnail(uri);
-
-      const uploadFile = async (filePath, destFileName) => {
-        const storageBucket = storage.bucket();
-        const [resUpload] = await storageBucket.upload(filePath, {
-          destination: destFileName,
-          public: true,
-        });
-
-        const [metadata] = await resUpload.getMetadata();
-        const url = metadata.mediaLink;
-        functions.logger.log("[create] new thumbnail", url);
-        indexNThumbnail.push([idx, url]);
-      };
-
-      if (thumbnailFileName !== null && thumbnailPath !== null) {
-        const destFileName = "thumbnails/" + thumbnailFileName;
-        await uploadFile(thumbnailPath, destFileName);
-        fs.unlinkSync(thumbnailPath);
-      }
-      if (thumbnailFileName === null && thumbnailPath !== null) {
-        functions.logger.log(`[create] ${idx} : thumbnail placeholder`);
-        indexNThumbnail.push([idx, thumbnailPath]);
-      }
-    };
-
     // 2.0 - Trigger the creation of all thumbnails
-    const toWait = [];
+    const indexNThumbnail = [];
+    const toWait1 = [];
     chapterIndexes.forEach((idx) => {
-      toWait.push(process(idx));
+      toWait1.push(createAndUploadThumbnail(chapters, idx, indexNThumbnail));
     });
-    await Promise.all(toWait);
+    await Promise.all(toWait1);
 
     // ***** 3 - Update the chapter field in DB to write
     for (const [idx, url] of indexNThumbnail) {
-      console.log(`[create] ${idx}`);
+      functions.logger.log(`[thumbnails - create] write ${mangaPath} ${idx}`);
       chapters[idx].thumbnail = url;
     }
 

@@ -1,10 +1,8 @@
-const fs = require("fs");
-
-import { db, storage, functions } from "../../../utils/serverSide/firebase";
+import { db, functions } from "../../../utils/serverSide/firebase";
 import { setCORSHeader } from "../../../utils/serverSide/request";
 import {
-  thumbnailURLtoStoragePath,
-  createThumbnail,
+  deleteThumbnailFromStorage,
+  createAndUploadThumbnail,
 } from "../../../utils/serverSide/thumbnail";
 
 const LELSCANS_ROOT = "lelscans";
@@ -39,22 +37,9 @@ export default async (req, res) => {
     const chapters = snapshot.data();
 
     // ***** 2 - Delete thumbnail in bucket
-    const storageBucket = storage.bucket();
     const toWait0 = [];
     for (const idx of chapterIndexes) {
-      const process = async (idx) => {
-        if (chapters[idx].thumbnail !== "") {
-          const thumbnailPath = thumbnailURLtoStoragePath(
-            chapters[idx].thumbnail
-          );
-          try {
-            await storageBucket.file(thumbnailPath).delete();
-          } catch (error) {
-            functions.logger.error("Cannot delete ", thumbnailPath);
-          }
-        }
-      };
-      toWait0.push(process(idx));
+      toWait0.push(deleteThumbnailFromStorage(chapters, idx));
     }
     await Promise.all(toWait0);
     // 2.0 - If chapter has a thumbnail in DB, delete it
@@ -65,38 +50,17 @@ export default async (req, res) => {
     });
 
     // ***** 3 - Compute thumbnail
-    const indexNThumbnail = [];
-    const process = async (idx) => {
-      const uri = chapters[idx].content[0];
-      const [thumbnailFileName, thumbnailPath] = await createThumbnail(uri);
-
-      const uploadFile = async (filePath, destFileName) => {
-        const storageBucket = storage.bucket();
-        const [resUpload] = await storageBucket.upload(filePath, {
-          destination: destFileName,
-          public: true,
-        });
-
-        const [metadata] = await resUpload.getMetadata();
-        const url = metadata.mediaLink;
-        functions.logger.log("[create] new thumbnail", url);
-        indexNThumbnail.push([idx, url]);
-      };
-
-      const destFileName = "thumbnails/" + thumbnailFileName;
-      await uploadFile(thumbnailPath, destFileName);
-      fs.unlinkSync(thumbnailPath);
-    };
-
     // 3.0 - Trigger the creation of all thumbnails
+    const indexNThumbnail = [];
     const toWait1 = [];
     chapterIndexes.forEach((idx) => {
-      toWait1.push(process(idx));
+      toWait1.push(createAndUploadThumbnail(chapters, idx, indexNThumbnail));
     });
     await Promise.all(toWait1);
 
     // ***** 4 - Update the chapter field in DB to write
     for (const [idx, url] of indexNThumbnail) {
+      functions.logger.log(`[thumbnails - recreate] write ${mangaPath} ${idx}`);
       chapters[idx].thumbnail = url;
     }
 
