@@ -36,7 +36,7 @@ const LIMIT_MAX_CHAPTER = 8;
 const applicationBaseUrl =
   process.env.NODE_ENV === "development"
     ? "http://localhost:3000"
-    : "https://manga-scan-reader.vercel.app";
+    : "https://mangas-reader.vercel.app";
 
 /**
  * For a given manga, returns the number of chapter in this manga.
