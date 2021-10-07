@@ -18,6 +18,8 @@ import DisplayImage from "../src/scanViewer/DisplayImage";
 import ImageCaption from "../src/scanViewer/ImageCaption";
 import ControlBar from "../src/scanViewer/ControlBar";
 
+import titleCase from "../utils/titleCase";
+
 const useStyles = makeStyles(() => ({
   flashScreen: {
     position: "fixed",
@@ -554,7 +556,7 @@ function ViewDetail() {
       state.idScan,
       state.chapters,
       computePreviousLink,
-      1
+      nbPrefetch
     );
   }
 
@@ -569,6 +571,11 @@ function ViewDetail() {
       <>
         <Helmet>
           <style>{"body { background-color: black; }"}</style>
+          <meta
+            name="google-site-verification"
+            content="LuW7fkAHNvmjwwIpthYGrez5cDAHydnuFdQmsKa6ra0"
+          />
+          <meta name="robots" content="all" />
         </Helmet>
         <h3 style={{ color: "white" }}>
           ID: params {params.idManga} {params.idChapter} {params.idScan}
@@ -583,6 +590,16 @@ function ViewDetail() {
       <>
         <Helmet>
           <style>{"body { background-color: black; }"}</style>
+          <meta
+            name="google-site-verification"
+            content="LuW7fkAHNvmjwwIpthYGrez5cDAHydnuFdQmsKa6ra0"
+          />
+          <meta name="robots" content="all" />
+          <title>
+            {`${titleCase(state.idManga.replaceAll("-", " "))} - ${
+              state.idChapter
+            } - ${state.idScan} | Mangas reader`}
+          </title>
         </Helmet>
         {displayFlashScreen ? (
           <div ref={flashScreen} className={classes.flashScreen} />
