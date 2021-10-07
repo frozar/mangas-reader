@@ -1,5 +1,6 @@
 import React from "react";
 // import axios from "axios";
+import Head from "next/head";
 
 // import history from "../history";
 import Link from "../../src/Link";
@@ -39,40 +40,52 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-function oneThumbnailAtLeastIsMissing(chapters) {
-  const oneAtLeastIsMissing = Object.values(chapters).some(
-    ({ thumbnail }) => thumbnail.length === 0
-  );
-  return oneAtLeastIsMissing;
-}
+// function oneThumbnailAtLeastIsMissing(chapters) {
+//   const oneAtLeastIsMissing = Object.values(chapters).some(
+//     ({ thumbnail }) => thumbnail.length === 0
+//   );
+//   return oneAtLeastIsMissing;
+// }
 
-function computeMissingThumbnails(chapters) {
-  const chaptersIdxMissingThumbnail = Object.entries(chapters)
-    .map(([idxChapter, { thumbnail }]) => {
-      return thumbnail.length === 0 ? idxChapter : null;
-    })
-    .filter((x) => x);
-  return chaptersIdxMissingThumbnail;
-}
+// function computeMissingThumbnails(chapters) {
+//   const chaptersIdxMissingThumbnail = Object.entries(chapters)
+//     .map(([idxChapter, { thumbnail }]) => {
+//       return thumbnail.length === 0 ? idxChapter : null;
+//     })
+//     .filter((x) => x);
+//   return chaptersIdxMissingThumbnail;
+// }
 
-async function fetchableThumbnail(chapters) {
-  const indexesRecomputeThumbnails = [];
-  const toWait = [];
-  for (const idx of Object.keys(chapters)) {
-    const process = async (idx) => {
-      try {
-        const res = await fetch(chapters[idx].thumbnail);
-        if (res.status !== 200) {
-          indexesRecomputeThumbnails.push(idx);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    };
-    toWait.push(process(idx));
+// async function fetchableThumbnail(chapters) {
+//   const indexesRecomputeThumbnails = [];
+//   const toWait = [];
+//   for (const idx of Object.keys(chapters)) {
+//     const process = async (idx) => {
+//       try {
+//         const res = await fetch(chapters[idx].thumbnail);
+//         if (res.status !== 200) {
+//           indexesRecomputeThumbnails.push(idx);
+//         }
+//       } catch (error) {
+//         console.error(error);
+//       }
+//     };
+//     toWait.push(process(idx));
+//   }
+//   await Promise.all(toWait);
+//   return indexesRecomputeThumbnails;
+// }
+
+function titleCase(str) {
+  var splitStr = str.toLowerCase().split(" ");
+  for (var i = 0; i < splitStr.length; i++) {
+    // You do not need to check if i is larger than splitStr length, as your for does that for you
+    // Assign it back to the array
+    splitStr[i] =
+      splitStr[i].charAt(0).toUpperCase() + splitStr[i].substring(1);
   }
-  await Promise.all(toWait);
-  return indexesRecomputeThumbnails;
+  // Directly return the joined string
+  return splitStr.join(" ");
 }
 
 function SelectChapter(props) {
@@ -157,6 +170,12 @@ function SelectChapter(props) {
 
   return (
     <div className={classes.container}>
+      <Head>
+        <title>
+          Mangas reader - Lecture de manga gratuit -{" "}
+          {titleCase(idManga.replace("-", " "))}
+        </title>
+      </Head>
       {/* <AddCount /> */}
       {/* <div>
           <style jsx>{`

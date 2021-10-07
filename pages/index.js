@@ -1,5 +1,6 @@
 import React from "react";
 // import dynamic from "next/dynamic";
+import Head from "next/head";
 
 import { makeStyles } from "@material-ui/core/styles";
 // import { ThemeProvider } from "@material-ui/core/styles";
@@ -187,6 +188,10 @@ function Index(props) {
   // console.log("cards", cards);
   return (
     <div className={classes.container}>
+      <Head>
+        <title>Mangas reader - Lecture de manga gratuit en ligne</title>
+        <meta name="google" content="notranslate" key="notranslate" />
+      </Head>
       {/* <AddCount /> */}
       <Typography variant="h1" className={classes.title}>
         Choisis ton manga

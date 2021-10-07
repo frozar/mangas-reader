@@ -37,6 +37,7 @@ function MyApp(props) {
           name="google-site-verification"
           content="LuW7fkAHNvmjwwIpthYGrez5cDAHydnuFdQmsKa6ra0"
         />
+        <meta name="robots" content="all" />
       </Head>
       <ThemeProvider theme={theme}>
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
