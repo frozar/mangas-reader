@@ -16,7 +16,6 @@ import { wrapper } from "../store/store";
 
 function MyApp(props) {
   const { Component, pageProps } = props;
-  // const store = useStore(pageProps.initialReduxState);
 
   React.useEffect(() => {
     // Remove the server-side injected CSS.
