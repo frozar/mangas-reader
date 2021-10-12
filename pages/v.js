@@ -362,17 +362,20 @@ function ViewDetail() {
 
   const [displayResetButton, setDisplayResetButton] = useState(false);
 
-  const [{ x, y, zoom, scale }, springApi] = useSpring(() => ({
+  const [{ x, y, zoom }, springApi] = useSpring(() => ({
     x: 0,
     y: 0,
-    zoom: 0,
-    scale: 1,
+    zoom: 1,
     // config: { mass: 5, tension: 1350, friction: 150 },
     config: { mass: 5, tension: 900, friction: 100 },
   }));
 
   const resetPanAndZoom = useCallback(() => {
-    springApi.start({ x: 0, y: 0, zoom: 0, scale: 1 });
+    springApi.start({
+      x: 0,
+      y: 0,
+      zoom: 1,
+    });
     setDisplayResetButton(false);
   }, [springApi]);
 
@@ -614,9 +617,13 @@ function ViewDetail() {
         />
         <DisplayImage
           imageURL={imageURL}
-          // springApi={springApi}
           setDisplayResetButton={setDisplayResetButton}
-          springDict={{ x, y, zoom, scale, springApi }}
+          springDict={{
+            x,
+            y,
+            zoom,
+            springApi,
+          }}
           loading={loading}
           setLoading={setLoading}
         />
