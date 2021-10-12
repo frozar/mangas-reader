@@ -29,6 +29,8 @@ export default function DisplayImage(props) {
     setResetPanAndZoom,
     loading,
     setLoading,
+    goPreviousLink,
+    goNextLink,
   } = props;
 
   const domTarget = useRef(null);
@@ -54,7 +56,6 @@ export default function DisplayImage(props) {
 
   useEffect(() => {
     if (isMobileFunc(navigator.userAgent || navigator.vendor || window.opera)) {
-      // setMobileHeight("73vh");
       setIsMobile(true);
     }
   }, []);
@@ -81,10 +82,32 @@ export default function DisplayImage(props) {
 
   useGesture(
     {
-      onDrag: ({ movement: [mx, my], down }) => {
+      onDrag: ({
+        // displacement between offset and lastOffset
+        movement: [mx, my],
+        // true when a mouse button or touch is down
+        down,
+        // [swipeX, swipeY] 0 if no swipe detected, -1 or 1 otherwise
+        swipe: [swipeX],
+        // // is the drag assimilated to a tap
+        // tap,
+      }) => {
         if (down) {
-          springApi.start({ x: mx, y: my });
-          setDisplayResetButton(true);
+          if (swipeX !== 0) {
+            if (swipeX > 0) {
+              if (zoom.get() === 1) {
+                goPreviousLink();
+              }
+            }
+            if (swipeX < 0) {
+              if (zoom.get() === 1) {
+                goNextLink();
+              }
+            }
+          } else {
+            springApi.start({ x: mx, y: my });
+            setDisplayResetButton(true);
+          }
         }
       },
       onPinch: ({
@@ -128,10 +151,13 @@ export default function DisplayImage(props) {
           left: -600,
           right: 600,
           top: -800,
-          // bottom: bottomLimit * factor,
           bottom: 800,
+          // left: 0,
+          // right: 0,
+          // top: 0,
+          // bottom: 0,
         },
-        // rubberband: true,
+        rubberband: true,
         // swipeDistance: 20,
         // swipeVelocity: 0.01,
         // swipeDuration: 1000,

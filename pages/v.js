@@ -264,7 +264,10 @@ function goToLink(
   state,
   setState,
   setResetPanAndZoom,
-  setDisplayResetButton
+  setDisplayResetButton,
+  setLoading,
+  setDisplayFlashScreen,
+  duringFlashScreenAnimation
 ) {
   if (!isUndefinedOrNull(link)) {
     setState({
@@ -280,6 +283,13 @@ function goToLink(
       `Manga ${state.idManga} - ${idChapter} ${idScan}`,
       link
     );
+    setLoading(true);
+  } else {
+    setDisplayFlashScreen(true);
+    setResetPanAndZoom(true);
+    setTimeout(() => {
+      duringFlashScreenAnimation();
+    }, 0);
   }
 }
 
@@ -288,8 +298,6 @@ function ViewDetail() {
   const params = useParams();
 
   const classes = useStyles();
-
-  const flashScreen = useRef(null);
 
   if (
     isUndefinedOrNull(params.idManga) ||
@@ -305,6 +313,8 @@ function ViewDetail() {
     idChapter: null,
     idScan: null,
   });
+
+  const flashScreen = useRef(null);
 
   const [loading, setLoading] = useState(true);
   const [displayFlashScreen, setDisplayFlashScreen] = useState(false);
@@ -396,7 +406,10 @@ function ViewDetail() {
       state,
       setState,
       setResetPanAndZoom,
-      setDisplayResetButton
+      setDisplayResetButton,
+      setLoading,
+      setDisplayFlashScreen,
+      duringFlashScreenAnimation
     );
   }, [previousLink, previousIdChapter, previousIdScan]);
 
@@ -408,7 +421,10 @@ function ViewDetail() {
       state,
       setState,
       setResetPanAndZoom,
-      setDisplayResetButton
+      setDisplayResetButton,
+      setLoading,
+      setDisplayFlashScreen,
+      duringFlashScreenAnimation
     );
   }, [nextLink, nextIdChapter, nextIdScan]);
 
@@ -419,25 +435,9 @@ function ViewDetail() {
   const handleKeyDown = useCallback(
     (evt) => {
       if (evt.key === "ArrowLeft") {
-        if (!isUndefinedOrNull(previousLink)) {
-          goPreviousLink();
-          setLoading(true);
-        } else {
-          setDisplayFlashScreen(true);
-          setTimeout(() => {
-            duringFlashScreenAnimation();
-          }, 0);
-        }
+        goPreviousLink();
       } else if (evt.key === "ArrowRight") {
-        if (!isUndefinedOrNull(nextLink)) {
-          goNextLink();
-          setLoading(true);
-        } else {
-          setDisplayFlashScreen(true);
-          setTimeout(() => {
-            duringFlashScreenAnimation();
-          }, 0);
-        }
+        goNextLink();
       } else if (evt.key === "f") {
         if (!document.fullscreenElement) {
           document.documentElement.requestFullscreen();
@@ -463,18 +463,20 @@ function ViewDetail() {
     };
   }, [handleKeyDown]);
 
-  const goScanAddress = useCallback((idManga_, idChapter_, idScan_) => {
-    // setIdChapter(idChapter_);
-    // setIdScan(idScan_);
-    setState({ ...state, idChapter: idChapter_, idScan: idScan_ });
-    resetPanAndZoom();
-    const newLink = computeLink(idManga_, idChapter_, idScan_);
-    window.history.replaceState(
-      { page: newLink },
-      `Manga ${idManga_} - ${idChapter_} ${idScan_}`,
-      newLink
-    );
-  }, []);
+  const goScanAddress = useCallback(
+    (idManga_, idChapter_, idScan_) => {
+      setState({ ...state, idChapter: idChapter_, idScan: idScan_ });
+      setResetPanAndZoom(true);
+      setDisplayResetButton(false);
+      const newLink = computeLink(idManga_, idChapter_, idScan_);
+      window.history.replaceState(
+        { page: newLink },
+        `Manga ${idManga_} - ${idChapter_} ${idScan_}`,
+        newLink
+      );
+    },
+    [state]
+  );
 
   const duringFlashScreenAnimation = () => {
     const flashScreenRef = flashScreen.current;
@@ -628,6 +630,8 @@ function ViewDetail() {
           setResetPanAndZoom={setResetPanAndZoom}
           loading={loading}
           setLoading={setLoading}
+          goPreviousLink={goPreviousLink}
+          goNextLink={goNextLink}
         />
         <ControlBar
           idScan={state.idScan}
@@ -644,30 +648,4 @@ function ViewDetail() {
       </>
     );
   }
-}
-
-{
-  /* <div style={{ color: "white" }}>
-  <h3>
-    ID: params {params.idManga} {params.idChapter} {params.idScan}
-  </h3>
-  <h3>
-    ID: local variable {idManga} {idChapter} {idScan}
-  </h3>
-  <h3>previousLink: {previousLink}</h3>
-  <h3>nextLink: {nextLink}</h3>
-  <h3>
-    imagesURL:
-    <ul>
-      {imagesURL.map((url) => {
-        return <li key={url}>{url}</li>;
-      })}
-    </ul>
-  </h3>
-  <h3>imageURL: {imageURL}</h3>
-  <h3>previousIdChapter: {previousIdChapter}</h3>
-  <h3>previousIdScan: {previousIdScan}</h3>
-  <h3>nextIdChapter: {nextIdChapter}</h3>
-  <h3>nextIdScan: {nextIdScan}</h3>
-</div> */
 }
