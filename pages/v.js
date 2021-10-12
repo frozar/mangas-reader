@@ -362,18 +362,19 @@ function ViewDetail() {
 
   const [displayResetButton, setDisplayResetButton] = useState(false);
 
-  const [{ x, y, zoom, scale }, set] = useSpring(() => ({
+  const [{ x, y, zoom, scale }, springApi] = useSpring(() => ({
     x: 0,
     y: 0,
     zoom: 0,
     scale: 1,
-    config: { mass: 5, tension: 1350, friction: 150 },
+    // config: { mass: 5, tension: 1350, friction: 150 },
+    config: { mass: 5, tension: 900, friction: 100 },
   }));
 
   const resetPanAndZoom = useCallback(() => {
-    set.start({ x: 0, y: 0, zoom: 0, scale: 1 });
+    springApi.start({ x: 0, y: 0, zoom: 0, scale: 1 });
     setDisplayResetButton(false);
-  }, [set]);
+  }, [springApi]);
 
   const goPreviousLink = useCallback(() => {
     if (!isUndefinedOrNull(previousLink)) {
@@ -613,9 +614,9 @@ function ViewDetail() {
         />
         <DisplayImage
           imageURL={imageURL}
-          set={set}
+          // springApi={springApi}
           setDisplayResetButton={setDisplayResetButton}
-          springDict={{ x, y, zoom, scale }}
+          springDict={{ x, y, zoom, scale, springApi }}
           loading={loading}
           setLoading={setLoading}
         />

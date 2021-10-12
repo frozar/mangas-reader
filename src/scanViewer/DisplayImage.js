@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { animated, to } from "react-spring";
 import { useGesture } from "react-use-gesture";
+import { Helmet } from "react-helmet";
 
 import Grid from "@material-ui/core/Grid";
 
@@ -20,13 +21,13 @@ const isMobileFunc = function (a) {
 export default function DisplayImage(props) {
   const {
     imageURL,
-    set,
+    // springApi,
     setDisplayResetButton,
     springDict,
     loading,
     setLoading,
   } = props;
-  const { x, y, zoom, scale } = springDict;
+  const { x, y, zoom, scale, springApi } = springDict;
   const domTarget = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
   // const loading = false;
@@ -39,6 +40,7 @@ export default function DisplayImage(props) {
     }
   }, []);
 
+  // TODO: remove address bar on mobile
   const updateDisplayScroll = useCallback(() => {
     if (!isMobile) {
       const scans = Array.from(document.querySelectorAll("#scan"));
@@ -46,6 +48,9 @@ export default function DisplayImage(props) {
       const elemRect = scans[0].getBoundingClientRect();
       const offsetTop = elemRect.top - bodyRect.top;
       window.scrollTo({ top: offsetTop, behavior: "instant" });
+    } else {
+      window.scrollTo(0, 1);
+      console.log("After scroll");
     }
   });
 
@@ -70,11 +75,45 @@ export default function DisplayImage(props) {
     {
       onDrag: ({ movement: [mx, my], down }) => {
         if (down) {
-          set.start({ x: mx, y: my });
+          springApi.start({ x: mx, y: my });
           setDisplayResetButton(true);
+          // if (isMobile) {
+          //   if (!document.fullscreenElement) {
+          //     document.documentElement
+          //       .requestFullscreen()
+          //       .then((res) => {
+          //         console.log("res", res);
+          //       })
+          //       .catch((error) => {
+          //         console.log("error", error);
+          //       });
+          //   }
+          // }
         }
       },
-      onPinch: ({ offset: [dist] }) => {
+      onPinch: ({
+        // // [d,a] absolute distance and angle of the two pointers
+        // da: [distance, angle],
+        initial: [initDistance],
+        memo,
+        // // coordinates of the center between the two touch event
+        // origin,
+        // [scale, angle] offsets (starts withs scale=1)
+        offset: [scaleOffset],
+        // lastOffset: [scaleLastOffset, angleLastOffset],
+      }) => {
+        // console.log("onPinch memo", memo);
+        // console.log("onPinch distance", distance);
+        // console.log("onPinch initDistance", initDistance);
+        // console.log("onPinch formule", distance - initDistance);
+        // console.log("onPinch scaleOffset", scaleOffset);
+        // console.log("onPinch scaleLastOffset", scaleLastOffset);
+        // const zoom = distance / initDistance - 1;
+        // const zoom = scaleOffset;
+        const zoom = (scaleOffset + initDistance) / initDistance - 1;
+        console.log("onPinch zoom", zoom);
+        // console.log("onPinch set.current", set.current);
+        springApi({ zoom: zoom });
         // console.log("useGesture props", props);
         // Limit negative zoom
         // console.log("useGesture distanceBounds", distanceBounds);
@@ -83,9 +122,10 @@ export default function DisplayImage(props) {
         // const clampedZoom = Math.max(0, dist / 2000);
         // console.log("useGesture dist / 2000", dist / 2000);
         // console.log("useGesture zoom", zoom.animation.to);
-        set({ zoom: dist / 2000 });
+        // set({ zoom: scaleOffset / 2000 });
         // set({ zoom: clampedZoom });
         setDisplayResetButton(true);
+        return zoom;
       },
     },
     {
@@ -118,72 +158,85 @@ export default function DisplayImage(props) {
   );
 
   return (
-    <Grid
-      container
-      justify="center"
-      alignItems="center"
-      style={{
-        marginBottom: "0.5em",
-        position: "relative",
-        overflow: "hidden",
-        height: "fit-content",
-        minHeight: "80vh",
-      }}
-    >
-      <Grid item>
-        <animated.img
-          ref={domTarget}
-          id="scan"
-          style={{
-            x,
-            y,
-            touchAction: "none",
-            marginLeft: "auto",
-            marginRight: "auto",
-            display: "block",
-            border: "4px solid white",
-            maxWidth: "98vw",
-            maxHeight: "96vh",
-            scale: to([scale, zoom], (s, z) => s + z),
-            objectFit: "contain",
-          }}
-          alt="manga"
-          src={imageURL}
-          onDragStart={(e) => {
-            e.preventDefault();
-          }}
-          onContextMenu={(e) => {
-            e.preventDefault();
-          }}
-          onLoad={imageLoaded}
-        />
-        {loading ? (
-          <>
-            <div
-              style={{
-                position: "absolute",
-                left: 0,
-                right: 0,
-                top: 0,
-                bottom: 0,
-                height: "100%",
-                // Dark background
-                background: "#0008",
-              }}
-            />
-            <WaitingComponent
-              loading={true}
-              style={{
-                color: "white",
-                position: "absolute",
-                top: "30%",
-                left: "50%",
-                right: "50%",
-              }}
-            />
-          </>
-        ) : null}
+    <>
+      {isMobile && (
+        <Helmet>
+          {/* <meta name="apple-mobile-web-app-capable" content="yes" /> */}
+          {/* <style>
+            {
+              "html {overflow: hidden; width: 100%;} body { height: 100%; position: fixed; overflow-y: scroll; -webkit-overflow-scrolling: touch; }"
+            }
+          </style> */}
+        </Helmet>
+      )}
+      <Grid
+        container
+        justify="center"
+        alignItems="center"
+        // alignItems="flex-start"
+        style={{
+          marginBottom: "0.5em",
+          position: "relative",
+          overflow: "hidden",
+          height: "fit-content",
+          minHeight: "80vh",
+        }}
+      >
+        <Grid item>
+          <animated.img
+            ref={domTarget}
+            id="scan"
+            style={{
+              x,
+              y,
+              touchAction: "none",
+              marginLeft: "auto",
+              marginRight: "auto",
+              display: "block",
+              border: "4px solid white",
+              maxWidth: "98vw",
+              maxHeight: "96vh",
+              scale: to([scale, zoom], (scale, zoom) => 1 + zoom),
+              objectFit: "contain",
+            }}
+            alt="manga"
+            src={imageURL}
+            onDragStart={(e) => {
+              e.preventDefault();
+            }}
+            onContextMenu={(e) => {
+              e.preventDefault();
+            }}
+            onLoad={imageLoaded}
+          />
+          {loading ? (
+            <>
+              <div
+                style={{
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  height: "100%",
+                  // Dark background
+                  background: "#0008",
+                }}
+              />
+              <WaitingComponent
+                loading={true}
+                style={{
+                  color: "white",
+                  position: "absolute",
+                  top: "30%",
+                  left: "50%",
+                  right: "50%",
+                }}
+              />
+            </>
+          ) : null}
+        </Grid>
       </Grid>
-    </Grid>
+    </>
   );
 }
