@@ -42,7 +42,6 @@ export default function DisplayImage(props) {
   }));
 
   useEffect(() => {
-    console.log("resetPanAndZoom", resetPanAndZoom);
     if (resetPanAndZoom) {
       springApi({
         x: 0,

@@ -14,7 +14,6 @@ import { makeStyles } from "@material-ui/core/styles";
 import { getMangaChapters } from "../src/db";
 import TopBar from "../src/scanViewer/TopBar";
 import DisplayImage from "../src/scanViewer/DisplayImage";
-import ImageCaption from "../src/scanViewer/ImageCaption";
 import ControlBar from "../src/scanViewer/ControlBar";
 
 import titleCase from "../utils/titleCase";
@@ -258,6 +257,32 @@ function populateCacheImages(url) {
   }
 }
 
+function goToLink(
+  link,
+  idChapter,
+  idScan,
+  state,
+  setState,
+  setResetPanAndZoom,
+  setDisplayResetButton
+) {
+  if (!isUndefinedOrNull(link)) {
+    setState({
+      ...state,
+      idChapter: idChapter,
+      idScan: idScan,
+    });
+
+    setResetPanAndZoom(true);
+    setDisplayResetButton(false);
+    window.history.replaceState(
+      { page: link },
+      `Manga ${state.idManga} - ${idChapter} ${idScan}`,
+      link
+    );
+  }
+}
+
 function ViewDetail() {
   // Initially, retrieve input parameters from the route.
   const params = useParams();
@@ -364,35 +389,27 @@ function ViewDetail() {
   const [resetPanAndZoom, setResetPanAndZoom] = useState(false);
 
   const goPreviousLink = useCallback(() => {
-    if (!isUndefinedOrNull(previousLink)) {
-      setState({
-        ...state,
-        idChapter: previousIdChapter,
-        idScan: previousIdScan,
-      });
-
-      setResetPanAndZoom(true);
-      setDisplayResetButton(false);
-      window.history.replaceState(
-        { page: previousLink },
-        `Manga ${state.idManga} - ${previousIdChapter} ${previousIdScan}`,
-        previousLink
-      );
-    }
+    goToLink(
+      previousLink,
+      previousIdChapter,
+      previousIdScan,
+      state,
+      setState,
+      setResetPanAndZoom,
+      setDisplayResetButton
+    );
   }, [previousLink, previousIdChapter, previousIdScan]);
 
   const goNextLink = useCallback(() => {
-    if (!isUndefinedOrNull(nextLink)) {
-      setState({ ...state, idChapter: nextIdChapter, idScan: nextIdScan });
-
-      setResetPanAndZoom(true);
-      setDisplayResetButton(false);
-      window.history.replaceState(
-        { page: nextLink },
-        `Manga ${state.idManga} - ${nextIdChapter} ${nextIdScan}`,
-        nextLink
-      );
-    }
+    goToLink(
+      nextLink,
+      nextIdChapter,
+      nextIdScan,
+      state,
+      setState,
+      setResetPanAndZoom,
+      setDisplayResetButton
+    );
   }, [nextLink, nextIdChapter, nextIdScan]);
 
   // Replace the URL without using the React 'history' object, in a hacky way :
@@ -612,19 +629,18 @@ function ViewDetail() {
           loading={loading}
           setLoading={setLoading}
         />
-        <ImageCaption
-          displayResetButton={displayResetButton}
+        <ControlBar
           idScan={state.idScan}
           totalIdScan={imagesURL.length}
-        />
-        <ControlBar
-          resetPanAndZoom={resetPanAndZoom}
+          setResetPanAndZoom={setResetPanAndZoom}
           displayResetButton={displayResetButton}
+          setDisplayResetButton={setDisplayResetButton}
           previousLink={previousLink}
           nextLink={nextLink}
           goNextLink={goNextLink}
           goPreviousLink={goPreviousLink}
         />
+        <div style={{ marginBottom: "5em" }} />
       </>
     );
   }
