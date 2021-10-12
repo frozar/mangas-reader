@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { animated, to } from "react-spring";
+import { useSpring, animated, to } from "react-spring";
 import { useGesture } from "react-use-gesture";
 
 import Grid from "@material-ui/core/Grid";
@@ -24,17 +24,34 @@ export default function DisplayImage(props) {
     imageURL,
     displayResetButton,
     setDisplayResetButton,
-    springDict,
+
+    resetPanAndZoom,
+    setResetPanAndZoom,
     loading,
     setLoading,
   } = props;
-  const { x, y, zoom, springApi } = springDict;
+
   const domTarget = useRef(null);
   const [isMobile, setIsMobile] = useState(false);
-  // const loading = false;
-  // const [loading, setLoading] = useState(true);
 
-  // const [transformOrigin, setTranfomrOrigin] = React.useState([0, 0]);
+  const [{ x, y, zoom }, springApi] = useSpring(() => ({
+    x: 0,
+    y: 0,
+    zoom: 1,
+    config: { mass: 5, tension: 900, friction: 100 },
+  }));
+
+  useEffect(() => {
+    console.log("resetPanAndZoom", resetPanAndZoom);
+    if (resetPanAndZoom) {
+      springApi({
+        x: 0,
+        y: 0,
+        zoom: 1,
+      });
+      setResetPanAndZoom(false);
+    }
+  }, [resetPanAndZoom]);
 
   useEffect(() => {
     if (isMobileFunc(navigator.userAgent || navigator.vendor || window.opera)) {

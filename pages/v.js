@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import _ from "lodash";
-import { useSpring } from "react-spring";
 import { Helmet } from "react-helmet";
 
 import {
@@ -362,22 +361,7 @@ function ViewDetail() {
 
   const [displayResetButton, setDisplayResetButton] = useState(false);
 
-  const [{ x, y, zoom }, springApi] = useSpring(() => ({
-    x: 0,
-    y: 0,
-    zoom: 1,
-    // config: { mass: 5, tension: 1350, friction: 150 },
-    config: { mass: 5, tension: 900, friction: 100 },
-  }));
-
-  const resetPanAndZoom = useCallback(() => {
-    springApi({
-      x: 0,
-      y: 0,
-      zoom: 1,
-    });
-    setDisplayResetButton(false);
-  }, [springApi]);
+  const [resetPanAndZoom, setResetPanAndZoom] = useState(false);
 
   const goPreviousLink = useCallback(() => {
     if (!isUndefinedOrNull(previousLink)) {
@@ -386,7 +370,9 @@ function ViewDetail() {
         idChapter: previousIdChapter,
         idScan: previousIdScan,
       });
-      resetPanAndZoom();
+
+      setResetPanAndZoom(true);
+      setDisplayResetButton(false);
       window.history.replaceState(
         { page: previousLink },
         `Manga ${state.idManga} - ${previousIdChapter} ${previousIdScan}`,
@@ -398,7 +384,9 @@ function ViewDetail() {
   const goNextLink = useCallback(() => {
     if (!isUndefinedOrNull(nextLink)) {
       setState({ ...state, idChapter: nextIdChapter, idScan: nextIdScan });
-      resetPanAndZoom();
+
+      setResetPanAndZoom(true);
+      setDisplayResetButton(false);
       window.history.replaceState(
         { page: nextLink },
         `Manga ${state.idManga} - ${nextIdChapter} ${nextIdScan}`,
@@ -619,12 +607,8 @@ function ViewDetail() {
           imageURL={imageURL}
           displayResetButton={displayResetButton}
           setDisplayResetButton={setDisplayResetButton}
-          springDict={{
-            x,
-            y,
-            zoom,
-            springApi,
-          }}
+          resetPanAndZoom={resetPanAndZoom}
+          setResetPanAndZoom={setResetPanAndZoom}
           loading={loading}
           setLoading={setLoading}
         />
