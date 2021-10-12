@@ -371,7 +371,7 @@ function ViewDetail() {
   }));
 
   const resetPanAndZoom = useCallback(() => {
-    springApi.start({
+    springApi({
       x: 0,
       y: 0,
       zoom: 1,
@@ -617,6 +617,7 @@ function ViewDetail() {
         />
         <DisplayImage
           imageURL={imageURL}
+          displayResetButton={displayResetButton}
           setDisplayResetButton={setDisplayResetButton}
           springDict={{
             x,

@@ -17,15 +17,12 @@ const isMobileFunc = function (a) {
   return res;
 };
 
-let lastZoom = 1;
 let currentZoom = 1;
-// let transformOriginX = 0;
-// let transformOriginY = 0;
 
 export default function DisplayImage(props) {
   const {
     imageURL,
-    // springApi,
+    displayResetButton,
     setDisplayResetButton,
     springDict,
     loading,
@@ -83,22 +80,23 @@ export default function DisplayImage(props) {
         let effectiveZoom = 1;
         let zoomInc = 1 + (distance - initDistance) / initDistance;
         if (memo === undefined) {
-          currentZoom = lastZoom;
-          effectiveZoom = Math.min(2, Math.max(1, currentZoom * zoomInc));
-        } else {
-          effectiveZoom = Math.min(2, Math.max(1, currentZoom * zoomInc));
-          lastZoom = effectiveZoom;
+          currentZoom = zoom.get();
         }
+        effectiveZoom = Math.min(2, Math.max(1, currentZoom * zoomInc));
         springApi({ zoom: effectiveZoom });
 
         if (effectiveZoom === 1.0) {
-          setDisplayResetButton(false);
+          if (displayResetButton) {
+            setDisplayResetButton(false);
+          }
           springApi({ x: 0, y: 0 });
         } else {
-          setDisplayResetButton(true);
+          if (!displayResetButton) {
+            setDisplayResetButton(true);
+          }
         }
 
-        return lastZoom;
+        return effectiveZoom;
       },
     },
     {
