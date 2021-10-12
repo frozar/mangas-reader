@@ -6,7 +6,7 @@ import Grid from "@material-ui/core/Grid";
 import KeyboardArrowLeftRoundedIcon from "@material-ui/icons/KeyboardArrowLeftRounded";
 import KeyboardArrowRightRoundedIcon from "@material-ui/icons/KeyboardArrowRightRounded";
 import RotateLeftRoundedIcon from "@material-ui/icons/RotateLeftRounded";
-
+import Typography from "@material-ui/core/Typography";
 // import Link from "../Link";
 
 // import { Link } from "react-router-dom";
@@ -36,8 +36,11 @@ function ControlButton(props) {
 
 export default function ControlBar(props) {
   const {
-    resetPanAndZoom,
+    idScan,
+    totalIdScan,
+    setResetPanAndZoom,
     displayResetButton,
+    setDisplayResetButton,
     previousLink,
     nextLink,
     goNextLink,
@@ -71,18 +74,37 @@ export default function ControlBar(props) {
           </ControlButton>
         )}
       </Grid>
-      <Grid
-        item
-        style={{ visibility: displayResetButton ? "inherit" : "hidden" }}
-      >
-        <ControlButton
-          onClick={(_) => {
-            resetPanAndZoom();
-          }}
-        >
-          <RotateLeftRoundedIcon fontSize="large" />
-        </ControlButton>
-      </Grid>
+      {displayResetButton ? (
+        <Grid item>
+          <ControlButton
+            onClick={() => {
+              setResetPanAndZoom(true);
+              setDisplayResetButton(false);
+            }}
+          >
+            <RotateLeftRoundedIcon fontSize="large" />
+          </ControlButton>
+        </Grid>
+      ) : (
+        <Grid item>
+          <Typography
+            variant="subtitle1"
+            style={{
+              color: "white",
+              textAlign: "end",
+              borderRadius: "100px",
+              borderColor: "rgb(255, 255, 255)",
+              borderWidth: "1px",
+              borderStyle: "groove",
+              fontSize: "0.7rem",
+              lineHeight: "1",
+              padding: "0.2rem 0.75rem",
+            }}
+          >
+            {`${Number(idScan) + 1} / ${totalIdScan}`}
+          </Typography>
+        </Grid>
+      )}
       <Grid item>
         {nextLink !== null && (
           <ControlButton

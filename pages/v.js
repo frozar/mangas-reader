@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import _ from "lodash";
-import { useSpring } from "react-spring";
 import { Helmet } from "react-helmet";
 
 import {
@@ -15,7 +14,6 @@ import { makeStyles } from "@material-ui/core/styles";
 import { getMangaChapters } from "../src/db";
 import TopBar from "../src/scanViewer/TopBar";
 import DisplayImage from "../src/scanViewer/DisplayImage";
-import ImageCaption from "../src/scanViewer/ImageCaption";
 import ControlBar from "../src/scanViewer/ControlBar";
 
 import titleCase from "../utils/titleCase";
@@ -259,13 +257,47 @@ function populateCacheImages(url) {
   }
 }
 
+function goToLink(
+  link,
+  idChapter,
+  idScan,
+  state,
+  setState,
+  setResetPanAndZoom,
+  setDisplayResetButton,
+  setLoading,
+  setDisplayFlashScreen,
+  duringFlashScreenAnimation
+) {
+  if (!isUndefinedOrNull(link)) {
+    setState({
+      ...state,
+      idChapter: idChapter,
+      idScan: idScan,
+    });
+
+    setResetPanAndZoom(true);
+    setDisplayResetButton(false);
+    window.history.replaceState(
+      { page: link },
+      `Manga ${state.idManga} - ${idChapter} ${idScan}`,
+      link
+    );
+    setLoading(true);
+  } else {
+    setDisplayFlashScreen(true);
+    setResetPanAndZoom(true);
+    setTimeout(() => {
+      duringFlashScreenAnimation();
+    }, 0);
+  }
+}
+
 function ViewDetail() {
   // Initially, retrieve input parameters from the route.
   const params = useParams();
 
   const classes = useStyles();
-
-  const flashScreen = useRef(null);
 
   if (
     isUndefinedOrNull(params.idManga) ||
@@ -281,6 +313,8 @@ function ViewDetail() {
     idChapter: null,
     idScan: null,
   });
+
+  const flashScreen = useRef(null);
 
   const [loading, setLoading] = useState(true);
   const [displayFlashScreen, setDisplayFlashScreen] = useState(false);
@@ -362,45 +396,36 @@ function ViewDetail() {
 
   const [displayResetButton, setDisplayResetButton] = useState(false);
 
-  const [{ x, y, zoom, scale }, set] = useSpring(() => ({
-    x: 0,
-    y: 0,
-    zoom: 0,
-    scale: 1,
-    config: { mass: 5, tension: 1350, friction: 150 },
-  }));
-
-  const resetPanAndZoom = useCallback(() => {
-    set.start({ x: 0, y: 0, zoom: 0, scale: 1 });
-    setDisplayResetButton(false);
-  }, [set]);
+  const [resetPanAndZoom, setResetPanAndZoom] = useState(false);
 
   const goPreviousLink = useCallback(() => {
-    if (!isUndefinedOrNull(previousLink)) {
-      setState({
-        ...state,
-        idChapter: previousIdChapter,
-        idScan: previousIdScan,
-      });
-      resetPanAndZoom();
-      window.history.replaceState(
-        { page: previousLink },
-        `Manga ${state.idManga} - ${previousIdChapter} ${previousIdScan}`,
-        previousLink
-      );
-    }
+    goToLink(
+      previousLink,
+      previousIdChapter,
+      previousIdScan,
+      state,
+      setState,
+      setResetPanAndZoom,
+      setDisplayResetButton,
+      setLoading,
+      setDisplayFlashScreen,
+      duringFlashScreenAnimation
+    );
   }, [previousLink, previousIdChapter, previousIdScan]);
 
   const goNextLink = useCallback(() => {
-    if (!isUndefinedOrNull(nextLink)) {
-      setState({ ...state, idChapter: nextIdChapter, idScan: nextIdScan });
-      resetPanAndZoom();
-      window.history.replaceState(
-        { page: nextLink },
-        `Manga ${state.idManga} - ${nextIdChapter} ${nextIdScan}`,
-        nextLink
-      );
-    }
+    goToLink(
+      nextLink,
+      nextIdChapter,
+      nextIdScan,
+      state,
+      setState,
+      setResetPanAndZoom,
+      setDisplayResetButton,
+      setLoading,
+      setDisplayFlashScreen,
+      duringFlashScreenAnimation
+    );
   }, [nextLink, nextIdChapter, nextIdScan]);
 
   // Replace the URL without using the React 'history' object, in a hacky way :
@@ -410,25 +435,9 @@ function ViewDetail() {
   const handleKeyDown = useCallback(
     (evt) => {
       if (evt.key === "ArrowLeft") {
-        if (!isUndefinedOrNull(previousLink)) {
-          goPreviousLink();
-          setLoading(true);
-        } else {
-          setDisplayFlashScreen(true);
-          setTimeout(() => {
-            duringFlashScreenAnimation();
-          }, 0);
-        }
+        goPreviousLink();
       } else if (evt.key === "ArrowRight") {
-        if (!isUndefinedOrNull(nextLink)) {
-          goNextLink();
-          setLoading(true);
-        } else {
-          setDisplayFlashScreen(true);
-          setTimeout(() => {
-            duringFlashScreenAnimation();
-          }, 0);
-        }
+        goNextLink();
       } else if (evt.key === "f") {
         if (!document.fullscreenElement) {
           document.documentElement.requestFullscreen();
@@ -454,18 +463,20 @@ function ViewDetail() {
     };
   }, [handleKeyDown]);
 
-  const goScanAddress = useCallback((idManga_, idChapter_, idScan_) => {
-    // setIdChapter(idChapter_);
-    // setIdScan(idScan_);
-    setState({ ...state, idChapter: idChapter_, idScan: idScan_ });
-    resetPanAndZoom();
-    const newLink = computeLink(idManga_, idChapter_, idScan_);
-    window.history.replaceState(
-      { page: newLink },
-      `Manga ${idManga_} - ${idChapter_} ${idScan_}`,
-      newLink
-    );
-  }, []);
+  const goScanAddress = useCallback(
+    (idManga_, idChapter_, idScan_) => {
+      setState({ ...state, idChapter: idChapter_, idScan: idScan_ });
+      setResetPanAndZoom(true);
+      setDisplayResetButton(false);
+      const newLink = computeLink(idManga_, idChapter_, idScan_);
+      window.history.replaceState(
+        { page: newLink },
+        `Manga ${idManga_} - ${idChapter_} ${idScan_}`,
+        newLink
+      );
+    },
+    [state]
+  );
 
   const duringFlashScreenAnimation = () => {
     const flashScreenRef = flashScreen.current;
@@ -613,52 +624,28 @@ function ViewDetail() {
         />
         <DisplayImage
           imageURL={imageURL}
-          set={set}
+          displayResetButton={displayResetButton}
           setDisplayResetButton={setDisplayResetButton}
-          springDict={{ x, y, zoom, scale }}
+          resetPanAndZoom={resetPanAndZoom}
+          setResetPanAndZoom={setResetPanAndZoom}
           loading={loading}
           setLoading={setLoading}
-        />
-        <ImageCaption
-          displayResetButton={displayResetButton}
-          idScan={state.idScan}
-          totalIdScan={imagesURL.length}
+          goPreviousLink={goPreviousLink}
+          goNextLink={goNextLink}
         />
         <ControlBar
-          resetPanAndZoom={resetPanAndZoom}
+          idScan={state.idScan}
+          totalIdScan={imagesURL.length}
+          setResetPanAndZoom={setResetPanAndZoom}
           displayResetButton={displayResetButton}
+          setDisplayResetButton={setDisplayResetButton}
           previousLink={previousLink}
           nextLink={nextLink}
           goNextLink={goNextLink}
           goPreviousLink={goPreviousLink}
         />
+        <div style={{ marginBottom: "5em" }} />
       </>
     );
   }
-}
-
-{
-  /* <div style={{ color: "white" }}>
-  <h3>
-    ID: params {params.idManga} {params.idChapter} {params.idScan}
-  </h3>
-  <h3>
-    ID: local variable {idManga} {idChapter} {idScan}
-  </h3>
-  <h3>previousLink: {previousLink}</h3>
-  <h3>nextLink: {nextLink}</h3>
-  <h3>
-    imagesURL:
-    <ul>
-      {imagesURL.map((url) => {
-        return <li key={url}>{url}</li>;
-      })}
-    </ul>
-  </h3>
-  <h3>imageURL: {imageURL}</h3>
-  <h3>previousIdChapter: {previousIdChapter}</h3>
-  <h3>previousIdScan: {previousIdScan}</h3>
-  <h3>nextIdChapter: {nextIdChapter}</h3>
-  <h3>nextIdScan: {nextIdScan}</h3>
-</div> */
 }
